@@ -851,3 +851,58 @@ render();
 
 </body>
   </html> 
+/* SOL YAN MENÜ */
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:60px;
+  z-index:100;
+}
+
+nav{
+  position:fixed;
+  top:60px;
+  left:0;
+  bottom:0;
+  width:150px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:10px;
+  overflow-y:auto;
+  background:#111827;
+  z-index:99;
+}
+
+nav button{
+  width:100%;
+  text-align:left;
+  white-space:normal;
+  padding:12px 8px;
+}
+
+main{
+  margin-left:150px;
+  margin-top:60px;
+  max-width:none;
+  padding:15px;
+}
+
+@media(max-width:600px){
+  nav{
+    width:135px;
+  }
+
+  nav button{
+    font-size:12px;
+    padding:11px 7px;
+  }
+
+  main{
+    margin-left:135px;
+    margin-top:60px;
+    padding:10px;
+  }
+}
