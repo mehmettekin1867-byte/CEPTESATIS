@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+ <!doctype html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cepte Satış</title>
 
 <style>
@@ -13,55 +13,135 @@
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#0b1120;
-  color:#fff;
+  background:#f4f6f8;
+  color:#17202a;
 }
 
-/* SOL MENÜ */
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  bottom:0;
-  width:180px;
-  background:#111827;
-  padding:18px 10px;
-  overflow-y:auto;
-  z-index:100;
+button,input,select,textarea{
+  font:inherit;
 }
 
-.logo{
-  font-size:21px;
-  font-weight:bold;
-  margin-bottom:20px;
-  padding:8px;
-}
-
-.menu button{
-  width:100%;
-  display:block;
-  border:0;
-  border-radius:8px;
-  padding:12px 10px;
-  margin:5px 0;
-  text-align:left;
-  background:transparent;
-  color:#d1d5db;
-  font-size:14px;
+button{
   cursor:pointer;
 }
 
-.menu button:hover,
-.menu button.active{
+/* GİRİŞ */
+.login{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#111827,#2563eb);
+}
+
+.login-card{
+  background:white;
+  width:min(92%,400px);
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 20px 50px #0004;
+}
+
+.logo{
+  text-align:center;
+  font-size:32px;
+  font-weight:900;
+  margin-bottom:5px;
+}
+
+.logo span{
+  color:#2563eb;
+}
+
+.login-card p{
+  text-align:center;
+  color:#64748b;
+}
+
+.field{
+  width:100%;
+  padding:12px;
+  border:1px solid #d8dee8;
+  border-radius:10px;
+  margin:7px 0;
+}
+
+.btn{
+  border:0;
+  background:#2563eb;
+  color:white;
+  padding:12px 16px;
+  border-radius:10px;
+  font-weight:bold;
+}
+
+.btn:hover{
+  background:#1d4ed8;
+}
+
+.btn-danger{
+  background:#dc2626;
+}
+
+.btn-green{
+  background:#16a34a;
+}
+
+/* UYGULAMA */
+#app{
+  display:none;
+  min-height:100vh;
+}
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:230px;
+  background:#111827;
+  color:white;
+  padding:20px 12px;
+}
+
+.side-logo{
+  font-size:24px;
+  font-weight:900;
+  padding:10px;
+  margin-bottom:20px;
+}
+
+.side-logo span{
+  color:#60a5fa;
+}
+
+.menu-btn{
+  display:block;
+  width:100%;
+  text-align:left;
+  border:0;
+  color:#dbeafe;
+  background:transparent;
+  padding:13px 14px;
+  border-radius:10px;
+  margin-bottom:6px;
+}
+
+.menu-btn:hover,
+.menu-btn.active{
   background:#2563eb;
   color:white;
 }
 
-/* SAYFA */
-.main{
-  margin-left:180px;
+.content{
+  margin-left:230px;
   padding:25px;
-  min-height:100vh;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
 }
 
 .page{
@@ -72,40 +152,12 @@ body{
   display:block;
 }
 
-h1{
-  margin-top:0;
-}
-
-.muted{
-  color:#94a3b8;
-}
-
-/* KARTLAR */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-}
-
 .card{
-  background:#1e293b;
+  background:white;
+  border-radius:16px;
   padding:20px;
-  border-radius:15px;
-  min-height:110px;
-}
-
-.card b{
-  display:block;
-  font-size:28px;
-  margin-top:15px;
-}
-
-.panel{
-  background:#1e293b;
-  padding:18px;
-  border-radius:14px;
-  margin-top:18px;
-  overflow:auto;
+  margin-bottom:18px;
+  box-shadow:0 5px 20px #00000010;
 }
 
 .grid{
@@ -114,1250 +166,49 @@ h1{
   gap:12px;
 }
 
-label{
-  font-size:13px;
-}
-
-input,
-select,
-textarea{
-  width:100%;
-  padding:11px;
-  margin-top:6px;
-  margin-bottom:10px;
-  border:1px solid #475569;
-  border-radius:8px;
-  background:#0f172a;
-  color:white;
-}
-
-.btn{
-  border:0;
-  border-radius:8px;
-  padding:11px 15px;
-  background:#2563eb;
-  color:white;
-  cursor:pointer;
-}
-
-.btn.red{
-  background:#dc2626;
-}
-
-.btn.gray{
-  background:#64748b;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:18px;
-  min-width:600px;
-}
-
-th,
-td{
-  padding:10px;
-  text-align:left;
-  border-bottom:1px solid #334155;
-}
-
-th{
-  background:#111827;
-}
-
-/* GİRİŞ */
-.login-screen{
-  position:fixed;
-  inset:0;
-  background:#0b1120;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-}
-
-.login-box{
-  width:100%;
-  max-width:380px;
-  background:#1e293b;
-  padding:25px;
-  border-radius:18px;
-}
-
-.login-logo{
-  text-align:center;
-  font-size:30px;
-  font-weight:bold;
-  margin-bottom:20px;
-}
-
-/* TELEFON */
-@media(max-width:600px){
-
-  .sidebar{
-    width:135px;
-    padding:12px 7px;
-  }
-
-  .logo{
-    font-size:16px;
-    padding:5px;
-  }
-
-  .menu button{
-    font-size:12px;
-    padding:10px 7px;
-  }
-
-  .main{
-    margin-left:135px;
-    padding:12px;
-  }
-
-  .cards{
-    grid-template-columns:1fr;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  h1{
-    font-size:24px;
-  }
-
-  .card,
-  .panel{
-    padding:14px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<!-- GİRİŞ -->
-<div id="loginScreen" class="login-screen">
-  <div class="login-box">
-
-    <div class="login-logo">
-      📱 Cepte Satış
-    </div>
-
-    <label>Kullanıcı Adı</label>
-    <input id="loginUser" value="admin">
-
-    <label>Şifre</label>
-    <input id="loginPass" type="password" value="1234">
-
-    <button class="btn" onclick="login()">
-      Giriş Yap
-    </button>
-
-    <p id="loginError" style="color:#f87171"></p>
-
-  </div>
-</div>
-
-
-<!-- SOL MENÜ -->
-<div class="sidebar">
-
-  <div class="logo">
-    📱 Cepte Satış
-  </div>
-
-  <div class="menu">
-
-    <button class="active" onclick="openPage('home',this)">
-      🏠 Ana Sayfa
-    </button>
-
-    <button onclick="openPage('products',this)">
-      📦 Ürün / Stok
-    </button>
-
-    <button onclick="openPage('sales',this)">
-      🛒 Satış
-    </button>
-
-    <button onclick="openPage('customers',this)">
-      👥 Cari
-    </button>
-
-    <button onclick="openPage('offers',this)">
-      🧾 Teklif
-    </button>
-
-    <button onclick="openPage('service',this)">
-      🔧 Teknik Servis
-    </button>
-
-    <button onclick="openPage('dealers',this)">
-      🏪 Alt Bayi
-    </button>
-
-    <button onclick="openPage('settings',this)">
-      ⚙️ Ayarlar
-    </button>
-
-  </div>
-</div>
-
-
-<!-- İÇERİK -->
-<div class="main">
-
-<!-- ANA SAYFA -->
-<section id="home" class="page active">
-
-<h1>Ana Sayfa</h1>
-
-<p class="muted">
-Veriler bu tarayıcıda saklanır.
-</p>
-
-<div class="cards">
-
-<div class="card">
-Toplam Satış
-<b id="totalRevenue">₺0</b>
-</div>
-
-<div class="card">
-Ürün Sayısı
-<b id="productCount">0</b>
-</div>
-
-<div class="card">
-Cari Sayısı
-<b id="customerCount">0</b>
-</div>
-
-<div class="card">
-Servis Kaydı
-<b id="serviceCount">0</b>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ÜRÜNLER -->
-<section id="products" class="page">
-
-<h1>Ürün / Stok</h1>
-
-<div class="panel">
-
-<h2>Ürün Ekle</h2>
-
-<div class="grid">
-
-<div>
-<label>Ürün Adı</label>
-<input id="productName">
-</div>
-
-<div>
-<label>Kategori</label>
-<input id="productCategory">
-</div>
-
-<div>
-<label>Alış Fiyatı</label>
-<input id="productBuy" type="number">
-</div>
-
-<div>
-<label>Satış Fiyatı</label>
-<input id="productPrice" type="number">
-</div>
-
-<div>
-<label>Stok</label>
-<input id="productStock" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="addProduct()">
-Ürün Ekle
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Ürün</th>
-<th>Kategori</th>
-<th>Alış</th>
-<th>Satış</th>
-<th>Stok</th>
-<th>İşlem</th>
-</tr>
-</thead>
-
-<tbody id="productTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- SATIŞ -->
-<section id="sales" class="page">
-
-<h1>Satış</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Cari</label>
-<select id="saleCustomer"></select>
-</div>
-
-<div>
-<label>Ürün</label>
-<select id="saleProduct" onchange="saleProductChanged()"></select>
-</div>
-
-<div>
-<label>Adet</label>
-<input id="saleQty" type="number" value="1">
-</div>
-
-<div>
-<label>Satış Fiyatı</label>
-<input id="salePrice" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="makeSale()">
-Satışı Kaydet
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Tarih</th>
-<th>Cari</th>
-<th>Ürün</th>
-<th>Adet</th>
-<th>Tutar</th>
-</tr>
-</thead>
-
-<tbody id="salesTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- CARİ -->
-<section id="customers" class="page">
-
-<h1>Cari</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Ad / Firma</label>
-<input id="customerName">
-</div>
-
-<div>
-<label>Telefon</label>
-<input id="customerPhone">
-</div>
-
-</div>
-
-<button class="btn" onclick="addCustomer()">
-Cari Ekle
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Ad / Firma</th>
-<th>Telefon</th>
-<th>İşlem</th>
-</tr>
-</thead>
-
-<tbody id="customerTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- TEKLİF -->
-<section id="offers" class="page">
-
-<h1>Teklif Hazırla</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Müşteri</label>
-<select id="offerCustomer"></select>
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cepte Satış</title>
-
-<style>
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#0b1120;
-  color:#fff;
-}
-
-/* SOL MENÜ */
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  bottom:0;
-  width:180px;
-  background:#111827;
-  padding:18px 10px;
-  overflow-y:auto;
-  z-index:100;
-}
-
-.logo{
-  font-size:21px;
-  font-weight:bold;
-  margin-bottom:20px;
-  padding:8px;
-}
-
-.menu button{
-  width:100%;
-  display:block;
-  border:0;
-  border-radius:8px;
-  padding:12px 10px;
-  margin:5px 0;
-  text-align:left;
-  background:transparent;
-  color:#d1d5db;
-  font-size:14px;
-  cursor:pointer;
-}
-
-.menu button:hover,
-.menu button.active{
-  background:#2563eb;
-  color:white;
-}
-
-/* SAYFA */
-.main{
-  margin-left:180px;
-  padding:25px;
-  min-height:100vh;
-}
-
-.page{
-  display:none;
-}
-
-.page.active{
-  display:block;
-}
-
-h1{
-  margin-top:0;
-}
-
-.muted{
-  color:#94a3b8;
-}
-
-/* KARTLAR */
-.cards{
+.grid-3{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-}
-
-.card{
-  background:#1e293b;
-  padding:20px;
-  border-radius:15px;
-  min-height:110px;
-}
-
-.card b{
-  display:block;
-  font-size:28px;
-  margin-top:15px;
-}
-
-.panel{
-  background:#1e293b;
-  padding:18px;
-  border-radius:14px;
-  margin-top:18px;
-  overflow:auto;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:12px;
 }
 
-label{
-  font-size:13px;
+.stat{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 5px 20px #00000010;
 }
 
-input,
-select,
-textarea{
-  width:100%;
-  padding:11px;
-  margin-top:6px;
-  margin-bottom:10px;
-  border:1px solid #475569;
-  border-radius:8px;
-  background:#0f172a;
-  color:white;
-}
-
-.btn{
-  border:0;
-  border-radius:8px;
-  padding:11px 15px;
-  background:#2563eb;
-  color:white;
-  cursor:pointer;
-}
-
-.btn.red{
-  background:#dc2626;
-}
-
-.btn.gray{
-  background:#64748b;
+.stat strong{
+  font-size:28px;
+  display:block;
+  margin-top:8px;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:18px;
-  min-width:600px;
+  margin-top:15px;
 }
 
-th,
-td{
-  padding:10px;
+th,td{
+  padding:11px;
+  border-bottom:1px solid #e5e7eb;
   text-align:left;
-  border-bottom:1px solid #334155;
 }
 
 th{
-  background:#111827;
+  background:#f8fafc;
 }
 
-/* GİRİŞ */
-.login-screen{
-  position:fixed;
-  inset:0;
-  background:#0b1120;
-  z-index:9999;
+.actions{
   display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
+  gap:6px;
 }
 
-.login-box{
-  width:100%;
-  max-width:380px;
-  background:#1e293b;
-  padding:25px;
-  border-radius:18px;
-}
-
-.login-logo{
-  text-align:center;
-  font-size:30px;
-  font-weight:bold;
-  margin-bottom:20px;
-}
-
-/* TELEFON */
-@media(max-width:600px){
-
-  .sidebar{
-    width:135px;
-    padding:12px 7px;
-  }
-
-  .logo{
-    font-size:16px;
-    padding:5px;
-  }
-
-  .menu button{
-    font-size:12px;
-    padding:10px 7px;
-  }
-
-  .main{
-    margin-left:135px;
-    padding:12px;
-  }
-
-  .cards{
-    grid-template-columns:1fr;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  h1{
-    font-size:24px;
-  }
-
-  .card,
-  .panel{
-    padding:14px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<!-- GİRİŞ -->
-<div id="loginScreen" class="login-screen">
-  <div class="login-box">
-
-    <div class="login-logo">
-      📱 Cepte Satış
-    </div>
-
-    <label>Kullanıcı Adı</label>
-    <input id="loginUser" value="admin">
-
-    <label>Şifre</label>
-    <input id="loginPass" type="password" value="1234">
-
-    <button class="btn" onclick="login()">
-      Giriş Yap
-    </button>
-
-    <p id="loginError" style="color:#f87171"></p>
-
-  </div>
-</div>
-
-
-<!-- SOL MENÜ -->
-<div class="sidebar">
-
-  <div class="logo">
-    📱 Cepte Satış
-  </div>
-
-  <div class="menu">
-
-    <button class="active" onclick="openPage('home',this)">
-      🏠 Ana Sayfa
-    </button>
-
-    <button onclick="openPage('products',this)">
-      📦 Ürün / Stok
-    </button>
-
-    <button onclick="openPage('sales',this)">
-      🛒 Satış
-    </button>
-
-    <button onclick="openPage('customers',this)">
-      👥 Cari
-    </button>
-
-    <button onclick="openPage('offers',this)">
-      🧾 Teklif
-    </button>
-
-    <button onclick="openPage('service',this)">
-      🔧 Teknik Servis
-    </button>
-
-    <button onclick="openPage('dealers',this)">
-      🏪 Alt Bayi
-    </button>
-
-    <button onclick="openPage('settings',this)">
-      ⚙️ Ayarlar
-    </button>
-
-  </div>
-</div>
-
-
-<!-- İÇERİK -->
-<div class="main">
-
-<!-- ANA SAYFA -->
-<section id="home" class="page active">
-
-<h1>Ana Sayfa</h1>
-
-<p class="muted">
-Veriler bu tarayıcıda saklanır.
-</p>
-
-<div class="cards">
-
-<div class="card">
-Toplam Satış
-<b id="totalRevenue">₺0</b>
-</div>
-
-<div class="card">
-Ürün Sayısı
-<b id="productCount">0</b>
-</div>
-
-<div class="card">
-Cari Sayısı
-<b id="customerCount">0</b>
-</div>
-
-<div class="card">
-Servis Kaydı
-<b id="serviceCount">0</b>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ÜRÜNLER -->
-<section id="products" class="page">
-
-<h1>Ürün / Stok</h1>
-
-<div class="panel">
-
-<h2>Ürün Ekle</h2>
-
-<div class="grid">
-
-<div>
-<label>Ürün Adı</label>
-<input id="productName">
-</div>
-
-<div>
-<label>Kategori</label>
-<input id="productCategory">
-</div>
-
-<div>
-<label>Alış Fiyatı</label>
-<input id="productBuy" type="number">
-</div>
-
-<div>
-<label>Satış Fiyatı</label>
-<input id="productPrice" type="number">
-</div>
-
-<div>
-<label>Stok</label>
-<input id="productStock" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="addProduct()">
-Ürün Ekle
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Ürün</th>
-<th>Kategori</th>
-<th>Alış</th>
-<th>Satış</th>
-<th>Stok</th>
-<th>İşlem</th>
-</tr>
-</thead>
-
-<tbody id="productTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- SATIŞ -->
-<section id="sales" class="page">
-
-<h1>Satış</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Cari</label>
-<select id="saleCustomer"></select>
-</div>
-
-<div>
-<label>Ürün</label>
-<select id="saleProduct" onchange="saleProductChanged()"></select>
-</div>
-
-<div>
-<label>Adet</label>
-<input id="saleQty" type="number" value="1">
-</div>
-
-<div>
-<label>Satış Fiyatı</label>
-<input id="salePrice" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="makeSale()">
-Satışı Kaydet
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Tarih</th>
-<th>Cari</th>
-<th>Ürün</th>
-<th>Adet</th>
-<th>Tutar</th>
-</tr>
-</thead>
-
-<tbody id="salesTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- CARİ -->
-<section id="customers" class="page">
-
-<h1>Cari</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Ad / Firma</label>
-<input id="customerName">
-</div>
-
-<div>
-<label>Telefon</label>
-<input id="customerPhone">
-</div>
-
-</div>
-
-<button class="btn" onclick="addCustomer()">
-Cari Ekle
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Ad / Firma</th>
-<th>Telefon</th>
-<th>İşlem</th>
-</tr>
-</thead>
-
-<tbody id="customerTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- TEKLİF -->
-<section id="offers" class="page">
-
-<h1>Teklif Hazırla</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Müşteri</label>
-<select id="offerCustomer"></select>
-</div>
-
-<div>
-<label>Ürün</label>
-<select id="offerProduct"></select>
-</div>
-
-<div>
-<label>Adet</label>
-<input id="offerQty" value="1" type="number">
-</div>
-
-<div>
-<label>İskonto %</label>
-<input id="offerDiscount" value="0" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="calculateOffer()">
-Teklif Hesapla
-</button>
-
-<h2 id="offerTotal">
-Toplam: ₺0
-</h2>
-
-<button class="btn gray" onclick="window.print()">
-Yazdır / PDF
-</button>
-
-</div>
-
-</section>
-
-
-<!-- TEKNİK SERVİS -->
-<section id="service" class="page">
-
-<h1>Teknik Servis</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Müşteri</label>
-<select id="serviceCustomer"></select>
-</div>
-
-<div>
-<label>Cihaz</label>
-<input id="serviceDevice">
-</div>
-
-<div>
-<label>Marka</label>
-<input id="serviceBrand">
-</div>
-
-<div>
-<label>Model</label>
-<input id="serviceModel">
-</div>
-
-<div>
-<label>Arıza</label>
-<input id="serviceFault">
-</div>
-
-<div>
-<label>Teslim Süresi</label>
-
-<select id="serviceDays">
-
-<option value="10">10 İş Günü</option>
-<option value="20">20 İş Günü</option>
-<option value="30">30 İş Günü</option>
-
-</select>
-
-</div>
-
-<div>
-<label>Ücret</label>
-<input id="servicePrice" type="number">
-</div>
-
-<div>
-<label>Durum</label>
-
-<select id="serviceStatus">
-
-<option>Bekliyor</option>
-<option>İşlemde</option>
-<option>Hazır</option>
-<option>Teslim Edildi</option>
-<option>İade</option>
-
-</select>
-
-</div>
-
-</div>
-
-<button class="btn" onclick="addService()">
-Servis Kaydı Ekle
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Müşteri</th>
-<th>Cihaz</th>
-<th>Marka</th>
-<th>Model</th>
-<th>Arıza</th>
-<th>Teslim</th>
-<th>Ücret</th>
-<th>Durum</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody id="serviceTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- ALT BAYİ -->
-<section id="dealers" class="page">
-
-<h1>Alt Bayiler</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Bayi Adı</label>
-<input id="dealerName">
-</div>
-
-<div>
-<label>Yetkili</label>
-<input id="dealerOwner">
-</div>
-
-<div>
-<label>Telefon</label>
-<input id="dealerPhone">
-</div>
-
-<div>
-<label>Kullanıcı Adı</label>
-<input id="dealerUser">
-</div>
-
-<div>
-<label>Şifre</label>
-<input id="dealerPassword" type="password">
-</div>
-
-</div>
-
-<button class="btn" onclick="addDealer()">
-Alt Bayi Oluştur
-</button>
-
-<table>
-
-<thead>
-<tr>
-<th>Bayi</th>
-<th>Yetkili</th>
-<th>Telefon</th>
-<th>Kullanıcı</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody id="dealerTable"></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<!-- AYARLAR -->
-<section id="settings" class="page">
-
-<h1>Ayarlar</h1>
-
-<div class="panel">
-
-<h2>Giriş Bilgileri</h2>
-
-<label>Yeni Kullanıcı Adı</label>
-<input id="newUsername">
-
-<label>Yeni Şifre</label>
-<input id="newPassword" type="password">
-
-<button class="btn" onclick="savel</div>
-
-<div>
-<label>Ürün</label>
-<select id="offerProduct"></select>
-</div>
-
-<div>
-<label>Adet</label>
-<input id="offerQty" value="1" type="number">
-</div>
-
-<div>
-<label>İskonto %</label>
-<input id="offerDiscount" value="0" type="number">
-</div>
-
-</div>
-
-<button class="btn" onclick="calculateOffer()">
-Teklif Hesapla
-</button>
-
-<h2 id="offerTotal">
-Toplam: ₺0
-</h2>
-
-<button class="btn gray" onclick="window.print()">
-Yazdır / PDF
-</button>
-
-</div>
-
-</section>
-
-
-<!-- TEKNİK SERVİS -->
-<section id="service" class="page">
-
-<h1>Teknik Servis</h1>
-
-<div class="panel">
-
-<div class="grid">
-
-<div>
-<label>Müşteri</label>
-<select id="serviceCustomer"></select>
-</div>
-
-<div>
-<label>Cihaz</label>
-<input id="serviceDevice">
-</div>
-
-<div>
-<label>Marka</label>
-<input id="serviceBrand">
-</div>
-
-<div>
-<label>Model</label>
-<input id="serviceModel">
-</div>
-
-<div>
-<label>Arıza</label>
-<input id="serviceFault">
-</div>
-
-<div>
-<label>Teslim Süresi</label>
-
-<select id="serviceDays">
-
-<option value="10">10 İş Günü</option>
-<option value="20">20 İş Günü</option>
-<option value="30">30 İş Günü</option>
-
-</select>
-
-</div>
-
-<div>
-<label>Ücret</label>
-<input id="servicePrice" type="number">
-</div>
-
-<div>
-<label>Durum</label>
-
-<select id="serviceStatus">
-
-<option>Bekliyor</option>
-<option>İşlemde</option>
-<option>Hazır</option>
-<option>Teslim Edildi</option>
-<option>İade</option>
-
-</select>
-
-</div>
-
-</div>
-
+.small-btn{
+  border:0;
+  border-radius:7px;
+  padding:7px 10px;
+  color:white;
+ 
