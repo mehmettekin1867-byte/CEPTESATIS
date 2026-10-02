@@ -632,6 +632,51 @@ serviceFault.value=serviceCustomModel.value="";let scd=document.getElementById("
 serviceWorkDays.value="10";updateServiceChoices();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";save()};
 if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
 }
+function editService(id){
+  let x=data.services.find(s=>s.id===id);
+  if(!x)return;
+
+  let customer=prompt("Müşteri / Cari:",x.customer||"");
+  if(customer===null)return;
+  let category=prompt("Kategori:",x.category||"Diğer");
+  if(category===null)return;
+  let brand=prompt("Marka:",x.brand||"");
+  if(brand===null)return;
+  let device=prompt("Cihaz / Ürün:",x.device||"");
+  if(device===null)return;
+  let model=prompt("Model:",x.model||"");
+  if(model===null)return;
+  let fault=prompt("Arıza / Yapılacak İşlem:",x.fault||"");
+  if(fault===null)return;
+  let workDays=prompt("Teslim süresi (iş günü):",x.workDays||10);
+  if(workDays===null)return;
+  let price=prompt("Servis ücreti:",x.price||0);
+  if(price===null)return;
+  let status=prompt("Durum: Bekliyor / İşlemde / Hazır / Teslim Edildi / İade",x.status||"Bekliyor");
+  if(status===null)return;
+
+  workDays=Number(workDays);
+  price=Number(String(price).replace(",","."));
+  if(!device.trim()||!model.trim()||!fault.trim())return alert("Cihaz, model ve arıza boş olamaz.");
+  if(!Number.isFinite(workDays)||workDays<1)return alert("Teslim süresini kontrol et.");
+  if(!Number.isFinite(price)||price<0)return alert("Servis ücretini kontrol et.");
+
+  const allowedStatus=["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"];
+  if(!allowedStatus.includes(status))status=x.status||"Bekliyor";
+
+  x.customer=customer.trim()||x.customer;
+  x.category=category.trim()||"Diğer";
+  x.brand=brand.trim();
+  x.device=device.trim();
+  x.model=model.trim();
+  x.fault=fault.trim();
+  x.workDays=workDays;
+  x.due=isoLocal(addBusinessDays(new Date(),workDays));
+  x.price=price;
+  x.status=status;
+  save();
+  alert("Teknik servis kaydı güncellendi.");
+}
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
 function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
 
@@ -669,7 +714,7 @@ saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCust
 serviceCustomer.innerHTML=co;
 previewServiceDue();
 updateServiceChoices();
-serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
+serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
 saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
