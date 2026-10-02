@@ -2,7 +2,8 @@ name: Build Cepte Satis APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
     paths:
       - "android-app/**"
       - ".github/workflows/build-apk.yml"
@@ -11,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,26 +24,15 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Locate Android SDK
-        run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> "$GITHUB_ENV"
-          SDKMANAGER="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | head -n 1)"
-          if [ -z "$SDKMANAGER" ]; then
-            echo "sdkmanager bulunamadi"
-            exit 1
-          fi
-          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
-
-      - name: Accept Android licenses
-        run: yes | "$SDKMANAGER" --licenses >/dev/null || true
-
-      - name: Install Android 35
-        run: "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-
       - name: Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
+
+      - name: Android packages
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager --licenses >/dev/null || true
+          /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build APK
         working-directory: android-app
@@ -51,4 +43,3 @@ jobs:
         with:
           name: CepteSatis-APK
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
