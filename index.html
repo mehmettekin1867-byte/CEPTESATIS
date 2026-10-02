@@ -38,7 +38,7 @@ button{font-family:inherit}
 table button{background:#e8eefc;color:#1d4ed8;margin:2px 3px}
 table button.danger,.danger{background:#fee2e2;color:#b91c1c}
 table button:disabled,.btn:disabled{opacity:.5;cursor:not-allowed}
-.logo{display:flex;align-items:center;gap:9px;padding-bottom:8px}
+.logo{display:flex;align-items:center;gap:9px;padding-bottom:8px}.login-brand{font-size:32px;font-weight:900;letter-spacing:.8px;color:#2563eb;text-align:center;margin:0 auto 18px}.login-brand span{color:#111827}.main-brand{font-size:20px;font-weight:900;letter-spacing:.5px;color:#111827;margin-right:auto}body.dark .login-brand span,body.dark .main-brand{color:#f3f4f6}
 .logo img{width:38px;height:38px;object-fit:contain;border-radius:9px;background:white;display:none}
 .sidebar-welcome{padding:0 10px 14px;color:#d1d5db;font-size:11px;line-height:1.35}
 .sidebar-welcome b{display:block;color:white;font-size:14px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
@@ -64,8 +64,8 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 .panel{overflow-x:auto}
 @media(max-width:800px){
   .side{width:86px;padding:14px 8px}
-  .logo{justify-content:center;padding:4px 0 8px}
-  .logo span{display:none}.logo:after{content:"US";font-size:20px;font-weight:900}
+  .logo{justify-content:center;flex-direction:column;padding:4px 0 8px}
+  .logo span{display:block;font-size:11px;line-height:1.1;text-align:center;white-space:normal}.logo:after{content:none}
   .logo img{width:34px;height:34px}
   .sidebar-welcome{padding:0 3px 10px;text-align:center;font-size:9px}
   .sidebar-welcome b{font-size:10px;white-space:normal}
@@ -84,7 +84,7 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
-<div class="login-box"><div style="text-align:center;margin:0 auto 18px;font-size:32px;font-weight:900;letter-spacing:.8px;color:#2563eb">CEPTE <span style="color:#111827">SATIŞ</span></div><p class="muted" style="text-align:center">Kullanıcı girişi</p>
+<div class="login-box"><div class="login-brand">CEPTE <span>SATIŞ</span></div><p class="muted" style="text-align:center">Kullanıcı girişi</p>
 <label>Kullanıcı Adı</label><input id="loginUser" autocomplete="username">
 <label>Şifre</label><div style="position:relative"><input id="loginPass" type="password" autocomplete="current-password" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('loginPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div>
 <button class="btn" type="button" id="loginBtn">Giriş Yap</button><div id="loginError" class="login-error"></div>
@@ -108,7 +108,7 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 </div>
 </aside>
 <main class="main">
-<div class="topbar"><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
+<div class="topbar"><div class="main-brand">CEPTE SATIŞ</div><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
 <div id="quickSettings" class="quick-settings">
   <h2 style="margin-top:0">Hızlı Ayarlar</h2>
   <div class="quick-grid">
