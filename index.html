@@ -257,6 +257,7 @@ function logout(){sessionStorage.removeItem("ceptesatis_login");sessionStorage.r
 function saveLoginSettings(){if(!requireManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
 function addDealer(){if(!requireManager())return;let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value||"personel";if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");if(data.dealers.some(x=>String(x.user||"").toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role});dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";save()}
 function delDealer(id){if(!requireManager())return;if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
+function editDealerPassword(id){if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let p=prompt("Yeni şifreyi gir:");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");d.pass=p;save();alert("Alt bayi şifresi güncellendi.")}
 
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active")});
 function addGroup(){let g=newGroup.value.trim();if(!g)return alert("Grup adı gir.");if(g.toLowerCase()=="genel"||data.groups.some(x=>x.toLowerCase()==g.toLowerCase()))return alert("Bu grup zaten var.");data.groups.push(g);newGroup.value="";save()}
@@ -409,7 +410,7 @@ function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.$
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td><td>${x.role==="manager"?"Yönetici":"Personel"}</td><td><button class="danger" onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td><td>${x.role==="manager"?"Yönetici":"Personel"}</td><td><button onclick="editDealerPassword(${x.id})">Şifre Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
 
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");
