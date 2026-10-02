@@ -133,7 +133,14 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 
 <section id="products" class="page"><h1>Ürünler</h1>
 <div class="panel"><div class="grid">
-<div><label>Ürün Kodu / Barkod</label><input id="pCode" placeholder="Örn: 8691234567890"></div>
+<div><label>Ürün Kodu / Barkod / QR</label>
+<input id="pCode" placeholder="Örn: 8691234567890">
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn" type="button" onclick="startProductScanner()">📷 QR / Barkod Tara</button>
+<button class="btn" type="button" onclick="document.getElementById('pCode').focus()">⌨️ Barkod Okuyucu</button>
+</div>
+<div class="camera-note">Telefon kamerasıyla QR/barkod tara veya USB/Bluetooth barkod okuyucuyu kullan.</div>
+</div>
 <div><label>Ürün Adı</label><input id="pName" placeholder="Ürün adı"></div>
 <div><label>Ürün Grubu / Kategori</label><select id="pGroup"><option value="Genel">Genel</option></select></div>
 <div><label>Alış Fiyatı (₺)</label><input id="pBuyPrice" type="number" min="0" step="0.01"></div>
@@ -142,7 +149,13 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <div><label>Birim</label><select id="pUnit"><option>Adet</option><option>Kutu</option><option>Paket</option><option>Kg</option><option>Metre</option><option>Litre</option></select></div>
 <div><label>Stok</label><input id="pStock" type="number" min="0"></div>
 <div><label>Ürün Fotoğrafı</label><input id="pImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kamerayı açarak fotoğraf çekebilirsin.</div></div>
-</div><button class="btn" onclick="addProduct()">Ürün Ekle</button>
+</div>
+<div id="productScannerPanel" style="display:none;margin:12px 0;padding:12px;border:1px solid #d1d5db;border-radius:14px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>QR / Barkod Tarayıcı</b><button class="btn red" type="button" onclick="stopProductScanner()">Kapat</button></div>
+<video id="productScannerVideo" playsinline autoplay muted style="width:100%;max-width:440px;border-radius:14px;margin-top:10px;background:#111"></video>
+<p id="productScannerStatus" class="muted">Kamerayı QR veya barkoda tut.</p>
+</div>
+<button class="btn" onclick="addProduct()">Ürün Ekle</button>
 <table><thead><tr><th>Resim</th><th>Kod</th><th>Ürün</th><th>Grup</th><th>Alış</th><th>Satış</th><th>KDV</th><th>Birim</th><th>Stok</th><th></th></tr></thead><tbody id="productRows"></tbody></table></div></section>
 
 <section id="groups" class="page"><h1>Ürün Grupları</h1>
@@ -184,7 +197,7 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <div class="panel"><div class="grid">
 <div><label>Müşteri</label><select id="serviceCustomer"></select></div>
 <div><label>Ürün Kategorisi</label>
-<select id="serviceCategory" onchange="updateServiceBrands();syncServiceProduct();syncServiceProduct()">
+<select id="serviceCategory" onchange="updateServiceChoices()">
 <option>Telefon</option><option>Tablet</option><option>Dizüstü Bilgisayar</option>
 <option>Masaüstü Bilgisayar</option><option>Televizyon</option><option>Monitör</option>
 <option>Yazıcı</option><option>Oyun Konsolu</option><option>Akıllı Saat</option>
@@ -192,10 +205,11 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <option>Diğer</option>
 </select></div>
 <div><label>Marka</label><select id="serviceBrand" onchange="updateServiceModels()"></select></div>
-<div><label>Cihaz / Ürün</label><input id="serviceDevice" placeholder="Kategoriye göre otomatik gelir"></div>
+<div><label>Cihaz / Ürün Türü</label><select id="serviceDevice" onchange="toggleServiceCustomDevice()"></select></div>
+<div id="serviceCustomDeviceWrap" style="display:none"><label>Cihaz Türünü Kendim Yazacağım</label><input id="serviceCustomDevice" placeholder="Cihaz türünü yaz"></div>
 <div><label>Cihaz Modeli</label><select id="serviceModel" onchange="toggleCustomModel()"></select></div>
 <div id="customModelWrap" style="display:none"><label>Modeli Kendim Yazacağım</label><input id="serviceCustomModel" placeholder="Model adını yaz"></div>
-<div><label>Arıza / Yapılacak İşlem</label><input id="serviceFault" placeholder="Arıza açıklaması"></div>
+<div><label>Arıza / Yapılacak İşlem</label><input id="serviceFault" list="serviceFaultOptions" placeholder="Kategoriye göre öneriler gelir"><datalist id="serviceFaultOptions"></datalist></div>
 <div><label>Teslim Süresi</label><select id="serviceWorkDays" onchange="previewServiceDue()">
 <option value="10">10 iş günü</option>
 <option value="20">20 iş günü</option>
@@ -275,6 +289,59 @@ function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
 function generateBarcode(){let prefix=(data.settings.barcodePrefix||"UST").replace(/\s+/g,"").toUpperCase();return prefix+String(Date.now()).slice(-9)}
+let productScannerStream=null,productScannerActive=false;
+function applyScannedProductData(raw){
+raw=String(raw||"").trim();if(!raw)return;
+document.getElementById("pCode").value=raw;
+try{
+  let obj=JSON.parse(raw);
+  if(obj&&typeof obj==="object"){
+    if(obj.code||obj.barcode||obj.qr) pCode.value=String(obj.code||obj.barcode||obj.qr);
+    if(obj.name||obj.product) pName.value=String(obj.name||obj.product);
+    if(obj.buyPrice!=null||obj.buy!=null) pBuyPrice.value=Number(obj.buyPrice??obj.buy)||0;
+    if(obj.price!=null||obj.salePrice!=null) pPrice.value=Number(obj.price??obj.salePrice)||0;
+    if(obj.stock!=null) pStock.value=Number(obj.stock)||0;
+    if(obj.vat!=null) pVat.value=String(obj.vat);
+    if(obj.unit) pUnit.value=String(obj.unit);
+  }
+}catch(e){}
+}
+async function startProductScanner(){
+let panel=document.getElementById("productScannerPanel"),video=document.getElementById("productScannerVideo"),status=document.getElementById("productScannerStatus");
+if(panel)panel.style.display="block";
+if(!navigator.mediaDevices?.getUserMedia){if(status)status.textContent="Bu cihazda kamera erişimi desteklenmiyor. Barkod okuyucu veya elle giriş kullan.";return}
+if(!("BarcodeDetector" in window)){if(status)status.textContent="Bu tarayıcı doğrudan QR/barkod taramayı desteklemiyor. Chrome'un güncel sürümünü veya barkod okuyucuyu kullan.";return}
+try{
+  productScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+  video.srcObject=productScannerStream;await video.play();
+  let formats=await BarcodeDetector.getSupportedFormats().catch(()=>[]);
+  let wanted=["qr_code","ean_13","ean_8","code_128","code_39","upc_a","upc_e","data_matrix"];
+  let supported=wanted.filter(x=>formats.includes(x));
+  let detector=new BarcodeDetector(supported.length?{formats:supported}:undefined);
+  productScannerActive=true;if(status)status.textContent="Tarama hazır. Kamerayı koda tut.";
+  const scan=async()=>{
+    if(!productScannerActive)return;
+    try{
+      let found=await detector.detect(video);
+      if(found&&found.length){
+        let raw=found[0].rawValue||"";
+        applyScannedProductData(raw);
+        if(status)status.textContent="Kod okundu: "+raw;
+        if(navigator.vibrate)navigator.vibrate(120);
+        setTimeout(stopProductScanner,350);return;
+      }
+    }catch(e){}
+    requestAnimationFrame(scan);
+  };
+  requestAnimationFrame(scan);
+}catch(e){if(status)status.textContent="Kamera açılamadı. Kamera iznini kontrol et."}
+}
+function stopProductScanner(){
+productScannerActive=false;
+if(productScannerStream){productScannerStream.getTracks().forEach(t=>t.stop());productScannerStream=null}
+let v=document.getElementById("productScannerVideo");if(v)v.srcObject=null;
+let p=document.getElementById("productScannerPanel");if(p)p.style.display="none";
+}
 function code128Svg(value){
 value=String(value||"").replace(/[^ -~]/g,"");if(!value)return"";
 const P=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
@@ -294,6 +361,15 @@ let svg=code128Svg(p.code);if(!svg)return alert("Barkod oluşturulamadı.");
 let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}<div class="price">${money(p.price)}</div></div>`).join("");
 let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
+}
+function printServiceBarcode(id){
+let s=data.services.find(x=>x.id===id);if(!s)return;
+let code=s.no||("SRV-"+String(s.id).slice(-6)),svg=code128Svg(code);if(!svg)return alert("Servis barkodu oluşturulamadı.");
+let count=Number(prompt("Kaç adet servis barkodu yazdırılsın?","1"));if(!Number.isFinite(count)||count<1)return;count=Math.min(100,Math.floor(count));
+let customer=String(s.customer||"").replace(/</g,"&lt;"),device=String((s.device||"")+" "+(s.model||"")).replace(/</g,"&lt;");
+let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${code} • ${customer}</div>${svg}<div class="device">${device}</div></div>`).join("");
+let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
 }
 function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode}
 function login(){
@@ -369,6 +445,46 @@ function editSale(id){if(!requireManager())return;let s=data.sales.find(x=>x.id=
 function calculateOffer(){let p=data.products.find(x=>x.id==offerProduct.value),q=+offerQty.value,d=+discount.value;if(!p)return alert("Ürün seç.");let t=p.price*q*(1-d/100);offerResult.textContent="Toplam: "+money(t)}
 
 
+const serviceDevices={
+"Telefon":["Akıllı Telefon","Tuşlu Telefon"],
+"Tablet":["Tablet","Çizim Tableti"],
+"Dizüstü Bilgisayar":["Notebook","Ultrabook","Gaming Notebook","2'si 1 Arada"],
+"Masaüstü Bilgisayar":["Masaüstü PC","All-in-One PC","Gaming PC"],
+"Televizyon":["LED TV","QLED TV","OLED TV","Smart TV"],
+"Monitör":["Ofis Monitörü","Gaming Monitörü","Profesyonel Monitör"],
+"Yazıcı":["Mürekkep Püskürtmeli","Lazer Yazıcı","Tanklı Yazıcı","Çok Fonksiyonlu Yazıcı"],
+"Oyun Konsolu":["Ev Konsolu","El Konsolu"],
+"Akıllı Saat":["Akıllı Saat","Akıllı Bileklik"],
+"Kulaklık":["TWS Kulaklık","Bluetooth Kulaklık","Kablolu Kulaklık","Gaming Kulaklık"],
+"Modem / Router":["Modem","Router","Mesh Sistem","Access Point"],
+"Kamera":["Fotoğraf Makinesi","Aksiyon Kamerası","Drone Kamerası"],
+"Diğer":["Diğer"]
+};
+const serviceFaultSuggestions={
+"Telefon":["Ekran kırık / görüntü yok","Batarya çabuk bitiyor","Şarj olmuyor","Sıvı teması","Hoparlör / mikrofon sorunu","Kamera arızası","Yazılım / açılmıyor"],
+"Tablet":["Ekran kırık","Batarya sorunu","Şarj soketi","Dokunmatik çalışmıyor","Yazılım / açılmıyor"],
+"Dizüstü Bilgisayar":["Açılmıyor","Ekran / görüntü sorunu","Batarya sorunu","Şarj olmuyor","Klavye / touchpad","Isınma / fan bakımı","SSD / disk","Windows / yazılım"],
+"Masaüstü Bilgisayar":["Açılmıyor","Görüntü vermiyor","Güç kaynağı","Isınma / fan","Disk / SSD","RAM","Windows / yazılım"],
+"Televizyon":["Görüntü yok","Ses yok","Panel / ekran","Backlight / LED","HDMI sorunu","Smart TV yazılımı"],
+"Monitör":["Görüntü yok","Ekran titriyor","Panel sorunu","HDMI / DisplayPort","Güç sorunu"],
+"Yazıcı":["Kağıt sıkıştırıyor","Baskı almıyor","Soluk / çizgili baskı","Kartuş / toner","Kağıt çekmiyor","Wi-Fi / bağlantı"],
+"Oyun Konsolu":["Açılmıyor","HDMI görüntü yok","Kol bağlantısı","Isınma","Disk okuyucu","Yazılım"],
+"Akıllı Saat":["Ekran kırık","Batarya","Şarj olmuyor","Bağlantı sorunu","Sensör"],
+"Kulaklık":["Ses gelmiyor","Tek taraf çalışmıyor","Şarj olmuyor","Bluetooth bağlanmıyor","Mikrofon"],
+"Modem / Router":["İnternet yok","Wi-Fi çekmiyor","Bağlantı kopuyor","Adaptör / güç","Kurulum"],
+"Kamera":["Açılmıyor","Lens sorunu","Odaklama","Ekran","Batarya","Kart / kayıt"],
+"Diğer":["Genel kontrol","Bakım / onarım"]
+};
+function updateServiceDevices(){
+let list=serviceDevices[serviceCategory.value]||["Diğer"];
+serviceDevice.innerHTML=list.map(x=>`<option value="${x}">${x}</option>`).join("")+`<option value="__custom__">Kendim yazacağım</option>`;
+toggleServiceCustomDevice()
+}
+function toggleServiceCustomDevice(){let w=document.getElementById("serviceCustomDeviceWrap");if(w)w.style.display=serviceDevice.value==="__custom__"?"block":"none"}
+function updateServiceFaultSuggestions(){
+let dl=document.getElementById("serviceFaultOptions"),list=serviceFaultSuggestions[serviceCategory.value]||[];if(dl)dl.innerHTML=list.map(x=>`<option value="${x}"></option>`).join("")
+}
+function updateServiceChoices(){updateServiceDevices();updateServiceBrands();updateServiceFaultSuggestions()}
 const serviceBrands={
 "Telefon":["Samsung","Apple","Xiaomi","Redmi","Huawei","Honor","Oppo","Realme","Vivo","OnePlus","Nothing","Google","Motorola","Nokia","Tecno","Infinix","General Mobile"],
 "Tablet":["Apple","Samsung","Xiaomi","Huawei","Honor","Lenovo","Microsoft","TCL"],
@@ -453,15 +569,49 @@ const serviceModels={
 "GoPro":["HERO 11","HERO 12","HERO 13"],
 "DJI":["Osmo","Mini","Mavic"]
 };
+const serviceCategoryModelOverrides={
+"Telefon":{
+"Apple":["iPhone 11","iPhone 12","iPhone 13","iPhone 14","iPhone 15","iPhone 15 Pro","iPhone 16","iPhone 16 Pro"],
+"Samsung":["Galaxy A16","Galaxy A26","Galaxy A36","Galaxy A56","Galaxy S24","Galaxy S24 Ultra","Galaxy S25","Galaxy S25 Ultra","Galaxy Z Flip","Galaxy Z Fold"],
+"Xiaomi":["Redmi Note 13","Redmi Note 14","Xiaomi 14","Xiaomi 15","Poco X6","Poco X7"],
+"Huawei":["Pura 70","Mate 70","Nova 13"],
+"Honor":["Honor 200","Honor 400","Magic 6","Magic 7"]
+},
+"Tablet":{
+"Apple":["iPad","iPad Air","iPad Pro"],
+"Samsung":["Galaxy Tab A","Galaxy Tab S"],
+"Xiaomi":["Pad 6","Pad 7"],
+"Huawei":["MatePad"],
+"Honor":["Pad"],
+"Lenovo":["Tab M","Tab P"],
+"TCL":["NXTPAPER"]
+},
+"Dizüstü Bilgisayar":{
+"Apple":["MacBook Air","MacBook Pro"],
+"Lenovo":["IdeaPad","ThinkPad","Yoga","Legion"],
+"Asus":["VivoBook","ZenBook","ROG","TUF Gaming","ExpertBook"],
+"Acer":["Aspire","Swift","Nitro","Predator"],
+"HP":["Pavilion","Victus","Omen","ProBook"],
+"Dell":["Inspiron","Vostro","Latitude","XPS","Alienware"],
+"MSI":["Modern","Katana","Cyborg","Stealth","Raider"],
+"Monster":["Abra","Tulpar","Semruk"],
+"Casper":["Excalibur","Nirvana"]
+},
+"Akıllı Saat":{
+"Apple":["Apple Watch"],
+"Huawei":["Watch GT"],
+"Garmin":["Venu","Forerunner","Fenix"],
+"Amazfit":["GTR","GTS","Balance"]
+}
+};
 function updateServiceModels(){
-let models=serviceModels[serviceBrand.value]||[];
+let cat=serviceCategory.value,brand=serviceBrand.value;
+let models=serviceCategoryModelOverrides[cat]?.[brand]||serviceModels[brand]||[];
 serviceModel.innerHTML=(models.length?models.map(m=>`<option value="${m}">${m}</option>`).join(""):"")+`<option value="__custom__">Modeli kendim yazacağım</option>`;
 toggleCustomModel();
 }
 function toggleCustomModel(){customModelWrap.style.display=serviceModel.value==="__custom__"?"block":"none"}
-function syncServiceProduct(){
-if(!serviceDevice.value.trim()||Object.keys(serviceBrands).includes(serviceDevice.value.trim()))serviceDevice.value=serviceCategory.value;
-}
+function syncServiceProduct(){updateServiceDevices()}
 
 function addBusinessDays(start,days){
 let d=new Date(start);let added=0;
@@ -474,10 +624,12 @@ let days=+serviceWorkDays.value||10,d=addBusinessDays(new Date(),days);
 serviceDuePreview.textContent=`Tahmini teslim: ${fmtDate(isoLocal(d))}`;
 }
 function addService(){
-let c=data.customers.find(x=>x.id==serviceCustomer.value),category=serviceCategory.value,brand=serviceBrand.value,device=serviceDevice.value.trim(),model=serviceModel.value==="__custom__"?serviceCustomModel.value.trim():serviceModel.value,fault=serviceFault.value.trim();
+let c=data.customers.find(x=>x.id==serviceCustomer.value),category=serviceCategory.value,brand=serviceBrand.value,device=serviceDevice.value==="__custom__"?(document.getElementById("serviceCustomDevice")?.value||"").trim():serviceDevice.value,model=serviceModel.value==="__custom__"?serviceCustomModel.value.trim():serviceModel.value,fault=serviceFault.value.trim();
 if(!c||!device||!fault||!model)return alert("Müşteri, cihaz, model ve arıza bilgilerini gir.");
 let workDays=+serviceWorkDays.value||10,due=isoLocal(addBusinessDays(new Date(),workDays)),file=document.getElementById("serviceImage")?.files?.[0];
-let finish=image=>{data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customer:c.name,category,brand,device,model,fault,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});serviceDevice.value=serviceFault.value=serviceCustomModel.value="";serviceWorkDays.value="10";updateServiceModels();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";save()};
+let finish=image=>{data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customer:c.name,category,brand,device,model,fault,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});
+serviceFault.value=serviceCustomModel.value="";let scd=document.getElementById("serviceCustomDevice");if(scd)scd.value="";
+serviceWorkDays.value="10";updateServiceChoices();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";save()};
 if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
 }
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
@@ -516,8 +668,8 @@ let po=data.products.map(x=>`<option value="${x.id}">${x.name} — ${money(x.pri
 saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCustomer.innerHTML=co;updateSalePrice();
 serviceCustomer.innerHTML=co;
 previewServiceDue();
-updateServiceBrands();
-serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
+updateServiceChoices();
+serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
 saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
