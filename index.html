@@ -361,13 +361,13 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
 <button data-page="stock" data-short="📊">📊 Stok</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
-<a href="alt-bayi.html" style="display:block;text-decoration:none"><button type="button" data-short="🏪" style="width:100%">🏪 Alt Bayi Ekle</button></a><button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayiler</button>
+<button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayiler</button>
 <button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 <button class="pricecheck-nav" data-page="pricecheck" data-short="🏷️">🏷️ Fiyat Gör</button>
 </div>
 </aside>
 <main class="main">
-<div class="topbar"><div class="main-brand">CEPTE SATIŞ</div><a href="alt-bayi.html" class="btn" style="text-decoration:none">🏪 Alt Bayi Ekle</a><button class="btn" id="dealerQuickBtn" type="button" onclick="openDealersPage()" style="display:none">🏪 Alt Bayi Ekle</button><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
+<div class="topbar"><div class="main-brand">CEPTE SATIŞ</div><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
 <div id="quickSettings" class="quick-settings">
   <h2 style="margin-top:0">Hızlı Ayarlar</h2>
   <div class="quick-grid">
@@ -792,7 +792,7 @@ function requireManager(){if(isManager())return true;alert("Bu işlem yalnızca 
 function applyUserUI(){
 let s=getSession(),n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");
 if(n)n.textContent=s?(s.name||s.username||"-"):"-";
-if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";let dq=document.getElementById("dealerQuickBtn");if(dq)dq.style.display=isManager()?"inline-block":"none";
+if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
 document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
 let active=document.querySelector(".nav button.active");
 if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
