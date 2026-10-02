@@ -198,6 +198,7 @@ body.dark .quick-menu .tool-btn{background:#111827;color:#dbeafe}
 <div><label>Bayi Adı</label><input id="dealerName" placeholder="Bayi adı"></div>
 <div><label>Yetkili</label><input id="dealerOwner" placeholder="Yetkili kişi"></div>
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
+<div><label>Bayi Fotoğrafı / Logo</label><input id="dealerImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kamerayla çekebilir veya galeriden seçebilirsin.</div></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
 <div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="Şifre" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:20px;cursor:pointer">👁️</button></div></div>
 <div><label>Yetki Rolü</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select><div class="role-note">Yönetici: cari silme, satış düzenleme ve ürün düzenleme/silme yapabilir.</div></div>
@@ -215,7 +216,7 @@ body.dark .quick-menu .tool-btn{background:#111827;color:#dbeafe}
 <label class="perm-item"><input type="checkbox" class="dealerPerm" value="reports"> Raporlar</label>
 </div>
 <button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
-<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Kullanıcı</th><th>Rol</th><th>Erişim</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
+<table><thead><tr><th>Foto</th><th>Bayi</th><th>Yetkili</th><th>Kullanıcı</th><th>Rol</th><th>Erişim</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
 <section id="settings" class="page"><h1>Ayarlar</h1>
 <div class="panel"><h2>Görünüm</h2><p class="muted">Ceptesatış arka plan temasını seç.</p>
@@ -266,8 +267,35 @@ function restoreSession(){if(sessionStorage.getItem("ceptesatis_login")==="1"){l
 function logout(){sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex"}
 function saveLoginSettings(){if(!isMainUser())return alert("Bu ayar sadece ana yöneticiye açıktır.");let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
 function getDealerPermissions(){return [...document.querySelectorAll(".dealerPerm:checked")].map(x=>x.value)}
-function addDealer(){if(!isMainUser())return alert("Alt bayi yönetimi sadece ana yöneticiye açıktır.");let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value,permissions=getDealerPermissions();if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");if(data.dealers.some(x=>x.user.toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role,permissions});dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";save()}
+function addDealer(){
+if(!isMainUser())return alert("Alt bayi yönetimi sadece ana yöneticiye açıktır.");
+let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value,permissions=getDealerPermissions();
+if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");
+if(data.dealers.some(x=>x.user.toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");
+let file=document.getElementById("dealerImage")?.files?.[0];
+let finish=image=>{
+  data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role,permissions,image:image||""});
+  dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";
+  if(document.getElementById("dealerImage"))document.getElementById("dealerImage").value="";
+  save();
+};
+if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("");
+}
 function editDealer(id){if(!isMainUser())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let role=prompt("Rol: manager veya personel",d.role||"personel");if(role===null)return;role=role.toLowerCase()==="manager"?"manager":"personel";let p=prompt("Erişim bölümlerini virgülle yaz: home,products,groups,customers,sales,offers,service,stock,reports",(d.permissions||[]).join(","));if(p===null)return;d.role=role;d.permissions=p.split(",").map(x=>x.trim()).filter(x=>["home","products","groups","customers","sales","offers","service","stock","reports"].includes(x));save()}
+function editDealerPassword(id){
+if(!isMainUser())return alert("Şifre düzenleme sadece ana yöneticiye açıktır.");
+let d=data.dealers.find(x=>x.id===id);if(!d)return;
+let p=prompt("Yeni şifreyi gir:");
+if(p===null)return;
+p=p.trim();
+if(!p)return alert("Şifre boş olamaz.");
+d.pass=p;save();alert("Alt bayi şifresi güncellendi.");
+}
+function updateDealerPhoto(id,input){
+if(!isMainUser())return alert("Fotoğraf düzenleme sadece ana yöneticiye açıktır.");
+let d=data.dealers.find(x=>x.id===id),file=input?.files?.[0];if(!d||!file)return;
+let r=new FileReader();r.onload=e=>{d.image=e.target.result;save()};r.readAsDataURL(file);
+}
 function delDealer(id){if(!isMainUser())return;if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
 function toggleQuickMenu(){document.getElementById("quickMenu")?.classList.toggle("open")}
 function refreshRecords(){render();alert("Kayıtlar yenilendi.")}
@@ -419,7 +447,19 @@ function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.$
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.user}</td><td>${x.role==="manager"?"Yönetici":"Personel"}</td><td>${(x.permissions||[]).map(p=>({home:"Ana Sayfa",products:"Ürünler",groups:"Gruplar",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Servis",stock:"Stok",reports:"Raporlar"}[p]||p)).join(", ")||"-"}</td><td><button class="edit" onclick="editDealer(${x.id})">Yetki Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr>
+<td>${x.image?`<img src="${x.image}" style="width:52px;height:52px;object-fit:cover;border-radius:12px">`:"-"}</td>
+<td>${x.name}</td>
+<td>${x.owner||"-"}</td>
+<td>${x.user}</td>
+<td>${x.role==="manager"?"Yönetici":"Personel"}</td>
+<td>${(x.permissions||[]).map(p=>({home:"Ana Sayfa",products:"Ürünler",groups:"Gruplar",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Servis",stock:"Stok",reports:"Raporlar"}[p]||p)).join(", ")||"-"}</td>
+<td>
+<button class="edit" onclick="editDealer(${x.id})">Yetki Düzenle</button>
+<button class="edit" onclick="editDealerPassword(${x.id})">Şifre Düzenle</button>
+<label class="action-btn edit" style="display:inline-flex;align-items:center;cursor:pointer">Fotoğraf Değiştir<input type="file" accept="image/*" capture="environment" hidden onchange="updateDealerPhoto(${x.id},this)"></label>
+<button class="danger" onclick="delDealer(${x.id})">Sil</button>
+</td></tr>`).join("");
 if(document.getElementById("autoBarcode"))document.getElementById("autoBarcode").checked=!!data.settings.autoBarcode;if(document.getElementById("barcodePrefix"))document.getElementById("barcodePrefix").value=data.settings.barcodePrefix||"MGT";
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder;if(!x.group)x.group="Genel"});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");legacyGroups.forEach(g=>{if(!data.groups.includes(g))data.groups.push(g)});let groups=["Genel",...data.groups];
