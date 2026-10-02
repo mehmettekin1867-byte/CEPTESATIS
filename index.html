@@ -441,6 +441,16 @@ data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone
 cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";save()
 }
 function addCustomerGroup(){let g=(document.getElementById("newCustomerGroup")?.value||"").trim();if(!g)return alert("Cari grup adı gir.");if(g.toLowerCase()==="genel"||data.customerGroups.some(x=>x.toLowerCase()===g.toLowerCase()))return alert("Bu cari grubu zaten var.");data.customerGroups.push(g);document.getElementById("newCustomerGroup").value="";save()}
+function changeProductGroup(id){
+if(!canAccessSection("products"))return alert("Bu işlem için Ürünler yetkisi gerekli.");
+let p=data.products.find(x=>x.id===id);if(!p)return;
+let groups=["Genel",...data.groups],list=groups.map((g,i)=>`${i+1}. ${g}`).join("\n"),current=Math.max(0,groups.indexOf(p.group||"Genel"))+1;
+let v=prompt("Yeni ürün grubunu seç:\n"+list+"\n\nNumara veya grup adı yaz:",String(current));
+if(v===null)return;v=v.trim();
+let n=Number(v),group=Number.isInteger(n)&&n>=1&&n<=groups.length?groups[n-1]:groups.find(g=>g.toLowerCase()===v.toLowerCase());
+if(!group)return alert("Geçerli bir ürün grubu seç.");
+p.group=group;save();alert("Ürün grubu güncellendi.");
+}
 function editProduct(id){if(!requireManager())return;let p=data.products.find(x=>x.id===id);if(!p)return;let name=prompt("Ürün adı:",p.name);if(name===null)return;let buy=prompt("Alış fiyatı:",p.buyPrice??0);if(buy===null)return;let price=prompt("Satış fiyatı:",p.price??0);if(price===null)return;let stock=prompt("Stok:",p.stock??0);if(stock===null)return;buy=Number(String(buy).replace(",","."));price=Number(String(price).replace(",","."));stock=Number(stock);if(!name.trim()||!Number.isFinite(buy)||buy<0||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0)return alert("Geçerli bilgiler gir.");p.name=name.trim();p.buyPrice=buy;p.price=price;p.stock=stock;save()}
 function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
 function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
@@ -735,7 +745,7 @@ let groups=["Genel",...data.groups];
 pGroup.innerHTML=groups.map(g=>`<option value="${g}">${g}</option>`).join("");
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
-productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}<br><button onclick="printProductBarcode(${x.id})">🖨️ Barkod Yazdır</button></td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}<br><button onclick="printProductBarcode(${x.id})">🖨️ Barkod Yazdır</button></td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td><button onclick="changeProductGroup(${x.id})">🗂️ Grup Değiştir</button>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'> Düzenle/Sil yalnızca yönetici</span>"}</td></tr>`).join("");
 customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
