@@ -222,7 +222,17 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <table><thead><tr><th>Foto</th><th>No</th><th>Müşteri</th><th>Kategori</th><th>Marka</th><th>Cihaz</th><th>Model</th><th>Arıza</th><th>Teslim</th><th>Ücret</th><th>Durum</th><th></th></tr></thead><tbody id="serviceRows"></tbody></table>
 </div></section>
 
-<section id="stock" class="page"><h1>Stok</h1><div class="panel"><table><thead><tr><th>Ürün</th><th>Mevcut Stok</th></tr></thead><tbody id="stockRows"></tbody></table></div></section>
+<section id="stock" class="page"><h1>Stok</h1>
+<div class="panel">
+<h2>Mevcut Stoklar</h2>
+<table><thead><tr><th>Ürün</th><th>Mevcut Stok</th><th>İşlem</th></tr></thead><tbody id="stockRows"></tbody></table>
+</div>
+<div class="panel">
+<h2>Stok Giriş Geçmişi</h2>
+<p class="muted">Sonradan eklenen stok miktarları tarih ve yeni stok bilgisiyle kaydedilir.</p>
+<table><thead><tr><th>Tarih</th><th>Ürün</th><th>Eklenen</th><th>Önceki</th><th>Yeni Stok</th><th>Kullanıcı</th></tr></thead><tbody id="stockHistoryRows"></tbody></table>
+</div>
+</section>
 <section id="reports" class="page"><h1>Raporlar</h1><div class="cards"><div class="card">Toplam Satış<b id="rSales">0</b></div><div class="card">Toplam Ciro<b id="rRevenue">₺0</b></div></div></section>
 <section id="dealers" class="page"><h1>Alt Bayiler</h1>
 <div class="panel"><h2>Alt Bayi Aç</h2><div class="grid">
@@ -259,7 +269,7 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 
 <script>
 let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
-if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.settings)data.settings={};
+if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.stockMovements)data.stockMovements=[];if(!data.settings)data.settings={};
 if(!data.auth)data.auth={username:"admin18",password:"1234"};
 if(data.settings.ustaLoginMigration!=="2026-10-02-1"){data.auth.username="admin18";data.auth.password="1234";data.settings.ustaLoginMigration="2026-10-02-1";localStorage.setItem("ceptesatis_data",JSON.stringify(data));}
 data.sales.forEach((s,i)=>{if(!s.id)s.id=Date.now()+i});
@@ -452,6 +462,29 @@ if(!group)return alert("Geçerli bir ürün grubu seç.");
 p.group=group;save();alert("Ürün grubu güncellendi.");
 }
 function editProduct(id){if(!requireManager())return;let p=data.products.find(x=>x.id===id);if(!p)return;let name=prompt("Ürün adı:",p.name);if(name===null)return;let buy=prompt("Alış fiyatı:",p.buyPrice??0);if(buy===null)return;let price=prompt("Satış fiyatı:",p.price??0);if(price===null)return;let stock=prompt("Stok:",p.stock??0);if(stock===null)return;buy=Number(String(buy).replace(",","."));price=Number(String(price).replace(",","."));stock=Number(stock);if(!name.trim()||!Number.isFinite(buy)||buy<0||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0)return alert("Geçerli bilgiler gir.");p.name=name.trim();p.buyPrice=buy;p.price=price;p.stock=stock;save()}
+function addStock(id){
+  if(!(canAccessSection("stock")||canAccessSection("products")))return alert("Bu işlem için Stok veya Ürünler yetkisi gerekli.");
+  let p=data.products.find(x=>x.id===id);if(!p)return;
+  let v=prompt(p.name+" için eklenecek stok miktarı:","1");
+  if(v===null)return;
+  let qty=Number(String(v).replace(",","."));
+  if(!Number.isFinite(qty)||qty<=0)return alert("0'dan büyük geçerli bir stok miktarı gir.");
+  let before=Number(p.stock)||0;
+  p.stock=before+qty;
+  let s=getSession();
+  data.stockMovements.unshift({
+    id:Date.now(),
+    productId:p.id,
+    productName:p.name,
+    qty,
+    before,
+    after:p.stock,
+    date:new Date().toLocaleString("tr-TR"),
+    user:s?(s.name||s.username||"-"):"-"
+  });
+  save();
+  alert(qty+" stok eklendi. Yeni stok: "+p.stock);
+}
 function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
 function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
 function updateSalePrice(){let p=data.products.find(x=>x.id==saleProduct.value);saleUnitPrice.value=p?(+p.price||0).toFixed(2):"0.00";updateSaleTotal()}
@@ -725,7 +758,7 @@ function editServiceDue(id){
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
 function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
 
-function resetData(){if(!requireManager())return;if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings,dealers=data.dealers;data={products:[],customers:[],sales:[],groups:[],services:[],customerGroups:[],dealers,auth,settings};save()}}
+function resetData(){if(!requireManager())return;if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings,dealers=data.dealers;data={products:[],customers:[],sales:[],groups:[],services:[],customerGroups:[],stockMovements:[],dealers,auth,settings};save()}}
 function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.${m}.${y}`}
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
@@ -745,7 +778,7 @@ let groups=["Genel",...data.groups];
 pGroup.innerHTML=groups.map(g=>`<option value="${g}">${g}</option>`).join("");
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
-productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}<br><button onclick="printProductBarcode(${x.id})">🖨️ Barkod Yazdır</button></td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td><button onclick="changeProductGroup(${x.id})">🗂️ Grup Değiştir</button>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'> Düzenle/Sil yalnızca yönetici</span>"}</td></tr>`).join("");
+productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}<br><button onclick="printProductBarcode(${x.id})">🖨️ Barkod Yazdır</button></td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}<br><button onclick="addStock(${x.id})">➕ Stok Ekle</button></td><td><button onclick="changeProductGroup(${x.id})">🗂️ Grup Değiştir</button>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'> Düzenle/Sil yalnızca yönetici</span>"}</td></tr>`).join("");
 customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
@@ -753,7 +786,9 @@ let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit
 let upcoming=data.customers.filter(x=>x.reminder&&x.reminder>todayStr&&x.reminder<=limitStr).sort((a,b)=>a.reminder.localeCompare(b.reminder));
 dueCustomers.innerHTML=due.length?due.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>🔔 ${x.name}</b> — ${x.phone||"Telefon yok"} — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Bugün için günü gelen müşteri yok.</p>`;
 upcomingCustomers.innerHTML=upcoming.length?upcoming.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>${x.name}</b> — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Önümüzdeki 2 gün için hatırlatma yok.</p>`;
-stockRows.innerHTML=data.products.map(x=>`<tr><td>${x.name}</td><td>${x.stock}</td></tr>`).join("");
+stockRows.innerHTML=data.products.map(x=>`<tr><td>${x.name}</td><td>${x.stock}</td><td><button onclick="addStock(${x.id})">➕ Stok Ekle</button></td></tr>`).join("");
+let stockHistoryRows=document.getElementById("stockHistoryRows");
+if(stockHistoryRows)stockHistoryRows.innerHTML=data.stockMovements.length?data.stockMovements.map(x=>`<tr><td>${x.date||"-"}</td><td>${x.productName||"-"}</td><td>+${x.qty}</td><td>${x.before}</td><td>${x.after}</td><td>${x.user||"-"}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">Henüz sonradan stok ekleme kaydı yok.</td></tr>`;
 let po=data.products.map(x=>`<option value="${x.id}">${x.name} — ${money(x.price)}</option>`).join(""),co=data.customers.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
 saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCustomer.innerHTML=co;updateSalePrice();
 serviceCustomer.innerHTML=co;
