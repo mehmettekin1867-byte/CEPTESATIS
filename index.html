@@ -32,6 +32,47 @@ body.dark .muted{color:#9ca3af}
 .login-screen{position:fixed;inset:0;background:#f3f4f6;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
 body.dark .login-screen{background:#111827}.login-box{width:min(420px,100%);background:white;padding:28px;border-radius:16px;box-shadow:0 20px 50px #0002}
 body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{color:#dc2626;margin-top:10px}
+
+button{font-family:inherit}
+.btn,table button,.action-btn{border:0;border-radius:14px;padding:10px 14px;font-weight:800;font-size:14px;cursor:pointer;line-height:1.2}
+table button{background:#e8eefc;color:#1d4ed8;margin:2px 3px}
+table button.danger,.danger{background:#fee2e2;color:#b91c1c}
+table button:disabled,.btn:disabled{opacity:.5;cursor:not-allowed}
+.logo{display:flex;align-items:center;gap:9px;padding-bottom:8px}
+.logo img{width:38px;height:38px;object-fit:contain;border-radius:9px;background:white;display:none}
+.sidebar-welcome{padding:0 10px 14px;color:#d1d5db;font-size:11px;line-height:1.35}
+.sidebar-welcome b{display:block;color:white;font-size:14px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.sidebar-welcome small{color:#93c5fd}
+.topbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:12px}
+.quick-settings{display:none;background:white;border-radius:16px;padding:16px;margin-bottom:18px;box-shadow:0 2px 12px #00000012}
+.quick-settings.open{display:block}
+.quick-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;align-items:end}
+.quick-grid .btn{width:100%}
+body.dark .quick-settings{background:#172033;color:#f3f4f6}
+body.dark table button{background:#263656;color:#dbeafe}
+body.dark table button.danger{background:#4c1d1d;color:#fecaca}
+.camera-note{font-size:12px;color:#6b7280;margin-top:-8px;margin-bottom:10px}
+.manager-note{font-size:12px;color:#6b7280;margin:5px 0 0}
+.photo-thumb{width:48px;height:48px;object-fit:cover;border-radius:10px}
+.panel{overflow-x:auto}
+@media(max-width:800px){
+  .side{width:86px;padding:14px 8px}
+  .logo{justify-content:center;padding:4px 0 8px}
+  .logo span{display:none}.logo:after{content:"US";font-size:20px;font-weight:900}
+  .logo img{width:34px;height:34px}
+  .sidebar-welcome{padding:0 3px 10px;text-align:center;font-size:9px}
+  .sidebar-welcome b{font-size:10px;white-space:normal}
+  .sidebar-welcome small{font-size:9px}
+  .main{margin-left:86px;width:calc(100% - 86px);padding:12px}
+  .cards{grid-template-columns:1fr 1fr;gap:9px}
+  .card,.panel{padding:14px;border-radius:14px}
+  .grid,.quick-grid{grid-template-columns:1fr}
+  .topbar{justify-content:stretch}.topbar .btn{width:100%}
+  input,select{font-size:16px}
+  .btn{min-height:44px;font-size:15px}
+  table{min-width:720px}
+  th,td{padding:10px 8px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -43,7 +84,8 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 </div></div>
 <div class="app">
 <aside class="side">
-<div class="logo">USTA SATIŞ</div>
+<div class="logo"><img id="companyLogo" alt="Firma Logosu"><span>USTA SATIŞ</span></div>
+<div class="sidebar-welcome">HOŞGELDİNİZ<b id="activeUserName">-</b><small id="activeUserRole"></small></div>
 <div class="nav">
 <button class="active" data-page="home" data-short="🏠">🏠 Ana Sayfa</button>
 <button data-page="products" data-short="📦">📦 Ürünler</button>
@@ -54,11 +96,21 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
 <button data-page="stock" data-short="📊">📊 Stok</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
-<button data-page="dealers" data-short="🏪">🏪 Alt Bayiler</button>
-<button data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
+<button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayiler</button>
+<button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 </div>
 </aside>
 <main class="main">
+<div class="topbar"><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
+<div id="quickSettings" class="quick-settings">
+  <h2 style="margin-top:0">Hızlı Ayarlar</h2>
+  <div class="quick-grid">
+    <div><button class="btn" type="button" onclick="refreshRecords()">🔄 Kayıtları Yenile</button></div>
+    <div><label>Firma Logo</label><input id="companyLogoInput" type="file" accept="image/*" capture="environment" onchange="saveCompanyLogo(this.files[0])"></div>
+    <div><label>Tema</label><div style="display:flex;gap:8px"><button class="btn" type="button" onclick="setTheme('light')">☀️ Açık</button><button class="btn" type="button" onclick="setTheme('dark')">🌙 Koyu</button></div></div>
+    <div><label>Barkod Ön Eki</label><input id="barcodePrefix" placeholder="UST"><label style="display:flex;gap:8px;align-items:center"><input id="autoBarcode" type="checkbox" style="width:auto;margin:0"> Otomatik barkod</label><button class="btn" type="button" onclick="saveBarcodeSettings()">Kaydet</button></div>
+  </div>
+</div>
 <section id="home" class="page active">
 <h1>Ana Sayfa</h1><p class="muted">USTA SATIŞ yönetim paneli</p>
 <div class="cards">
@@ -82,7 +134,7 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <div><label>KDV (%)</label><select id="pVat"><option value="0">%0</option><option value="1">%1</option><option value="10">%10</option><option value="20" selected>%20</option></select></div>
 <div><label>Birim</label><select id="pUnit"><option>Adet</option><option>Kutu</option><option>Paket</option><option>Kg</option><option>Metre</option><option>Litre</option></select></div>
 <div><label>Stok</label><input id="pStock" type="number" min="0"></div>
-<div><label>Ürün Resmi</label><input id="pImage" type="file" accept="image/*"></div>
+<div><label>Ürün Fotoğrafı</label><input id="pImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kamerayı açarak fotoğraf çekebilirsin.</div></div>
 </div><button class="btn" onclick="addProduct()">Ürün Ekle</button>
 <table><thead><tr><th>Resim</th><th>Kod</th><th>Ürün</th><th>Grup</th><th>Alış</th><th>Satış</th><th>KDV</th><th>Birim</th><th>Stok</th><th></th></tr></thead><tbody id="productRows"></tbody></table></div></section>
 
@@ -92,7 +144,7 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <table><thead><tr><th>Grup Adı</th><th>Ürün Sayısı</th><th></th></tr></thead><tbody id="groupRows"></tbody></table></div></section>
 
 <section id="customers" class="page"><h1>Müşteriler</h1>
-<div class="panel"><div class="grid"><div><label>Ad / Firma</label><input id="cName"></div><div><label>Telefon</label><input id="cPhone"></div><div><label>Kaç Gün Sonra Hatırlat?</label>
+<div class="panel"><div class="grid"><div><label>Ad / Firma</label><input id="cName"></div><div><label>Telefon</label><input id="cPhone"></div><div><label>Cari Grubu</label><select id="cGroup"><option>Genel</option></select></div><div><label>Kaç Gün Sonra Hatırlat?</label>
 <select id="cReminderDays">
 <option value="1">1 gün</option>
 <option value="2">2 gün</option>
@@ -103,15 +155,18 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <option value="20">20 gün</option>
 <option value="25">25 gün</option>
 <option value="30" selected>30 gün (1 ay)</option>
-</select></div></div><button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
-<table><thead><tr><th>Müşteri</th><th>Telefon</th><th>Hatırlatma</th><th></th></tr></thead><tbody id="customerRows"></tbody></table></div></section>
+</select></div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><div style="min-width:220px"><label>Yeni Cari Grubu</label><input id="newCustomerGroup" placeholder="Örn: Toptan"></div><button class="btn" type="button" onclick="addCustomerGroup()">Grup Ekle</button></div>
+<button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
+<table><thead><tr><th>Müşteri</th><th>Grup</th><th>Telefon</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table></div></section>
 
 <section id="sales" class="page"><h1>Satış Yap</h1>
 <div class="panel"><div class="grid"><div><label>Müşteri</label><select id="saleCustomer"></select></div><div><label>Ürün</label><select id="saleProduct" onchange="updateSalePrice()"></select></div>
 <div><label>Adet</label><input id="saleQty" type="number" value="1" min="1" oninput="updateSalePrice()"></div>
 <div><label>Satış Fiyatı</label><input id="saleUnitPrice" type="number" min="0" step="0.01" value="0" oninput="updateSaleTotal()"></div>
 <div><label>Toplam</label><input id="saleTotalPrice" readonly value="₺0,00"></div></div><button class="btn" onclick="makeSale()">Satışı Kaydet</button>
-<table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th></tr></thead><tbody id="saleRows"></tbody></table></div></section>
+<table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>İşlem</th></tr></thead><tbody id="saleRows"></tbody></table>
+<p class="manager-note">Satış düzenleme yalnızca yönetici kullanıcılarında aktiftir.</p></div></section>
 
 <section id="offers" class="page"><h1>Teklif Hazırla</h1>
 <div class="panel"><div class="grid"><div><label>Müşteri</label><select id="offerCustomer"></select></div><div><label>Ürün</label><select id="offerProduct"></select></div><div><label>Adet</label><input id="offerQty" type="number" value="1" min="1"></div><div><label>İskonto (%)</label><input id="discount" type="number" value="0" min="0" max="100"></div></div>
@@ -141,8 +196,9 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 </select><div id="serviceDuePreview" class="muted">Tahmini teslim tarihi otomatik hesaplanır.</div></div>
 <div><label>Servis Ücreti (₺)</label><input id="servicePrice" type="number" min="0" step="0.01" value="0"></div>
 <div><label>Durum</label><select id="serviceStatus"><option>Bekliyor</option><option>İşlemde</option><option>Hazır</option><option>Teslim Edildi</option><option>İade</option></select></div>
+<div><label>Cihaz / Ürün Fotoğrafı</label><input id="serviceImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kameradan doğrudan fotoğraf ekleyebilirsin.</div></div>
 </div><button class="btn" onclick="addService()">Servis Kaydı Ekle</button>
-<table><thead><tr><th>No</th><th>Müşteri</th><th>Kategori</th><th>Marka</th><th>Cihaz</th><th>Model</th><th>Arıza</th><th>Teslim</th><th>Ücret</th><th>Durum</th><th></th></tr></thead><tbody id="serviceRows"></tbody></table>
+<table><thead><tr><th>Foto</th><th>No</th><th>Müşteri</th><th>Kategori</th><th>Marka</th><th>Cihaz</th><th>Model</th><th>Arıza</th><th>Teslim</th><th>Ücret</th><th>Durum</th><th></th></tr></thead><tbody id="serviceRows"></tbody></table>
 </div></section>
 
 <section id="stock" class="page"><h1>Stok</h1><div class="panel"><table><thead><tr><th>Ürün</th><th>Mevcut Stok</th></tr></thead><tbody id="stockRows"></tbody></table></div></section>
@@ -154,8 +210,9 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
 <div><label>Şifre</label><input id="dealerPass" type="password" placeholder="Şifre"></div>
+<div><label>Yetki</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
 </div><button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
-<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th></th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
+<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Yetki</th><th></th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
 <section id="settings" class="page"><h1>Ayarlar</h1>
 <div class="panel"><h2>Görünüm</h2><p class="muted">USTA SATIŞ arka plan temasını seç.</p>
@@ -167,44 +224,46 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 </main></div>
 
 <script>
-let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];
-if(!data.auth)data.auth={username:"admin",password:"1234"};
+let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
+if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.settings)data.settings={};
+if(!data.auth)data.auth={username:"admin18",password:"1234"};
+if(data.settings.ustaLoginMigration!=="2026-10-02-1"){data.auth.username="admin18";data.auth.password="1234";data.settings.ustaLoginMigration="2026-10-02-1";localStorage.setItem("ceptesatis_data",JSON.stringify(data));}
+data.sales.forEach((s,i)=>{if(!s.id)s.id=Date.now()+i});
+let session=null;
+function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
+function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager")}
+function requireManager(){if(isManager())return true;alert("Bu işlem yalnızca yöneticilere açıktır.");return false}
+function applyUserUI(){let s=getSession();let n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");if(n)n.textContent=s?(s.name||s.username||"-"):"-";if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";document.querySelectorAll(".manager-nav").forEach(el=>el.style.display=isManager()?"block":"none")}
 const money=n=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).format(Number(n)||0);
 function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document.body.classList.toggle("dark",theme==="dark")}
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
+function toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
+function refreshRecords(){location.reload()}
+function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
+function saveBarcodeSettings(){if(!requireManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
+function generateBarcode(){let prefix=(data.settings.barcodePrefix||"UST").replace(/\s+/g,"").toUpperCase();return prefix+String(Date.now()).slice(-9)}
+function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode}
 function login(){
-  const userEl=document.getElementById("loginUser");
-  const passEl=document.getElementById("loginPass");
-  const screenEl=document.getElementById("loginScreen");
-  const errorEl=document.getElementById("loginError");
-  if(!data.auth || typeof data.auth!=="object") data.auth={username:"admin",password:"1234"};
-  const u=(userEl?.value||"").trim();
-  const pw=passEl?.value||"";
-  if(u===String(data.auth.username||"") && pw===String(data.auth.password||"")){
-    sessionStorage.setItem("ceptesatis_login","1");
-    if(screenEl) screenEl.style.display="none";
-    if(errorEl) errorEl.textContent="";
-  }else if(errorEl){
-    errorEl.textContent="Kullanıcı adı veya şifre hatalı.";
-  }
+  const u=(document.getElementById("loginUser")?.value||"").trim(),pw=document.getElementById("loginPass")?.value||"",errorEl=document.getElementById("loginError");
+  let s=null;
+  if(u===String(data.auth.username||"")&&pw===String(data.auth.password||""))s={username:u,name:u,role:"manager",isMain:true};
+  else{let d=data.dealers.find(x=>String(x.user||"").toLowerCase()===u.toLowerCase()&&String(x.pass||"")===pw);if(d)s={username:d.user,name:d.owner||d.name||d.user,role:d.role||"personel",isMain:false}}
+  if(s){sessionStorage.setItem("ceptesatis_login","1");sessionStorage.setItem("ceptesatis_user",JSON.stringify(s));document.getElementById("loginScreen").style.display="none";if(errorEl)errorEl.textContent="";applyUserUI();render()}
+  else if(errorEl)errorEl.textContent="Kullanıcı adı veya şifre hatalı.";
 }
-document.addEventListener("DOMContentLoaded",()=>{
-  const btn=document.getElementById("loginBtn");
-  const pass=document.getElementById("loginPass");
-  if(btn) btn.addEventListener("click",login);
-  if(pass) pass.addEventListener("keydown",e=>{if(e.key==="Enter") login();});
-});
-function logout(){sessionStorage.removeItem("ceptesatis_login");loginPass.value="";loginScreen.style.display="flex"}
-function saveLoginSettings(){let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
-function addDealer(){let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value;if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");if(data.dealers.some(x=>x.user.toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");data.dealers.push({id:Date.now(),name,owner,phone,user,pass});dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";save()}
-function delDealer(id){if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
+document.addEventListener("DOMContentLoaded",()=>{const btn=document.getElementById("loginBtn"),pass=document.getElementById("loginPass");if(btn)btn.addEventListener("click",login);if(pass)pass.addEventListener("keydown",e=>{if(e.key==="Enter")login()});applySettingsUI();applyUserUI()});
+function logout(){sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
+function saveLoginSettings(){if(!requireManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
+function addDealer(){if(!requireManager())return;let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value||"personel";if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");if(data.dealers.some(x=>String(x.user||"").toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role});dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";save()}
+function delDealer(id){if(!requireManager())return;if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
 
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active")});
 function addGroup(){let g=newGroup.value.trim();if(!g)return alert("Grup adı gir.");if(g.toLowerCase()=="genel"||data.groups.some(x=>x.toLowerCase()==g.toLowerCase()))return alert("Bu grup zaten var.");data.groups.push(g);newGroup.value="";save()}
 function delGroup(g){if(data.products.some(x=>(x.group||"Genel")==g))return alert("Bu grupta ürün var. Önce ürünlerin grubunu değiştir veya ürünleri sil.");data.groups=data.groups.filter(x=>x!==g);save()}
 function addProduct(){
 let name=pName.value.trim(),code=pCode.value.trim(),group=pGroup.value||"Genel",buyPrice=+pBuyPrice.value,price=+pPrice.value,vat=+pVat.value,unit=pUnit.value,stock=+pStock.value;
+if(!code&&data.settings.autoBarcode)code=generateBarcode();
 if(!name||price<0||buyPrice<0||stock<0)return alert("Ürün bilgilerini kontrol et.");
 let file=pImage.files[0];
 let finish=(image)=>{data.products.push({id:Date.now(),code,name,group,buyPrice,price,vat,unit,stock,image});pCode.value=pName.value=pBuyPrice.value=pPrice.value=pStock.value="";pGroup.value="Genel";pImage.value="";save()};
@@ -217,14 +276,17 @@ let now=new Date();now.setHours(0,0,0,0);
 let created=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 let rd=new Date(now);rd.setDate(rd.getDate()+days);
 let reminder=`${rd.getFullYear()}-${String(rd.getMonth()+1).padStart(2,"0")}-${String(rd.getDate()).padStart(2,"0")}`;
-data.customers.push({id:Date.now(),name,phone:cPhone.value.trim(),created,reminder,reminderDays:days});
-cName.value=cPhone.value="";cReminderDays.value="30";save()
+data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone.value.trim(),created,reminder,reminderDays:days});
+cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";save()
 }
-function editProductPrice(id){let p=data.products.find(x=>x.id===id);if(!p)return;let v=prompt("Yeni satış fiyatını gir:",(+p.price||0).toFixed(2));if(v===null)return;v=Number(String(v).replace(",","."));if(!Number.isFinite(v)||v<0)return alert("Geçerli bir satış fiyatı gir.");p.price=v;save()}
-function delProduct(id){data.products=data.products.filter(x=>x.id!==id);save()} function delCustomer(id){if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
+function addCustomerGroup(){let g=(document.getElementById("newCustomerGroup")?.value||"").trim();if(!g)return alert("Cari grup adı gir.");if(g.toLowerCase()==="genel"||data.customerGroups.some(x=>x.toLowerCase()===g.toLowerCase()))return alert("Bu cari grubu zaten var.");data.customerGroups.push(g);document.getElementById("newCustomerGroup").value="";save()}
+function editProduct(id){if(!requireManager())return;let p=data.products.find(x=>x.id===id);if(!p)return;let name=prompt("Ürün adı:",p.name);if(name===null)return;let buy=prompt("Alış fiyatı:",p.buyPrice??0);if(buy===null)return;let price=prompt("Satış fiyatı:",p.price??0);if(price===null)return;let stock=prompt("Stok:",p.stock??0);if(stock===null)return;buy=Number(String(buy).replace(",","."));price=Number(String(price).replace(",","."));stock=Number(stock);if(!name.trim()||!Number.isFinite(buy)||buy<0||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0)return alert("Geçerli bilgiler gir.");p.name=name.trim();p.buyPrice=buy;p.price=price;p.stock=stock;save()}
+function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
+function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
 function updateSalePrice(){let p=data.products.find(x=>x.id==saleProduct.value);saleUnitPrice.value=p?(+p.price||0).toFixed(2):"0.00";updateSaleTotal()}
 function updateSaleTotal(){let q=+saleQty.value||0,price=+saleUnitPrice.value||0;saleTotalPrice.value=money(price*q)}
-function makeSale(){let p=data.products.find(x=>x.id==saleProduct.value),c=data.customers.find(x=>x.id==saleCustomer.value),q=+saleQty.value,price=+saleUnitPrice.value;if(!p||!c||q<1)return alert("Müşteri, ürün ve adet seç.");if(price<0)return alert("Geçerli bir satış fiyatı gir.");if(p.stock<q)return alert("Yeterli stok yok.");p.stock-=q;data.sales.unshift({date:new Date().toLocaleString("tr-TR"),customer:c.name,product:p.name,qty:q,unitPrice:price,total:price*q});save();alert("Satış kaydedildi.")}
+function makeSale(){let p=data.products.find(x=>x.id==saleProduct.value),c=data.customers.find(x=>x.id==saleCustomer.value),q=+saleQty.value,price=+saleUnitPrice.value;if(!p||!c||q<1)return alert("Müşteri, ürün ve adet seç.");if(price<0)return alert("Geçerli bir satış fiyatı gir.");if(p.stock<q)return alert("Yeterli stok yok.");p.stock-=q;data.sales.unshift({id:Date.now(),date:new Date().toLocaleString("tr-TR"),customerId:c.id,productId:p.id,customer:c.name,product:p.name,qty:q,unitPrice:price,total:price*q});save();alert("Satış kaydedildi.")}
+function editSale(id){if(!requireManager())return;let s=data.sales.find(x=>x.id===id);if(!s)return;let oldQty=+s.qty||0;let q=prompt("Yeni adet:",oldQty);if(q===null)return;q=Number(q);let price=prompt("Yeni birim satış fiyatı:",s.unitPrice!=null?s.unitPrice:(oldQty?((+s.total||0)/oldQty):0));if(price===null)return;price=Number(String(price).replace(",","."));if(!Number.isFinite(q)||q<1||!Number.isFinite(price)||price<0)return alert("Geçerli adet ve fiyat gir.");let p=data.products.find(x=>x.id===s.productId)||data.products.find(x=>x.name===s.product);if(p){let needed=q-oldQty;if(needed>0&&p.stock<needed)return alert("Yeterli stok yok.");p.stock-=needed}s.qty=q;s.unitPrice=price;s.total=price*q;save()}
 function calculateOffer(){let p=data.products.find(x=>x.id==offerProduct.value),q=+offerQty.value,d=+discount.value;if(!p)return alert("Ürün seç.");let t=p.price*q*(1-d/100);offerResult.textContent="Toplam: "+money(t)}
 
 
@@ -335,28 +397,29 @@ serviceDuePreview.textContent=`Tahmini teslim: ${fmtDate(isoLocal(d))}`;
 function addService(){
 let c=data.customers.find(x=>x.id==serviceCustomer.value),category=serviceCategory.value,brand=serviceBrand.value,device=serviceDevice.value.trim(),model=serviceModel.value==="__custom__"?serviceCustomModel.value.trim():serviceModel.value,fault=serviceFault.value.trim();
 if(!c||!device||!fault||!model)return alert("Müşteri, cihaz, model ve arıza bilgilerini gir.");
-let workDays=+serviceWorkDays.value||10,due=isoLocal(addBusinessDays(new Date(),workDays));
-data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customer:c.name,category,brand,device,model,fault,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value});
-serviceDevice.value=serviceFault.value=serviceCustomModel.value="";serviceWorkDays.value="10";updateServiceModels();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";save()
+let workDays=+serviceWorkDays.value||10,due=isoLocal(addBusinessDays(new Date(),workDays)),file=document.getElementById("serviceImage")?.files?.[0];
+let finish=image=>{data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customer:c.name,category,brand,device,model,fault,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});serviceDevice.value=serviceFault.value=serviceCustomModel.value="";serviceWorkDays.value="10";updateServiceModels();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";save()};
+if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
 }
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
 function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
 
-function resetData(){if(confirm("Tüm veriler silinsin mi?")){data={products:[],customers:[],sales:[],groups:[],services:[]};save()}}
+function resetData(){if(!requireManager())return;if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings,dealers=data.dealers;data={products:[],customers:[],sales:[],groups:[],services:[],customerGroups:[],dealers,auth,settings};save()}}
 function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.${m}.${y}`}
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td><td><button onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td><td>${x.role==="manager"?"Yönetici":"Personel"}</td><td><button class="danger" onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
 
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");
 legacyGroups.forEach(g=>{if(!data.groups.includes(g))data.groups.push(g)});
 let groups=["Genel",...data.groups];
 pGroup.innerHTML=groups.map(g=>`<option value="${g}">${g}</option>`).join("");
+let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
-productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" style="width:45px;height:45px;object-fit:cover;border-radius:7px">`:"-"}</td><td>${x.code||"-"}</td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)} <button onclick="editProductPrice(${x.id})" style="margin-left:6px">Düzenle</button></td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td><button onclick="delProduct(${x.id})">Sil</button></td></tr>`).join("");
-customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td><button onclick="delCustomer(${x.id})">Cari Sil</button></td></tr>`).join("");
+productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}</td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
@@ -369,11 +432,11 @@ saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCust
 serviceCustomer.innerHTML=co;
 previewServiceDue();
 updateServiceBrands();
-serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
+serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}</td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
-saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td></tr>`).join("");
-let rev=data.sales.reduce((a,x)=>a+x.total,0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev)}
-if(sessionStorage.getItem("ceptesatis_login")==="1")loginScreen.style.display="none";
+saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
+if(sessionStorage.getItem("ceptesatis_login")==="1"&&getSession())loginScreen.style.display="none";else{sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user")}
 render();
 </script>
 </body></html>
