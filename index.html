@@ -80,6 +80,67 @@ body.dark .permission-box{background:#111827;border-color:#374151}
   table{min-width:720px}
   th,td{padding:10px 8px;font-size:13px}
 }
+
+/* --- CEPTE SATIŞ / Yeni satış ekranı --- */
+.sales-shell{max-width:980px;margin:0 auto}
+.sale-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sale-topbar h1{margin:0;font-size:25px}
+.sale-icon-actions{display:flex;gap:8px}
+.sale-icon-btn{width:42px;height:42px;border:0;border-radius:14px;background:#fff;box-shadow:0 2px 12px #0001;cursor:pointer;font-size:18px}
+.sale-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#eef6ff;border-radius:18px;padding:14px;margin-bottom:12px;text-align:center}
+.sale-summary small{display:block;color:#6b7280;font-size:12px;margin-bottom:5px}
+.sale-summary b{font-size:18px}.sale-summary .sale-grand{color:#1684ff;font-size:22px}
+.sale-search-row{display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:10px}
+.sale-search-wrap{position:relative}
+.sale-search-wrap input,.sale-price-type select{margin:0;height:52px;border-radius:15px;background:#fff}
+.sale-search-results{display:none;position:absolute;z-index:50;left:0;right:0;top:56px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 14px 35px #0002;max-height:320px;overflow:auto;padding:6px}
+.sale-search-results.open{display:block}
+.sale-search-item{width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;border:0;background:#fff;padding:11px;border-radius:10px;cursor:pointer}
+.sale-search-item:hover{background:#f3f7ff}
+.sale-customer-line{display:flex;gap:8px;align-items:center;overflow:auto;padding:2px 0 10px}
+.sale-customer-pill{min-width:170px;border:0;border-radius:18px;background:#e9ecef;padding:12px 14px;text-align:left;font-weight:800}
+.sale-customer-pill.active{background:#1684ff;color:white}
+.sale-cart{background:#f7f9fc;border-radius:18px;padding:10px;min-height:190px;max-height:390px;overflow:auto}
+.sale-empty{text-align:center;padding:45px 10px;color:#94a3b8}
+.sale-cart-item{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;background:#fff;border-radius:15px;padding:12px;margin-bottom:9px;box-shadow:0 1px 5px #0000000d}
+.sale-qty-box{background:#eef7ff;border-radius:12px;padding:9px 5px;text-align:center;color:#1684ff;font-weight:900}
+.sale-qty-controls{display:flex;gap:5px;justify-content:center;margin-top:5px}
+.sale-qty-controls button{width:25px;height:25px;border:0;border-radius:8px;background:#fff;color:#1684ff;font-weight:900;cursor:pointer}
+.sale-item-name{font-weight:800;line-height:1.3}
+.sale-item-sub{font-size:12px;color:#94a3b8;margin-top:5px}
+.sale-item-price{text-align:right;font-weight:900;white-space:nowrap}
+.sale-remove{display:block;margin:6px 0 0 auto;border:0;background:transparent;color:#dc2626;cursor:pointer}
+.sale-customer-card{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #edf0f5;border-radius:16px;padding:12px;margin-top:10px}
+.sale-customer-card select{margin:0}
+.sale-note{margin-top:10px}.sale-note input{margin:0;height:50px;border-radius:14px}
+.sale-toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sale-toggle{border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:12px;text-align:center;color:#6b7280}
+.sale-payment-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.sale-payment{border:0;border-radius:17px;padding:13px 7px;font-weight:900;cursor:pointer;min-height:72px;box-shadow:inset 0 0 0 1px #00000008}
+.sale-payment span{display:block;font-size:22px;margin-bottom:4px}
+.sale-payment.cash{background:#dff8e9;color:#148a4a}.sale-payment.pos{background:#dff7fb;color:#14798b}.sale-payment.account{background:#fff0cc;color:#ad6b00}.sale-payment.partial{background:#ddebff;color:#1665c1}.sale-payment.other{background:#eee9ff;color:#6d4cc3}
+.sale-payment.active{outline:3px solid #1684ff;outline-offset:2px}
+.sale-pay-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sale-pay-details .pay-box{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:9px 12px}
+.sale-pay-details label{display:block;font-size:12px;color:#6b7280}.sale-pay-details input{border:0;margin:2px 0 0;padding:4px 0;font-weight:900;font-size:18px}
+.sale-pay-details input:focus{outline:none}
+.sale-save{width:100%;margin-top:10px;border:0;border-radius:16px;background:#1684ff;color:white;padding:15px;font-size:17px;font-weight:900;cursor:pointer}
+.sale-groups{display:flex;gap:7px;overflow:auto;padding:12px 0 2px}
+.sale-group-btn{white-space:nowrap;border:1px solid #e5e7eb;background:#fff;border-radius:18px;padding:10px 17px;cursor:pointer}
+.sale-group-btn.active{background:#111827;color:#fff;border-color:#111827}
+.sale-scan{position:sticky;bottom:12px;margin:10px 0 0 auto;display:block;border:0;border-radius:24px;background:#1684ff;color:white;padding:13px 20px;font-weight:900;box-shadow:0 8px 24px #1684ff55;cursor:pointer}
+#saleScannerPanel{display:none;margin-top:10px;background:#111827;padding:12px;border-radius:16px;color:white}
+#saleScannerVideo{width:100%;max-height:270px;border-radius:12px;background:#000}
+body.dark .sale-icon-btn,body.dark .sale-search-wrap input,body.dark .sale-price-type select,body.dark .sale-search-results,body.dark .sale-search-item,body.dark .sale-cart-item,body.dark .sale-customer-card,body.dark .sale-toggle,body.dark .sale-pay-details .pay-box,body.dark .sale-group-btn{background:#172033;color:#f3f4f6;border-color:#374151}
+body.dark .sale-cart{background:#0f172a}.dark .sale-summary{background:#172033}.dark .sale-search-item:hover{background:#263656}
+@media(max-width:800px){
+  #sales{margin:-2px}.sales-shell{max-width:none}.sale-topbar h1{font-size:22px}
+  .sale-summary{padding:10px 5px;gap:3px}.sale-summary small{font-size:10px}.sale-summary b{font-size:15px}.sale-summary .sale-grand{font-size:18px}
+  .sale-search-row{grid-template-columns:1fr 125px}.sale-cart{max-height:340px}.sale-cart-item{grid-template-columns:64px 1fr auto;padding:10px 8px}
+  .sale-payment-grid{grid-template-columns:repeat(5,minmax(74px,1fr));overflow:auto;padding:3px}.sale-payment{min-width:74px;font-size:12px}
+  .sale-pay-details{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -180,13 +241,85 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
 <table><thead><tr><th>Müşteri</th><th>Grup</th><th>Telefon</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table></div></section>
 
-<section id="sales" class="page"><h1>Satış Yap</h1>
-<div class="panel"><div class="grid"><div><label>Müşteri</label><select id="saleCustomer"></select></div><div><label>Ürün</label><select id="saleProduct" onchange="updateSalePrice()"></select></div>
-<div><label>Adet</label><input id="saleQty" type="number" value="1" min="1" oninput="updateSalePrice()"></div>
-<div><label>Satış Fiyatı</label><input id="saleUnitPrice" type="number" min="0" step="0.01" value="0" oninput="updateSaleTotal()"></div>
-<div><label>Toplam</label><input id="saleTotalPrice" readonly value="₺0,00"></div></div><button class="btn" onclick="makeSale()">Satışı Kaydet</button>
-<table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>İşlem</th></tr></thead><tbody id="saleRows"></tbody></table>
-<p class="manager-note">Satış düzenleme yalnızca yönetici kullanıcılarında aktiftir.</p></div></section>
+<section id="sales" class="page">
+<div class="sales-shell">
+  <div class="sale-topbar">
+    <h1>Satış Yap</h1>
+    <div class="sale-icon-actions">
+      <button class="sale-icon-btn" type="button" title="Sepeti temizle" onclick="clearSaleCart()">↩</button>
+      <button class="sale-icon-btn" type="button" title="Yeni satış" onclick="clearSaleCart()">＋</button>
+      <button class="sale-icon-btn" type="button" title="Yazdır" onclick="window.print()">🖨️</button>
+    </div>
+  </div>
+
+  <div class="sale-summary">
+    <div><small>Miktar</small><b id="saleSummaryQty">0.00</b></div>
+    <div><small>Brüt</small><b id="saleSummaryGross">₺0,00</b></div>
+    <div><small>İskonto</small><b id="saleSummaryDiscount">%0.00</b></div>
+    <div><small>Tutar</small><b id="saleSummaryTotal" class="sale-grand">₺0,00</b></div>
+  </div>
+
+  <div class="sale-search-row">
+    <div class="sale-search-wrap">
+      <input id="saleSearchInput" placeholder="🔎 Ürün barkodunu oku veya ürün ara..." autocomplete="off" oninput="renderSaleSearchResults()" onkeydown="saleSearchKeydown(event)">
+      <div id="saleSearchResults" class="sale-search-results"></div>
+    </div>
+    <div class="sale-price-type"><select id="salePriceType"><option>Peşin</option></select></div>
+  </div>
+
+  <div class="sale-customer-line">
+    <button id="saleCustomerPill" class="sale-customer-pill active" type="button" onclick="document.getElementById('saleCustomer').focus()">Müşterisiz satış<br><small>Borç: 0,00</small></button>
+  </div>
+
+  <div id="saleCart" class="sale-cart"></div>
+
+  <div class="sale-customer-card">
+    <div>
+      <b id="saleCustomerLabel">Müşterisiz satış</b>
+      <div class="muted" style="font-size:12px">Satışı bir cariye bağlamak istersen seç.</div>
+    </div>
+    <select id="saleCustomer" onchange="updateSaleCustomerLabel()"><option value="">Müşterisiz satış</option></select>
+  </div>
+
+  <div class="sale-note"><input id="saleNote" placeholder="📝 Satış notu"></div>
+  <div class="sale-toggle-row">
+    <label class="sale-toggle"><input id="saleShowPrice" type="checkbox" style="width:auto;margin:0 6px 0 0"> Fiyat gör</label>
+    <label class="sale-toggle"><input id="saleReturnMode" type="checkbox" style="width:auto;margin:0 6px 0 0"> İade modu</label>
+  </div>
+
+  <div class="sale-pay-details">
+    <div class="pay-box"><label>İskonto (%)</label><input id="saleDiscount" type="number" value="0" min="0" max="100" step="0.01" oninput="refreshSaleScreen()"></div>
+    <div class="pay-box"><label>Ödenen Tutar</label><input id="salePaidInput" type="number" value="0" min="0" step="0.01" oninput="updateSaleAmounts(true)"></div>
+    <div class="pay-box"><label>Kalan</label><input id="saleRemainingInput" value="₺0,00" readonly></div>
+    <div class="pay-box"><label>Ödeme Türü</label><input id="salePaymentLabel" value="Nakit" readonly></div>
+  </div>
+
+  <div class="sale-payment-grid">
+    <button class="sale-payment cash active" data-pay="Nakit" type="button" onclick="setSalePayment('Nakit')"><span>💵</span>Nakit</button>
+    <button class="sale-payment pos" data-pay="Pos" type="button" onclick="setSalePayment('Pos')"><span>💳</span>Pos</button>
+    <button class="sale-payment account" data-pay="Veresiye" type="button" onclick="setSalePayment('Veresiye')"><span>📒</span>Veresiye</button>
+    <button class="sale-payment partial" data-pay="Parçalı" type="button" onclick="setSalePayment('Parçalı')"><span>💱</span>Parçalı</button>
+    <button class="sale-payment other" data-pay="Diğer" type="button" onclick="setSalePayment('Diğer')"><span>•••</span>Diğer</button>
+  </div>
+
+  <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
+
+  <button class="sale-scan" type="button" onclick="startSaleScanner()">▦ Tara</button>
+  <div id="saleScannerPanel">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Barkod / QR Tara</b><button class="btn red" type="button" onclick="stopSaleScanner()">Kapat</button></div>
+    <video id="saleScannerVideo" playsinline autoplay muted></video>
+    <div id="saleScannerStatus" style="margin-top:7px;font-size:12px">Kamerayı barkoda tut.</div>
+  </div>
+
+  <div id="saleGroupChips" class="sale-groups"></div>
+
+  <div class="panel" style="margin-top:14px">
+    <h2>Satış Geçmişi</h2>
+    <table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>Ödeme</th><th>Ödenen</th><th>Kalan</th><th>İşlem</th></tr></thead><tbody id="saleRows"></tbody></table>
+    <p class="manager-note">Satış düzenleme yalnızca yönetici kullanıcılarında aktiftir.</p>
+  </div>
+</div>
+</section>
 
 <section id="offers" class="page"><h1>Teklif Hazırla</h1>
 <div class="panel"><div class="grid"><div><label>Müşteri</label><select id="offerCustomer"></select></div><div><label>Ürün</label><select id="offerProduct"></select></div><div><label>Adet</label><input id="offerQty" type="number" value="1" min="1"></div><div><label>İskonto (%)</label><input id="discount" type="number" value="0" min="0" max="100"></div></div>
@@ -487,10 +620,199 @@ function addStock(id){
 }
 function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
 function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
-function updateSalePrice(){let p=data.products.find(x=>x.id==saleProduct.value);saleUnitPrice.value=p?(+p.price||0).toFixed(2):"0.00";updateSaleTotal()}
-function updateSaleTotal(){let q=+saleQty.value||0,price=+saleUnitPrice.value||0;saleTotalPrice.value=money(price*q)}
-function makeSale(){let p=data.products.find(x=>x.id==saleProduct.value),c=data.customers.find(x=>x.id==saleCustomer.value),q=+saleQty.value,price=+saleUnitPrice.value;if(!p||!c||q<1)return alert("Müşteri, ürün ve adet seç.");if(price<0)return alert("Geçerli bir satış fiyatı gir.");if(p.stock<q)return alert("Yeterli stok yok.");p.stock-=q;data.sales.unshift({id:Date.now(),date:new Date().toLocaleString("tr-TR"),customerId:c.id,productId:p.id,customer:c.name,product:p.name,qty:q,unitPrice:price,total:price*q});save();alert("Satış kaydedildi.")}
-function editSale(id){if(!requireManager())return;let s=data.sales.find(x=>x.id===id);if(!s)return;let oldQty=+s.qty||0;let q=prompt("Yeni adet:",oldQty);if(q===null)return;q=Number(q);let price=prompt("Yeni birim satış fiyatı:",s.unitPrice!=null?s.unitPrice:(oldQty?((+s.total||0)/oldQty):0));if(price===null)return;price=Number(String(price).replace(",","."));if(!Number.isFinite(q)||q<1||!Number.isFinite(price)||price<0)return alert("Geçerli adet ve fiyat gir.");let p=data.products.find(x=>x.id===s.productId)||data.products.find(x=>x.name===s.product);if(p){let needed=q-oldQty;if(needed>0&&p.stock<needed)return alert("Yeterli stok yok.");p.stock-=needed}s.qty=q;s.unitPrice=price;s.total=price*q;save()}
+
+let saleCart=[];
+let salePaymentType="Nakit";
+let saleGroupFilter="Ana Liste";
+let salePaidTouched=false;
+let saleScannerStream=null;
+let saleScannerTimer=null;
+
+function saleDiscountPct(){
+  let el=document.getElementById("saleDiscount");
+  let v=el?Number(el.value||0):0;
+  return Math.max(0,Math.min(100,Number.isFinite(v)?v:0));
+}
+function saleCartGross(){return saleCart.reduce((a,x)=>a+(+x.price||0)*(+x.qty||0),0)}
+function saleCartQty(){return saleCart.reduce((a,x)=>a+(+x.qty||0),0)}
+function saleCartTotal(){return saleCartGross()*(1-saleDiscountPct()/100)}
+
+function renderSaleCart(){
+  let box=document.getElementById("saleCart");if(!box)return;
+  if(!saleCart.length){box.innerHTML='<div class="sale-empty">Sepet boş.<br>Ürün adı veya barkod ile ürün ekleyebilirsin.</div>';return}
+  let d=saleDiscountPct();
+  box.innerHTML=saleCart.map(x=>{
+    let p=data.products.find(p=>p.id===x.productId);
+    let line=(+x.price||0)*(+x.qty||0)*(1-d/100);
+    return '<div class="sale-cart-item">'+
+      '<div class="sale-qty-box">'+Number(x.qty).toFixed(2)+' x<div class="sale-qty-controls"><button type="button" onclick="changeSaleCartQty('+x.productId+',-1)">−</button><button type="button" onclick="changeSaleCartQty('+x.productId+',1)">+</button></div></div>'+
+      '<div><div class="sale-item-name">'+(p?p.name:x.name)+'</div><div class="sale-item-sub">'+(p&&p.code?p.code+' · ':'')+money(x.price)+' · Stok: '+(p?p.stock:'-')+'</div></div>'+
+      '<div class="sale-item-price">'+money(line)+'<button class="sale-remove" type="button" onclick="removeSaleCartItem('+x.productId+')">Sil</button></div>'+
+    '</div>'
+  }).join("");
+}
+function refreshSaleScreen(){
+  let q=saleCartQty(),g=saleCartGross(),d=saleDiscountPct(),t=saleCartTotal();
+  let set=(id,val)=>{let e=document.getElementById(id);if(e)e.textContent=val};
+  set("saleSummaryQty",q.toFixed(2));set("saleSummaryGross",money(g));set("saleSummaryDiscount","%"+d.toFixed(2));set("saleSummaryTotal",money(t));
+  renderSaleCart();renderSaleGroupChips();updateSaleAmounts(false);
+}
+function updateSaleAmounts(fromUser){
+  if(fromUser)salePaidTouched=true;
+  let total=saleCartTotal(),paidEl=document.getElementById("salePaidInput"),remEl=document.getElementById("saleRemainingInput");
+  if(!paidEl||!remEl)return;
+  if(!salePaidTouched){
+    if(salePaymentType==="Veresiye")paidEl.value="0.00";
+    else if(salePaymentType==="Parçalı")paidEl.value=Math.min(Number(paidEl.value||0),total).toFixed(2);
+    else paidEl.value=total.toFixed(2);
+  }
+  let paid=Math.max(0,Math.min(total,Number(paidEl.value||0)));
+  remEl.value=money(Math.max(0,total-paid));
+}
+function setSalePayment(type){
+  salePaymentType=type;salePaidTouched=false;
+  document.querySelectorAll(".sale-payment").forEach(b=>b.classList.toggle("active",b.dataset.pay===type));
+  let l=document.getElementById("salePaymentLabel");if(l)l.value=type;
+  updateSaleAmounts(false);
+}
+function addProductToSale(id){
+  let p=data.products.find(x=>x.id===Number(id));if(!p)return;
+  let old=saleCart.find(x=>x.productId===p.id);
+  let current=old?+old.qty:0;
+  if(current+1>+p.stock)return alert("Yeterli stok yok.");
+  if(old)old.qty+=1;else saleCart.push({productId:p.id,name:p.name,price:+p.price||0,qty:1});
+  let s=document.getElementById("saleSearchInput");if(s)s.value="";
+  let r=document.getElementById("saleSearchResults");if(r)r.classList.remove("open");
+  salePaidTouched=false;refreshSaleScreen();
+}
+function changeSaleCartQty(id,delta){
+  let x=saleCart.find(i=>i.productId===Number(id)),p=data.products.find(p=>p.id===Number(id));if(!x)return;
+  let next=+x.qty+delta;if(next<=0){removeSaleCartItem(id);return}
+  if(p&&next>+p.stock)return alert("Yeterli stok yok.");
+  x.qty=next;salePaidTouched=false;refreshSaleScreen();
+}
+function removeSaleCartItem(id){saleCart=saleCart.filter(x=>x.productId!==Number(id));salePaidTouched=false;refreshSaleScreen()}
+function clearSaleCart(){
+  if(saleCart.length&&!confirm("Sepet temizlensin mi?"))return;
+  saleCart=[];salePaidTouched=false;
+  let n=document.getElementById("saleNote");if(n)n.value="";
+  let d=document.getElementById("saleDiscount");if(d)d.value="0";
+  setSalePayment("Nakit");refreshSaleScreen();
+}
+function updateSaleCustomerLabel(){
+  let s=document.getElementById("saleCustomer"),label=document.getElementById("saleCustomerLabel"),pill=document.getElementById("saleCustomerPill");
+  if(!s)return;let opt=s.options[s.selectedIndex],name=s.value?(opt?opt.text:"Müşteri"):"Müşterisiz satış";
+  if(label)label.textContent=name;
+  if(pill)pill.innerHTML=name+'<br><small>Borç: 0,00</small>';
+}
+function renderSaleSearchResults(){
+  let input=document.getElementById("saleSearchInput"),box=document.getElementById("saleSearchResults");if(!input||!box)return;
+  let q=input.value.trim().toLocaleLowerCase("tr-TR");
+  let list=data.products.filter(p=>{
+    let inGroup=saleGroupFilter==="Ana Liste"||(p.group||"Genel")===saleGroupFilter;
+    let hit=!q||(p.name||"").toLocaleLowerCase("tr-TR").includes(q)||(p.code||"").toLocaleLowerCase("tr-TR").includes(q);
+    return inGroup&&hit;
+  }).slice(0,12);
+  if(!q&&saleGroupFilter==="Ana Liste"){box.classList.remove("open");box.innerHTML="";return}
+  box.innerHTML=list.length?list.map(p=>'<button type="button" class="sale-search-item" onclick="addProductToSale('+p.id+')"><span><b>'+p.name+'</b><br><small class="muted">'+(p.code||"Barkod yok")+' · Stok: '+p.stock+'</small></span><b>'+money(p.price)+'</b></button>').join(""):'<div class="muted" style="padding:12px">Ürün bulunamadı.</div>';
+  box.classList.add("open");
+}
+function saleSearchKeydown(e){
+  if(e.key!=="Enter")return;e.preventDefault();
+  let q=e.target.value.trim().toLocaleLowerCase("tr-TR");if(!q)return;
+  let exact=data.products.find(p=>(p.code||"").toLocaleLowerCase("tr-TR")===q);
+  if(!exact)exact=data.products.find(p=>(p.name||"").toLocaleLowerCase("tr-TR").includes(q));
+  if(exact)addProductToSale(exact.id);else alert("Ürün bulunamadı.");
+}
+function renderSaleGroupChips(){
+  let box=document.getElementById("saleGroupChips");if(!box)return;
+  let gs=["Ana Liste",...[...new Set(data.products.map(p=>p.group||"Genel"))]];
+  box.innerHTML=gs.map(g=>'<button type="button" class="sale-group-btn '+(saleGroupFilter===g?"active":"")+'" onclick="setSaleGroupFilter('+JSON.stringify(g)+')">'+g+'</button>').join("");
+}
+function setSaleGroupFilter(g){saleGroupFilter=g;renderSaleGroupChips();let i=document.getElementById("saleSearchInput");if(i)i.value="";renderSaleSearchResults()}
+function completeSale(){
+  if(!saleCart.length)return alert("Sepete ürün ekle.");
+  let total=saleCartTotal(),gross=saleCartGross(),discount=saleDiscountPct(),paidEl=document.getElementById("salePaidInput");
+  let paid=Math.max(0,Math.min(total,Number(paidEl?paidEl.value:0)||0)),remaining=Math.max(0,total-paid);
+  if(salePaymentType==="Parçalı"&&(paid<=0||paid>=total))return alert("Parçalı ödeme için ödenen tutarı, toplamdan düşük olacak şekilde gir.");
+  if(salePaymentType==="Veresiye"){paid=0;remaining=total}
+  if((salePaymentType==="Nakit"||salePaymentType==="Pos")&&!salePaidTouched){paid=total;remaining=0}
+  for(let item of saleCart){
+    let p=data.products.find(x=>x.id===item.productId);
+    if(!p||+p.stock<+item.qty)return alert((p?p.name:"Ürün")+" için yeterli stok yok.");
+  }
+  let customerSel=document.getElementById("saleCustomer"),customer=customerSel&&customerSel.value?data.customers.find(x=>x.id==customerSel.value):null;
+  let customerName=customer?customer.name:"Müşterisiz satış",note=(document.getElementById("saleNote")?.value||"").trim();
+  let now=Date.now(),date=new Date().toLocaleString("tr-TR"),runningPaid=0,runningRemaining=0;
+  let lineTotals=saleCart.map(i=>(+i.price||0)*(+i.qty||0)*(1-discount/100));
+  saleCart.forEach((item,idx)=>{
+    let p=data.products.find(x=>x.id===item.productId);p.stock-=+item.qty;
+    let lineTotal=lineTotals[idx],linePaid,lineRemaining;
+    if(idx===saleCart.length-1){linePaid=Math.max(0,paid-runningPaid);lineRemaining=Math.max(0,remaining-runningRemaining)}
+    else{
+      let ratio=total>0?lineTotal/total:0;
+      linePaid=Math.round(paid*ratio*100)/100;lineRemaining=Math.round(remaining*ratio*100)/100;
+      runningPaid+=linePaid;runningRemaining+=lineRemaining;
+    }
+    data.sales.unshift({
+      id:now+idx,saleGroupId:now,date,customerId:customer?customer.id:null,productId:p.id,customer:customerName,product:p.name,
+      qty:+item.qty,unitPrice:+item.price||0,gross:(+item.price||0)*(+item.qty||0),discount,total:lineTotal,
+      paymentType:salePaymentType,paid:linePaid,remaining:lineRemaining,note
+    });
+  });
+  let payment=salePaymentType;
+  saleCart=[];salePaidTouched=false;
+  let noteEl=document.getElementById("saleNote");if(noteEl)noteEl.value="";
+  let disc=document.getElementById("saleDiscount");if(disc)disc.value="0";
+  save();setSalePayment("Nakit");refreshSaleScreen();
+  alert("Satış kaydedildi. Toplam: "+money(total)+" · "+payment+" · Ödenen: "+money(paid)+" · Kalan: "+money(remaining));
+}
+function updateSalePrice(){refreshSaleScreen()}
+function updateSaleTotal(){refreshSaleScreen()}
+function makeSale(){completeSale()}
+function editSale(id){
+  if(!requireManager())return;let s=data.sales.find(x=>x.id===id);if(!s)return;
+  let oldQty=+s.qty||0,q=prompt("Yeni adet:",oldQty);if(q===null)return;q=Number(q);
+  let price=prompt("Yeni birim satış fiyatı:",s.unitPrice!=null?s.unitPrice:(oldQty?((+s.total||0)/oldQty):0));if(price===null)return;
+  price=Number(String(price).replace(",","."));
+  if(!Number.isFinite(q)||q<1||!Number.isFinite(price)||price<0)return alert("Geçerli adet ve fiyat gir.");
+  let p=data.products.find(x=>x.id===s.productId)||data.products.find(x=>x.name===s.product);
+  if(p){let needed=q-oldQty;if(needed>0&&p.stock<needed)return alert("Yeterli stok yok.");p.stock-=needed}
+  let discount=Number(s.discount||0);s.qty=q;s.unitPrice=price;s.gross=price*q;s.total=price*q*(1-discount/100);
+  if(s.remaining!=null||s.paid!=null){let oldAll=(+s.paid||0)+(+s.remaining||0),ratio=oldAll>0?(+s.paid||0)/oldAll:1;s.paid=Math.round(s.total*ratio*100)/100;s.remaining=Math.max(0,s.total-s.paid)}
+  save();
+}
+async function startSaleScanner(){
+  let panel=document.getElementById("saleScannerPanel"),video=document.getElementById("saleScannerVideo"),status=document.getElementById("saleScannerStatus");
+  if(!panel||!video)return;panel.style.display="block";
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error("Kamera desteklenmiyor");
+    saleScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    video.srcObject=saleScannerStream;await video.play();
+    if(!("BarcodeDetector" in window)){status.textContent="Bu tarayıcı otomatik barkod okumayı desteklemiyor. USB/Bluetooth barkod okuyucu veya arama alanını kullanabilirsin.";return}
+    let formats=await BarcodeDetector.getSupportedFormats().catch(()=>[]);
+    let detector=new BarcodeDetector(formats.length?{formats}:undefined);
+    const scan=async()=>{
+      if(!saleScannerStream)return;
+      try{
+        let codes=await detector.detect(video);
+        if(codes&&codes[0]){
+          let code=codes[0].rawValue||"",p=data.products.find(x=>String(x.code||"")===String(code));
+          if(p){addProductToSale(p.id);status.textContent=p.name+" sepete eklendi.";stopSaleScanner();return}
+          status.textContent="Barkod bulundu fakat ürün kayıtlı değil: "+code;
+        }
+      }catch(e){}
+      saleScannerTimer=setTimeout(scan,450);
+    };scan();
+  }catch(e){status.textContent="Kamera açılamadı: "+e.message}
+}
+function stopSaleScanner(){
+  if(saleScannerTimer){clearTimeout(saleScannerTimer);saleScannerTimer=null}
+  if(saleScannerStream){saleScannerStream.getTracks().forEach(t=>t.stop());saleScannerStream=null}
+  let panel=document.getElementById("saleScannerPanel"),video=document.getElementById("saleScannerVideo");
+  if(video)video.srcObject=null;if(panel)panel.style.display="none";
+}
+
 function calculateOffer(){let p=data.products.find(x=>x.id==offerProduct.value),q=+offerQty.value,d=+discount.value;if(!p)return alert("Ürün seç.");let t=p.price*q*(1-d/100);offerResult.textContent="Toplam: "+money(t)}
 
 
@@ -790,13 +1112,20 @@ stockRows.innerHTML=data.products.map(x=>`<tr><td>${x.name}</td><td>${x.stock}</
 let stockHistoryRows=document.getElementById("stockHistoryRows");
 if(stockHistoryRows)stockHistoryRows.innerHTML=data.stockMovements.length?data.stockMovements.map(x=>`<tr><td>${x.date||"-"}</td><td>${x.productName||"-"}</td><td>+${x.qty}</td><td>${x.before}</td><td>${x.after}</td><td>${x.user||"-"}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">Henüz sonradan stok ekleme kaydı yok.</td></tr>`;
 let po=data.products.map(x=>`<option value="${x.id}">${x.name} — ${money(x.price)}</option>`).join(""),co=data.customers.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
-saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCustomer.innerHTML=co;updateSalePrice();
+if(typeof offerProduct!=="undefined")offerProduct.innerHTML=po;
+if(typeof offerCustomer!=="undefined")offerCustomer.innerHTML=co;
+if(typeof saleCustomer!=="undefined"){
+  let old=saleCustomer.value;
+  saleCustomer.innerHTML='<option value="">Müşterisiz satış</option>'+co;
+  if([...saleCustomer.options].some(o=>o.value===old))saleCustomer.value=old;
+}
+updateSaleCustomerLabel();refreshSaleScreen();
 serviceCustomer.innerHTML=co;
 previewServiceDue();
 updateServiceChoices();
 serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Teslim Tarihi Düzenle</button></td><td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret Düzenle</button></td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf Değiştir</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
-saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${x.paymentType||"Nakit"}</td><td>${money(x.paid!=null?x.paid:x.total)}</td><td>${money(x.remaining||0)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
 if(sessionStorage.getItem("ceptesatis_login")==="1"&&getSession())loginScreen.style.display="none";else{sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user")}
 render();
