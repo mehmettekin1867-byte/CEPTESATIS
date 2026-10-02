@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cepte Satış - Giriş Sıfırlama</title>
+</head>
+<body>
+<p>Giriş bilgileri sıfırlanıyor...</p>
+<script>
+try{
+  const key="ceptesatis_data";
+  const data=JSON.parse(localStorage.getItem(key)||'{"products":[],"customers":[],"sales":[],"groups":[]}');
+  if(!data.auth)data.auth={};
+  if(!data.settings)data.settings={};
+  data.auth.username="admin18";
+  data.auth.password="1234";
+  data.settings.mainUsernameVersion=2;
+  data.settings.mainPasswordResetVersion="2026-10-02-2";
+  localStorage.setItem(key,JSON.stringify(data));
+  sessionStorage.removeItem("ceptesatis_login");
+  sessionStorage.removeItem("ceptesatis_user");
+  document.body.innerHTML="<h2>Tamam ✅</h2><p>Kullanıcı adı: <b>admin18</b><br>Şifre: <b>1234</b></p><p>Cepte Satış'a yönlendiriliyorsun...</p>";
+  setTimeout(()=>location.href="./",1200);
+}catch(e){
+  document.body.innerHTML="<h2>İşlem yapılamadı</h2><p>Sayfayı yenileyip tekrar dene.</p>";
+}
+</script>
+</body>
+</html>
