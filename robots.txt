@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mehmettekin1867-byte.github.io/CEPTESATIS/sitemap.xml
