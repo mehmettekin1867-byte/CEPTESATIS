@@ -913,27 +913,63 @@ function forgotPasswordWhatsApp(){
   window.open(url,"_blank","noopener,noreferrer");
 }
 function login(){
-  const u=(document.getElementById("loginUser")?.value||"").trim(),pw=document.getElementById("loginPass")?.value||"",errorEl=document.getElementById("loginError");
+  const u=(document.getElementById("loginUser")?.value||"").trim();
+  const pw=(document.getElementById("loginPass")?.value||"").trim();
+  const errorEl=document.getElementById("loginError");
+
+  // Girişten hemen önce en güncel kayıtları tekrar oku.
+  try{
+    const latest=JSON.parse(localStorage.getItem("ceptesatis_data")||"null");
+    if(latest&&typeof latest==="object")data=latest;
+  }catch(e){}
+
+  if(!Array.isArray(data.dealers))data.dealers=[];
+  if(!data.auth)data.auth={username:"admin18",password:"1234"};
+
+  const norm=v=>String(v==null?"":v).trim().toLocaleLowerCase("tr-TR");
   let s=null;
-  if(u===String(data.auth.username||"")&&pw===String(data.auth.password||""))s={username:u,name:u,role:"manager",isMain:true};
-  else{let d=data.dealers.find(x=>String(x.user||"").toLowerCase()===u.toLowerCase()&&String(x.pass||"")===pw);if(d)s={username:d.user,name:d.owner||d.name||d.user,role:d.role||"personel",isMain:false,permissions:Array.isArray(d.permissions)?d.permissions:[...SECTION_PERMISSIONS]}}
-  if(s){sessionStorage.setItem("ceptesatis_login","1");sessionStorage.setItem("ceptesatis_user",JSON.stringify(s));document.getElementById("loginScreen").style.display="none";if(errorEl)errorEl.textContent="";applyUserUI();render()}
-  else if(errorEl)errorEl.textContent="Kullanıcı adı veya şifre hatalı.";
+
+  if(norm(u)===norm(data.auth.username)&&pw===String(data.auth.password||"").trim()){
+    s={username:String(data.auth.username||u).trim(),name:String(data.auth.username||u).trim(),role:"manager",isMain:true};
+  }else{
+    const d=data.dealers.find(x=>{
+      const dealerUser=x.user??x.username??x.kullaniciAdi??x.kullanici??"";
+      const dealerPass=x.pass??x.password??x.sifre??"";
+      return norm(dealerUser)===norm(u)&&String(dealerPass).trim()===pw;
+    });
+    if(d){
+      const dealerUser=String(d.user??d.username??d.kullaniciAdi??d.kullanici??u).trim();
+      s={username:dealerUser,name:d.owner||d.name||dealerUser,role:d.role||"personel",isMain:false,permissions:Array.isArray(d.permissions)?d.permissions:[...SECTION_PERMISSIONS]};
+    }
+  }
+
+  if(s){
+    sessionStorage.setItem("ceptesatis_login","1");
+    sessionStorage.setItem("ceptesatis_user",JSON.stringify(s));
+    document.getElementById("loginScreen").style.display="none";
+    if(errorEl)errorEl.textContent="";
+    applyUserUI();
+    render();
+  }else if(errorEl){
+    errorEl.textContent="Kullanıcı adı veya şifre hatalı.";
+  }
 }
 document.addEventListener("DOMContentLoaded",()=>{const btn=document.getElementById("loginBtn"),pass=document.getElementById("loginPass");if(btn)btn.addEventListener("click",login);if(pass)pass.addEventListener("keydown",e=>{if(e.key==="Enter")login()});applySettingsUI();applyUserUI()});
 function logout(){sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
 function saveLoginSettings(){if(!requireManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
 function addDealer(){
 if(!requireManager())return;
-let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value||"personel";
+let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=dealerRole.value||"personel";
 let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
 if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");
 if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
-if(data.dealers.some(x=>String(x.user||"").toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");
-data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role,permissions});
+const norm=v=>String(v==null?"":v).trim().toLocaleLowerCase("tr-TR");
+if(norm(data.auth?.username)===norm(user)||data.dealers.some(x=>norm(x.user??x.username??x.kullaniciAdi??x.kullanici)===norm(user)))return alert("Bu kullanıcı adı kullanılıyor.");
+data.dealers.push({id:Date.now(),name,owner,phone,user,pass,username:user,password:pass,role,permissions});
 dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";
 document.querySelectorAll(".dealer-permission").forEach(x=>x.checked=true);
-save()
+save();
+alert("Alt bayi oluşturuldu. Bu kullanıcı adı ve şifre ile giriş yapılabilir.");
 }
 function delDealer(id){if(!requireManager())return;if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
 function editDealerPassword(id){if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let p=prompt("Yeni şifreyi gir:",d.pass||"");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");d.pass=p;save();alert("Alt bayi şifresi güncellendi.")}
