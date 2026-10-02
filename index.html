@@ -361,13 +361,13 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
 <button data-page="stock" data-short="📊">📊 Stok</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
-<button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayiler</button>
+<button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayi Ekle</button>
 <button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 <button class="pricecheck-nav" data-page="pricecheck" data-short="🏷️">🏷️ Fiyat Gör</button>
 </div>
 </aside>
 <main class="main">
-<div class="topbar"><div class="main-brand">CEPTE SATIŞ</div><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
+<div class="topbar"><div class="main-brand">CEPTE SATIŞ</div><button class="btn" id="dealerQuickBtn" type="button" onclick="openDealersPage()" style="display:none">🏪 Alt Bayi Ekle</button><button class="btn" type="button" onclick="toggleQuickSettings()">☰ Gizli Ayarlar</button></div>
 <div id="quickSettings" class="quick-settings">
   <h2 style="margin-top:0">Hızlı Ayarlar</h2>
   <div class="quick-grid">
@@ -792,7 +792,7 @@ function requireManager(){if(isManager())return true;alert("Bu işlem yalnızca 
 function applyUserUI(){
 let s=getSession(),n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");
 if(n)n.textContent=s?(s.name||s.username||"-"):"-";
-if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
+if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";let dq=document.getElementById("dealerQuickBtn");if(dq)dq.style.display=isManager()?"inline-block":"none";
 document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
 let active=document.querySelector(".nav button.active");
 if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
@@ -802,7 +802,7 @@ function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
 function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
-function toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
+function openDealersPage(){if(!isManager())return alert("Bu işlem yalnızca yöneticilere açıktır.");let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}\nfunction toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
@@ -1560,13 +1560,13 @@ function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.$
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr>
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>{let did=JSON.stringify(String(x.id));return `<tr>
 <td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td>
 <td><span>🔒 Bulutta güvenli</span></td>
-<td>${x.role==="manager"?"Yönetici":"Personel"}<br><button onclick="editDealerRole(${x.id})">Seviye Değiştir</button></td>
-<td>${(Array.isArray(x.permissions)&&x.permissions.length?x.permissions:SECTION_PERMISSIONS).map(k=>SECTION_LABELS[k]||k).join(", ")}<br><button onclick="editDealerPermissions(${x.id})">Yetki Düzenle</button></td>
-<td><button onclick="editDealerPassword(${x.id})">Şifre Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td>
-</tr>`).join("");
+<td>${x.role==="manager"?"Yönetici":"Personel"}<br><button onclick='editDealerRole(${did})'>Seviye Değiştir</button></td>
+<td>${(Array.isArray(x.permissions)&&x.permissions.length?x.permissions:SECTION_PERMISSIONS).map(k=>SECTION_LABELS[k]||k).join(", ")}<br><button onclick='editDealerPermissions(${did})'>Yetki Düzenle</button></td>
+<td><button onclick='editDealerPassword(${did})'>Şifre Düzenle</button><button class="danger" onclick='delDealer(${did})'>Sil</button></td>
+</tr>`}).join("");
 
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder;if(typeof x.paymentDone!=="boolean")x.paymentDone=Number(x.paidAmount||0)>0;if(x.paidAmount==null)x.paidAmount=0});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");
