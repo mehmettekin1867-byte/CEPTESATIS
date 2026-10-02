@@ -70,6 +70,7 @@ body.dark .barcode-scanner-box{background:#172033;color:white}
 @media(max-width:600px){.barcode-scan-row{display:block}.barcode-scan-row .btn{width:100%;margin-bottom:10px}}
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -133,6 +134,7 @@ body.dark .barcode-scanner-box{background:#172033;color:white}
   <div class="barcode-scan-row">
     <input id="pCode" placeholder="Örn: 8691234567890">
     <button class="btn" type="button" onclick="openBarcodeScanner()">📷 QR / Barkod Tara</button>
+    <button class="btn" type="button" onclick="printBarcodeFromForm()">🏷️ Barkod Çıkar</button>
   </div></div>
 <div><label>Ürün Adı</label><input id="pName" placeholder="Ürün adı"></div>
 <div><label>Ürün Grubu / Kategori</label><select id="pGroup"><option value="Genel">Genel</option></select></div>
@@ -467,6 +469,38 @@ function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=
 function resetData(){if(!isMainUser())return alert("Bu işlem sadece ana yöneticiye açıktır.");if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings;data={products:[],customers:[],sales:[],groups:[],services:[],dealers:[],auth,settings};save()}}
 function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.${m}.${y}`}
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
+function barcodeEscape(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function openBarcodePrint(code,name,price){
+  code=String(code||"").trim();
+  if(!code)return alert("Önce ürün kodu / barkod gir.");
+  if(typeof JsBarcode==="undefined")return alert("Barkod oluşturucu yüklenemedi. İnternet bağlantını kontrol et.");
+  try{
+    const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+    JsBarcode(svg,code,{format:"CODE128",displayValue:true,fontSize:17,height:65,margin:8});
+    const svgText=new XMLSerializer().serializeToString(svg);
+    const w=window.open("","_blank","width=520,height=650");
+    if(!w)return alert("Barkod penceresi engellendi. Açılır pencereye izin ver.");
+    const title=barcodeEscape(name||"Ürün Barkodu");
+    const priceText=price===undefined||price===null||price===""?"":barcodeEscape(money(price));
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Barkod - ${title}</title>
+    <style>body{font-family:Arial,sans-serif;margin:0;padding:22px;text-align:center}.label{display:inline-block;border:1px solid #ddd;border-radius:12px;padding:14px 18px;min-width:280px;background:white}.name{font-weight:700;font-size:17px;margin-bottom:7px}.price{font-size:18px;font-weight:700;margin-top:5px}.print{margin-top:18px;border:0;border-radius:12px;padding:12px 20px;background:#2563eb;color:white;font-weight:700;cursor:pointer}@media print{.print{display:none}body{padding:0}.label{border:0}}</style></head><body>
+    <div class="label"><div class="name">${title}</div>${svgText}${priceText?`<div class="price">${priceText}</div>`:""}</div><br>
+    <button class="print" onclick="window.print()">🖨️ Yazdır</button></body></html>`);
+    w.document.close();
+  }catch(e){alert("Bu kod için barkod oluşturulamadı.")}
+}
+function printBarcode(id){
+  const p=data.products.find(x=>x.id===id);
+  if(!p)return;
+  if(!p.code){p.code=makeBarcode();save()}
+  openBarcodePrint(p.code,p.name,p.price);
+}
+function printBarcodeFromForm(){
+  let code=(document.getElementById("pCode")?.value||"").trim();
+  if(!code){code=makeBarcode();document.getElementById("pCode").value=code}
+  openBarcodePrint(code,document.getElementById("pName")?.value||"Yeni Ürün",document.getElementById("pPrice")?.value||"");
+}
 let barcodeScanner=null;
 async function openBarcodeScanner(){
   const modal=document.getElementById("barcodeScannerModal");
@@ -523,7 +557,7 @@ if(document.getElementById("autoBarcode"))document.getElementById("autoBarcode")
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder;if(!x.group)x.group="Genel"});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");legacyGroups.forEach(g=>{if(!data.groups.includes(g))data.groups.push(g)});let groups=["Genel",...data.groups];
 pGroup.innerHTML=groups.map(g=>`<option value="${g}">${g}</option>`).join("");groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
-productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" style="width:45px;height:45px;object-fit:cover;border-radius:9px">`:"-"}</td><td>${x.code||"-"}</td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td>${isManager()?`<button class="edit" onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" style="width:45px;height:45px;object-fit:cover;border-radius:9px">`:"-"}</td><td>${x.code||"-"}</td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td><button class="edit" onclick="printBarcode(${x.id})">🏷️ Barkod Çıkar</button>${isManager()?`<button class="edit" onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:""}</td></tr>`).join("");
 customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;let upcoming=data.customers.filter(x=>x.reminder&&x.reminder>todayStr&&x.reminder<=limitStr).sort((a,b)=>a.reminder.localeCompare(b.reminder));
 dueCustomers.innerHTML=due.length?due.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>🔔 ${x.name}</b> — ${x.group||"Genel"} — ${x.phone||"Telefon yok"} — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Bugün için günü gelen müşteri yok.</p>`;upcomingCustomers.innerHTML=upcoming.length?upcoming.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>${x.name}</b> — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Önümüzdeki 2 gün için hatırlatma yok.</p>`;
