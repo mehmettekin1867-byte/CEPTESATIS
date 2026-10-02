@@ -247,7 +247,7 @@ body.dark .barcode-scanner-box{background:#172033;color:white}
 
 <script>
 let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
-if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.auth)data.auth={username:"admin18",password:"1234"};if(!data.settings)data.settings={};if(data.settings.mainUsernameVersion!==2){data.auth.username="admin18";data.settings.mainUsernameVersion=2;}
+if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.auth)data.auth={username:"admin18",password:"1234"};if(!data.settings)data.settings={};if(data.settings.mainUsernameVersion!==2){data.auth.username="admin18";data.settings.mainUsernameVersion=2;}if(data.settings.mainPasswordResetVersion!=="2026-10-02-1"){data.auth.password="1234";data.settings.mainPasswordResetVersion="2026-10-02-1";localStorage.setItem("ceptesatis_data",JSON.stringify(data));}
 if(data.settings.autoBarcode===undefined)data.settings.autoBarcode=false;if(!data.settings.barcodePrefix)data.settings.barcodePrefix="MGT";
 data.sales.forEach((s,i)=>{if(!s.id)s.id=Date.now()+i});
 data.customers.forEach(c=>{if(!c.group)c.group="Genel"});
