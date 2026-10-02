@@ -802,7 +802,8 @@ function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
 function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
-function openDealersPage(){if(!isManager())return alert("Bu işlem yalnızca yöneticilere açıktır.");let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}\nfunction toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
+function openDealersPage(){if(!isManager())return alert("Bu işlem yalnızca yöneticilere açıktır.");let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}
+function toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
