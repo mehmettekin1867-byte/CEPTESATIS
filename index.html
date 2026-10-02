@@ -687,6 +687,25 @@ function editServicePrice(id){
   if(!Number.isFinite(v)||v<0)return alert("Geçerli bir servis ücreti gir.");
   x.price=v;save();alert("Servis ücreti güncellendi.")
 }
+function editServiceDue(id){
+  let x=data.services.find(s=>s.id===id);if(!x)return;
+  let current=x.due?fmtDate(x.due):"";
+  let v=prompt("Yeni teslim tarihini gir (GG.AA.YYYY veya YYYY-AA-GG):",current);
+  if(v===null)return;
+  v=v.trim();
+  let iso="";
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) iso=v;
+  else{
+    let m=v.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+    if(m) iso=m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
+  }
+  let d=new Date(iso+"T00:00:00");
+  if(!iso||Number.isNaN(d.getTime()))return alert("Geçerli bir teslim tarihi gir.");
+  x.due=iso;
+  x.workDays=null;
+  save();
+  alert("Teslim tarihi güncellendi.")
+}
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
 function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
 
@@ -724,7 +743,7 @@ saleProduct.innerHTML=offerProduct.innerHTML=po;saleCustomer.innerHTML=offerCust
 serviceCustomer.innerHTML=co;
 previewServiceDue();
 updateServiceChoices();
-serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}</td><td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret Düzenle</button></td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf Değiştir</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
+serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Teslim Tarihi Düzenle</button></td><td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret Düzenle</button></td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf Değiştir</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
 saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
