@@ -322,7 +322,11 @@ body.dark .sale-cart{background:#0f172a}.dark .sale-summary{background:#172033}.
 <table><thead><tr><th>Grup Adı</th><th>Ürün Sayısı</th><th></th></tr></thead><tbody id="groupRows"></tbody></table></div></section>
 
 <section id="customers" class="page"><h1>Müşteriler</h1>
-<div class="panel"><div class="grid"><div><label>Ad / Firma</label><input id="cName"></div><div><label>Telefon</label><input id="cPhone"></div><div><label>Cari Grubu</label><select id="cGroup"><option>Genel</option></select></div><div><label>Kaç Gün Sonra Hatırlat?</label>
+<div class="panel"><div class="grid">
+<div><label>Ad / Firma</label><input id="cName"></div>
+<div><label>Telefon</label><input id="cPhone"></div>
+<div><label>Cari Grubu</label><select id="cGroup"><option>Genel</option></select></div>
+<div><label>Kaç Gün Sonra Hatırlat?</label>
 <select id="cReminderDays">
 <option value="1">1 gün</option>
 <option value="2">2 gün</option>
@@ -333,10 +337,19 @@ body.dark .sale-cart{background:#0f172a}.dark .sale-summary{background:#172033}.
 <option value="20">20 gün</option>
 <option value="25">25 gün</option>
 <option value="30" selected>30 gün (1 ay)</option>
-</select></div></div>
+</select></div>
+<div><label>Ödeme Yapıldı</label>
+<select id="cPaymentDone" onchange="toggleCustomerPaidAmount()">
+<option value="0" selected>Hayır</option>
+<option value="1">Evet</option>
+</select></div>
+<div><label>Ödenen Tutar (₺)</label><input id="cPaidAmount" type="number" min="0" step="0.01" value="0" oninput="syncCustomerPaymentStatus()"></div>
+</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><div style="min-width:220px"><label>Yeni Cari Grubu</label><input id="newCustomerGroup" placeholder="Örn: Toptan"></div><button class="btn" type="button" onclick="addCustomerGroup()">Grup Ekle</button></div>
 <button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
-<table><thead><tr><th>Müşteri</th><th>Grup</th><th>Telefon</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table></div></section>
+<div class="table-wrap">
+<table><thead><tr><th>Müşteri</th><th>Grup</th><th>Telefon</th><th>Ödeme Yapıldı</th><th>Ödenen Tutar</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
+</div></div></section>
 
 <section id="sales" class="page">
 <div class="sales-shell">
@@ -682,15 +695,36 @@ function deleteCurrentProduct(){if(productEditId!=null)delProduct(productEditId)
 function setProductStatusFilter(filter,btn){productStatusFilter=filter;document.querySelectorAll(".products-chip[data-filter]").forEach(x=>x.classList.toggle("active",x===btn));renderProductList()}
 function renderProductList(){let box=document.getElementById("productRows");if(!box)return;let q=(document.getElementById("productSearch")?.value||"").trim().toLocaleLowerCase("tr-TR"),group=document.getElementById("productFilterGroup")?.value||"",sort=document.getElementById("productSort")?.value||"name-asc";let items=data.products.filter(p=>{let hit=!q||String(p.name||"").toLocaleLowerCase("tr-TR").includes(q)||String(p.code||"").toLocaleLowerCase("tr-TR").includes(q),groupOk=!group||(p.group||"Genel")===group,stock=+p.stock||0,statusOk=productStatusFilter==="all"||(productStatusFilter==="instock"&&stock>0)||(productStatusFilter==="out"&&stock<=0)||(productStatusFilter==="low"&&stock>0&&stock<=5);return hit&&groupOk&&statusOk});items.sort((a,b)=>{switch(sort){case"name-desc":return String(b.name||"").localeCompare(String(a.name||""),"tr");case"barcode-asc":return String(a.code||"").localeCompare(String(b.code||""),"tr",{numeric:true});case"barcode-desc":return String(b.code||"").localeCompare(String(a.code||""),"tr",{numeric:true});case"price-asc":return(+a.price||0)-(+b.price||0);case"price-desc":return(+b.price||0)-(+a.price||0);case"stock-asc":return(+a.stock||0)-(+b.stock||0);case"stock-desc":return(+b.stock||0)-(+a.stock||0);default:return String(a.name||"").localeCompare(String(b.name||""),"tr")}});let count=document.getElementById("productListCount");if(count)count.textContent=items.length+" ürün";if(!items.length){box.innerHTML='<div class="product-list-empty">Gösterilecek ürün bulunamadı.</div>';return}box.innerHTML=items.map(x=>{let thumb=x.image?'<img src="'+x.image+'" alt="'+productEscape(x.name)+'">':'<span>Görsel</span>',actions='<button class="stock" type="button" onclick="addStock('+x.id+')">➕ Stok</button><button class="print" type="button" onclick="printProductBarcode('+x.id+')">🖨️ Barkod</button>';if(isManager())actions='<button class="edit" type="button" onclick="selectProductForEdit('+x.id+')">✏️ Düzenle</button>'+actions+'<button class="danger" type="button" onclick="delProduct('+x.id+')">Sil</button>';return '<div class="product-card-item"><div class="product-card-thumb">'+thumb+'</div><div><div class="product-card-name">'+productEscape(x.name)+'</div><div class="product-card-code">'+productEscape(x.code||"-")+'</div><div class="product-card-meta">Stok: '+(+x.stock||0)+' · Alış: '+money(x.buyPrice||0)+' · KDV: %'+(x.vat??0)+' · '+productEscape(x.unit||"Adet")+'<br>Grup: '+productEscape(x.group||"Genel")+'</div><div class="product-card-actions">'+actions+'</div></div><div class="product-card-price">'+money(x.price)+'</div></div>'}).join("")}
 function addProduct(){let name=(document.getElementById("pName")?.value||"").trim(),code=(document.getElementById("pCode")?.value||"").trim(),group=document.getElementById("pGroup")?.value||"Genel",buyPrice=+document.getElementById("pBuyPrice")?.value,price=+document.getElementById("pPrice")?.value,vat=+document.getElementById("pVat")?.value,unit=document.getElementById("pUnit")?.value||"Adet",stock=+document.getElementById("pStock")?.value,showOnSales=+(document.getElementById("pShowOnSales")?.value??1);if(productEditId!=null&&!isManager())return alert("Ürün düzenleme yalnızca yönetici kullanıcılarında aktiftir.");if(!code&&data.settings.autoBarcode)code=generateBarcode();if(!name||price<0||buyPrice<0||stock<0)return alert("Ürün bilgilerini kontrol et.");let same=data.products.find(x=>String(x.code||"").trim()===code&&x.id!==productEditId);if(code&&same)return alert("Bu barkod başka bir üründe kayıtlı.");let file=document.getElementById("pImage")?.files?.[0],wasEditing=productEditId!=null;let finish=image=>{let obj={id:productEditId??Date.now(),code,name,group,buyPrice,price,vat,unit,stock,image:image??productEditingImage??"",showOnSales};if(productEditId!=null){let i=data.products.findIndex(x=>x.id===productEditId);if(i<0)return alert("Ürün bulunamadı.");data.products[i]={...data.products[i],...obj}}else data.products.push(obj);resetProductForm();save();alert(wasEditing?"Ürün güncellendi.":"Ürün kaydedildi.")};if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish(productEditingImage)}
+function toggleCustomerPaidAmount(){
+let done=document.getElementById("cPaymentDone"),paid=document.getElementById("cPaidAmount");if(!done||!paid)return;
+if(done.value==="0"&&Number(paid.value||0)===0)paid.value="0";
+}
+function syncCustomerPaymentStatus(){
+let done=document.getElementById("cPaymentDone"),paid=document.getElementById("cPaidAmount");if(!done||!paid)return;
+if(Number(paid.value||0)>0)done.value="1";
+}
 function addCustomer(){
 let name=cName.value.trim();if(!name)return alert("Müşteri adı gir.");
 let days=Math.max(1,Math.min(30,+cReminderDays.value||30));
+let paidAmount=Math.max(0,Number(document.getElementById("cPaidAmount")?.value)||0);
+let paymentDone=(document.getElementById("cPaymentDone")?.value==="1")||paidAmount>0;
 let now=new Date();now.setHours(0,0,0,0);
 let created=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 let rd=new Date(now);rd.setDate(rd.getDate()+days);
 let reminder=`${rd.getFullYear()}-${String(rd.getMonth()+1).padStart(2,"0")}-${String(rd.getDate()).padStart(2,"0")}`;
-data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone.value.trim(),created,reminder,reminderDays:days});
-cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";save()
+data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone.value.trim(),created,reminder,reminderDays:days,paymentDone,paidAmount});
+cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";
+let pd=document.getElementById("cPaymentDone"),pa=document.getElementById("cPaidAmount");if(pd)pd.value="0";if(pa)pa.value="0";
+save()
+}
+function editCustomerPayment(id){
+if(!canAccessSection("customers"))return alert("Bu işlem için Müşteriler yetkisi gerekli.");
+let x=data.customers.find(c=>c.id===id);if(!x)return;
+let current=Number(x.paidAmount||0);
+let v=prompt("Ödenen tutarı gir:",current.toFixed(2));if(v===null)return;
+let amount=Number(String(v).replace(",","."));if(!Number.isFinite(amount)||amount<0)return alert("Geçerli bir tutar gir.");
+let status=confirm(amount>0?"Ödeme yapıldı olarak işaretlensin mi?":"Ödeme yapıldı olarak işaretlensin mi?");
+x.paidAmount=amount;x.paymentDone=status||amount>0;save();
 }
 function addCustomerGroup(){let g=(document.getElementById("newCustomerGroup")?.value||"").trim();if(!g)return alert("Cari grup adı gir.");if(g.toLowerCase()==="genel"||data.customerGroups.some(x=>x.toLowerCase()===g.toLowerCase()))return alert("Bu cari grubu zaten var.");data.customerGroups.push(g);document.getElementById("newCustomerGroup").value="";save()}
 function changeProductGroup(id){
@@ -1202,7 +1236,7 @@ if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr
 <td><button onclick="editDealerPassword(${x.id})">Şifre Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td>
 </tr>`).join("");
 
-data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder});
+data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder;if(typeof x.paymentDone!=="boolean")x.paymentDone=Number(x.paidAmount||0)>0;if(x.paidAmount==null)x.paidAmount=0});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");
 legacyGroups.forEach(g=>{if(!data.groups.includes(g))data.groups.push(g)});
 let groups=["Genel",...data.groups];
@@ -1210,7 +1244,7 @@ updateProductGroupOptions(groups);
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
-customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${x.paymentDone?"✅ Evet":"❌ Hayır"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td><button onclick="editCustomerPayment(${x.id})">💰 Ödeme Düzenle</button>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:""}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
