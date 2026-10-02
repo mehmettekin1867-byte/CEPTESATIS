@@ -165,7 +165,7 @@ body.dark .login-box{background:#1f2937}.login-box h1{margin-top:0}.login-error{
 <div class="panel"><h2>Görünüm</h2><p class="muted">Ceptesatış arka plan temasını seç.</p>
 <div class="theme-buttons"><button class="theme-btn light" onclick="setTheme('light')">☀️ Beyaz Mod</button><button class="theme-btn dark-choice" onclick="setTheme('dark')">🌙 Siyah Mod</button></div></div>
 <div class="panel"><h2>Giriş Bilgileri</h2><p class="muted">Ana kullanıcı adı ve şifresini değiştir.</p>
-<div class="grid"><div><label>Kullanıcı Adı</label><input id="mainUsername"></div><div><label>Yeni Şifre</label><input id="mainPassword" type="password" placeholder="Yeni şifre"></div></div>
+<div class="grid"><div><label>Kullanıcı Adı</label><input id="mainUsername"></div><div><label>Yeni Şifre</label><input id="mainPassword" type="password" placeholder="Yeni şifre"><label style="display:flex;align-items:center;gap:8px;margin-top:-6px;cursor:pointer"><input type="checkbox" style="width:auto;margin:0" onchange="document.getElementById('mainPassword').type=this.checked?'text':'password'"> Şifreyi Göster</label></div></div>
 <button class="btn" onclick="saveLoginSettings()">Giriş Bilgilerini Kaydet</button> <button class="btn" onclick="logout()">Çıkış Yap</button></div>
 <div class="panel"><h2>Veriler</h2><p class="muted">Bu sürüm verileri bu tarayıcıda saklar.</p><button class="btn red" onclick="resetData()">Tüm Verileri Sil</button></div></section>
 </main></div>
