@@ -87,7 +87,7 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 <div class="login-box"><div class="login-brand">CEPTE <span>SATIŞ</span></div><p class="muted" style="text-align:center">Kullanıcı girişi</p>
 <label>Kullanıcı Adı</label><input id="loginUser" autocomplete="username">
 <label>Şifre</label><div style="position:relative"><input id="loginPass" type="password" autocomplete="current-password" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('loginPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div>
-<button class="btn" type="button" id="loginBtn">Giriş Yap</button><div id="loginError" class="login-error"></div>
+<button class="btn" type="button" id="loginBtn">Giriş Yap</button><button class="btn" type="button" onclick="forgotPasswordWhatsApp()" style="margin-left:8px;background:#16a34a">💬 Şifremi Unuttum</button><div id="loginError" class="login-error"></div>
 </div></div>
 <div class="app">
 <aside class="side">
@@ -372,6 +372,12 @@ let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdı
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
 }
 function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode}
+function forgotPasswordWhatsApp(){
+  const u=(document.getElementById("loginUser")?.value||"").trim();
+  const msg="Merhaba, Cepte Satış giriş şifremi unuttum."+ (u?" Kullanıcı adım: "+u:"");
+  const url="https://wa.me/905069558183?text="+encodeURIComponent(msg);
+  window.open(url,"_blank","noopener,noreferrer");
+}
 function login(){
   const u=(document.getElementById("loginUser")?.value||"").trim(),pw=document.getElementById("loginPass")?.value||"",errorEl=document.getElementById("loginError");
   let s=null;
