@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alt Bayi Ekle - Cepte Satış</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f9;color:#17202a}.wrap{max-width:900px;margin:0 auto;padding:18px}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.brand{font-size:24px;font-weight:900}.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 6px 24px #0001;margin-bottom:16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:13px;font-weight:700;margin:0 0 5px}input,select{width:100%;padding:12px;border:1px solid #d8dee8;border-radius:12px;font-size:16px}.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;background:#2563eb;color:#fff}.btn.red{background:#dc2626}.muted{color:#64748b}.error{color:#dc2626;font-weight:700;margin-top:10px}.ok{color:#15803d;font-weight:700;margin-top:10px}.perms{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}.perms label{display:flex;gap:8px;align-items:center}.perms input{width:auto}.dealer{border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-top:10px}.dealer b{font-size:17px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{border:0;border-radius:10px;padding:9px 11px;font-weight:700;cursor:pointer}.back{color:#2563eb;text-decoration:none;font-weight:800}@media(max-width:650px){.grid{grid-template-columns:1fr}.perms{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="brand">🏪 Alt Bayi Ekle</div><a class="back" href="./">← Cepte Satış'a dön</a></div>
+
+<div id="loginCard" class="card">
+<h2>Yönetici Girişi</h2>
+<p class="muted">Alt bayi oluşturmak için yönetici hesabıyla giriş yap.</p>
+<div class="grid">
+<div><label>Kullanıcı adı</label><input id="loginUser" autocomplete="username"></div>
+<div><label>Şifre</label><input id="loginPass" type="password" autocomplete="current-password"></div>
+</div>
+<button class="btn" onclick="login()">Giriş Yap</button>
+<div id="loginMsg"></div>
+</div>
+
+<div id="panel" style="display:none">
+<div class="card">
+<h2>Yeni Alt Bayi Oluştur</h2>
+<div class="grid">
+<div><label>Bayi Adı</label><input id="name" placeholder="Örn: Mete"></div>
+<div><label>Yetkili</label><input id="owner" placeholder="Örn: Sevcan"></div>
+<div><label>Telefon</label><input id="phone" placeholder="Telefon"></div>
+<div><label>Kullanıcı Adı</label><input id="username" placeholder="Kullanıcı adı"></div>
+<div><label>Şifre</label><input id="password" type="password" placeholder="Şifre"></div>
+<div><label>Yetki Seviyesi</label><select id="role"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
+<div class="full"><label>Erişebileceği Bölümler</label><div class="perms" id="permBox"></div></div>
+</div>
+<button class="btn" onclick="createDealer()">Alt Bayi Oluştur</button>
+<div id="formMsg"></div>
+</div>
+
+<div class="card"><h2>Kayıtlı Alt Bayiler</h2><div id="dealerList" class="muted">Yükleniyor...</div></div>
+</div>
+</div>
+<script>
+const API="https://mlynqurjsenxdrcqcubb.supabase.co/functions/v1/cepte-auth";
+const KEY="sb_publishable_68gg5youHjPl-5mnqz68xA_xnwIirIP";
+const PERMS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",pricecheck:"Fiyat Gör"};
+document.getElementById("permBox").innerHTML=Object.entries(PERMS).map(([k,v])=>'<label><input class="perm" type="checkbox" value="'+k+'" checked> '+v+'</label>').join("");
+
+async function api(action,payload={}){
+ const h={"Content-Type":"application/json","apikey":KEY};
+ const t=sessionStorage.getItem("ceptesatis_cloud_token"); if(t)h["x-cepte-session"]=t;
+ const r=await fetch(API,{method:"POST",headers:h,body:JSON.stringify({action,...payload})});
+ let j={}; try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(j.error||"Sunucuya bağlanılamadı.");
+ return j;
+}
+function msg(id,text,ok=false){const e=document.getElementById(id);e.className=ok?"ok":"error";e.textContent=text}
+async function login(){
+ try{
+  const r=await api("login",{username:loginUser.value.trim(),password:loginPass.value});
+  if(!(r.user?.isMain||r.user?.role==="manager"))throw new Error("Bu bölüm yalnızca yöneticilere açıktır.");
+  sessionStorage.setItem("ceptesatis_cloud_token",r.sessionToken);
+  sessionStorage.setItem("ceptesatis_login","1");
+  sessionStorage.setItem("ceptesatis_user",JSON.stringify(r.user));
+  showPanel();
+ }catch(e){msg("loginMsg",e.message)}
+}
+async function showPanel(){
+ try{
+  const r=await api("me");
+  if(!(r.user?.isMain||r.user?.role==="manager"))return;
+  loginCard.style.display="none";panel.style.display="block";await loadDealers();
+ }catch(e){}
+}
+async function createDealer(){
+ const permissions=[...document.querySelectorAll(".perm:checked")].map(x=>x.value);
+ if(!name.value.trim()||!username.value.trim()||!password.value.trim())return msg("formMsg","Bayi adı, kullanıcı adı ve şifre gir.");
+ if(!permissions.length)return msg("formMsg","En az bir yetki seç.");
+ try{
+  await api("create_dealer",{name:name.value.trim(),owner:owner.value.trim(),phone:phone.value.trim(),username:username.value.trim(),password:password.value.trim(),role:role.value,permissions});
+  name.value=owner.value=phone.value=username.value=password.value="";role.value="personel";
+  document.querySelectorAll(".perm").forEach(x=>x.checked=true);
+  msg("formMsg","Alt bayi oluşturuldu. Bu hesap artık internet olan her cihazdan giriş yapabilir.",true);
+  await loadDealers();
+ }catch(e){msg("formMsg",e.message)}
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+async function loadDealers(){
+ try{
+  const r=await api("list_dealers");
+  dealerList.innerHTML=(r.dealers||[]).length?(r.dealers||[]).map(d=>'<div class="dealer"><b>'+esc(d.name||d.user)+'</b><div>'+esc(d.owner||"-")+' · '+esc(d.user)+' · '+(d.role==="manager"?"Yönetici":"Personel")+'</div><div class="muted">'+esc((d.permissions||[]).map(k=>PERMS[k]||k).join(", "))+'</div><div class="actions"><button onclick="changePassword('+JSON.stringify(String(d.id))+')">Şifre Değiştir</button><button onclick="changeRole('+JSON.stringify(String(d.id))+','+JSON.stringify(d.role)+')">Seviye Değiştir</button><button class="red" onclick="removeDealer('+JSON.stringify(String(d.id))+')">Sil</button></div></div>').join(""):'Henüz alt bayi yok.';
+ }catch(e){dealerList.textContent=e.message}
+}
+async function changePassword(id){const p=prompt("Yeni şifreyi gir:");if(!p)return;try{await api("set_password",{id,password:p.trim()});alert("Şifre güncellendi.")}catch(e){alert(e.message)}}
+async function changeRole(id,current){const make=confirm("Tamam = Yönetici\nİptal = Personel");try{await api("set_role",{id,role:make?"manager":"personel"});await loadDealers()}catch(e){alert(e.message)}}
+async function removeDealer(id){if(!confirm("Alt bayi silinsin mi?"))return;try{await api("delete_dealer",{id});await loadDealers()}catch(e){alert(e.message)}}
+showPanel();
+</script>
+</body>
+</html>
