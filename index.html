@@ -53,6 +53,13 @@ body.dark table button{background:#263656;color:#dbeafe}
 body.dark table button.danger{background:#4c1d1d;color:#fecaca}
 .camera-note{font-size:12px;color:#6b7280;margin-top:-8px;margin-bottom:10px}
 .manager-note{font-size:12px;color:#6b7280;margin:5px 0 0}
+.permission-box{margin:12px 0 16px;padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:#f9fafb}
+.permission-box h3{margin:0 0 10px}
+.permission-grid{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:8px 14px}
+.permission-grid label{display:flex;align-items:center;gap:8px;font-weight:700}
+.permission-grid input{width:auto;margin:0}
+body.dark .permission-box{background:#111827;border-color:#374151}
+@media(max-width:800px){.permission-grid{grid-template-columns:1fr 1fr}}
 .photo-thumb{width:48px;height:48px;object-fit:cover;border-radius:10px}
 .panel{overflow-x:auto}
 @media(max-width:800px){
@@ -79,7 +86,7 @@ body.dark table button.danger{background:#4c1d1d;color:#fecaca}
 <div id="loginScreen" class="login-screen">
 <div class="login-box"><div style="text-align:center;margin:0 auto 18px;font-size:32px;font-weight:900;letter-spacing:.8px;color:#2563eb">USTA <span style="color:#111827">SATIŞ</span></div><p class="muted" style="text-align:center">Kullanıcı girişi</p>
 <label>Kullanıcı Adı</label><input id="loginUser" autocomplete="username">
-<label>Şifre</label><input id="loginPass" type="password" autocomplete="current-password">
+<label>Şifre</label><div style="position:relative"><input id="loginPass" type="password" autocomplete="current-password" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('loginPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div>
 <button class="btn" type="button" id="loginBtn">Giriş Yap</button><div id="loginError" class="login-error"></div>
 </div></div>
 <div class="app">
@@ -209,10 +216,23 @@ body.dark table button.danger{background:#4c1d1d;color:#fecaca}
 <div><label>Yetkili</label><input id="dealerOwner" placeholder="Yetkili kişi"></div>
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
-<div><label>Şifre</label><input id="dealerPass" type="password" placeholder="Şifre"></div>
-<div><label>Yetki</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
-</div><button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
-<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Yetki</th><th></th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
+<div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="Şifre" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
+<div><label>Yetki Seviyesi</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
+</div>
+<div class="permission-box"><h3>Erişebileceği Bölümler</h3>
+<div class="permission-grid">
+<label><input class="dealer-permission" type="checkbox" value="home" checked> Ana Sayfa</label>
+<label><input class="dealer-permission" type="checkbox" value="products" checked> Ürünler</label>
+<label><input class="dealer-permission" type="checkbox" value="groups" checked> Ürün Grupları</label>
+<label><input class="dealer-permission" type="checkbox" value="customers" checked> Cariler</label>
+<label><input class="dealer-permission" type="checkbox" value="sales" checked> Satış</label>
+<label><input class="dealer-permission" type="checkbox" value="offers" checked> Teklif</label>
+<label><input class="dealer-permission" type="checkbox" value="service" checked> Teknik Servis</label>
+<label><input class="dealer-permission" type="checkbox" value="stock" checked> Stok</label>
+<label><input class="dealer-permission" type="checkbox" value="reports" checked> Raporlar</label>
+</div></div>
+<button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
+<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
 <section id="settings" class="page"><h1>Ayarlar</h1>
 <div class="panel"><h2>Görünüm</h2><p class="muted">USTA SATIŞ arka plan temasını seç.</p>
@@ -231,35 +251,93 @@ if(data.settings.ustaLoginMigration!=="2026-10-02-1"){data.auth.username="admin1
 data.sales.forEach((s,i)=>{if(!s.id)s.id=Date.now()+i});
 let session=null;
 function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
+const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports"];
+const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar"};
+function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
+function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="dealers"||page==="settings")return s.role==="manager";return effectivePermissions(s).includes(page)}
 function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager")}
 function requireManager(){if(isManager())return true;alert("Bu işlem yalnızca yöneticilere açıktır.");return false}
-function applyUserUI(){let s=getSession();let n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");if(n)n.textContent=s?(s.name||s.username||"-"):"-";if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";document.querySelectorAll(".manager-nav").forEach(el=>el.style.display=isManager()?"block":"none")}
+function applyUserUI(){
+let s=getSession(),n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");
+if(n)n.textContent=s?(s.name||s.username||"-"):"-";
+if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
+document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
+let active=document.querySelector(".nav button.active");
+if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
+}
 const money=n=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).format(Number(n)||0);
 function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document.body.classList.toggle("dark",theme==="dark")}
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
+function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
 function toggleQuickSettings(){document.getElementById("quickSettings")?.classList.toggle("open")}
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
 function generateBarcode(){let prefix=(data.settings.barcodePrefix||"UST").replace(/\s+/g,"").toUpperCase();return prefix+String(Date.now()).slice(-9)}
+function code128Svg(value){
+value=String(value||"").replace(/[^ -~]/g,"");if(!value)return"";
+const P=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
+let codes=[104],sum=104;
+for(let i=0;i<value.length;i++){let code=value.charCodeAt(i)-32;codes.push(code);sum+=code*(i+1)}
+codes.push(sum%103,106);
+let x=10,rects="",bar=true;
+for(let code of codes){let pat=P[code];for(let ch of pat){let w=Number(ch)*2;if(bar)rects+=`<rect x="${x}" y="4" width="${w}" height="54" fill="#000"/>`;x+=w;bar=!bar}}
+return `<svg xmlns="http://www.w3.org/2000/svg" width="${x+10}" height="75" viewBox="0 0 ${x+10} 75"><rect width="100%" height="100%" fill="white"/>${rects}<text x="${(x+10)/2}" y="71" text-anchor="middle" font-family="Arial" font-size="10">${value.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text></svg>`
+}
+function printProductBarcode(id){
+let p=data.products.find(x=>x.id===id);if(!p)return;
+if(!p.code){p.code=generateBarcode();save()}
+let count=Number(prompt("Kaç adet barkod etiketi yazdırılsın?","1"));if(!Number.isFinite(count)||count<1)return;
+count=Math.min(100,Math.floor(count));
+let svg=code128Svg(p.code);if(!svg)return alert("Barkod oluşturulamadı.");
+let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}<div class="price">${money(p.price)}</div></div>`).join("");
+let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
+}
 function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode}
 function login(){
   const u=(document.getElementById("loginUser")?.value||"").trim(),pw=document.getElementById("loginPass")?.value||"",errorEl=document.getElementById("loginError");
   let s=null;
   if(u===String(data.auth.username||"")&&pw===String(data.auth.password||""))s={username:u,name:u,role:"manager",isMain:true};
-  else{let d=data.dealers.find(x=>String(x.user||"").toLowerCase()===u.toLowerCase()&&String(x.pass||"")===pw);if(d)s={username:d.user,name:d.owner||d.name||d.user,role:d.role||"personel",isMain:false}}
+  else{let d=data.dealers.find(x=>String(x.user||"").toLowerCase()===u.toLowerCase()&&String(x.pass||"")===pw);if(d)s={username:d.user,name:d.owner||d.name||d.user,role:d.role||"personel",isMain:false,permissions:Array.isArray(d.permissions)?d.permissions:[...SECTION_PERMISSIONS]}}
   if(s){sessionStorage.setItem("ceptesatis_login","1");sessionStorage.setItem("ceptesatis_user",JSON.stringify(s));document.getElementById("loginScreen").style.display="none";if(errorEl)errorEl.textContent="";applyUserUI();render()}
   else if(errorEl)errorEl.textContent="Kullanıcı adı veya şifre hatalı.";
 }
 document.addEventListener("DOMContentLoaded",()=>{const btn=document.getElementById("loginBtn"),pass=document.getElementById("loginPass");if(btn)btn.addEventListener("click",login);if(pass)pass.addEventListener("keydown",e=>{if(e.key==="Enter")login()});applySettingsUI();applyUserUI()});
 function logout(){sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
 function saveLoginSettings(){if(!requireManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
-function addDealer(){if(!requireManager())return;let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value||"personel";if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");if(data.dealers.some(x=>String(x.user||"").toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role});dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";save()}
+function addDealer(){
+if(!requireManager())return;
+let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value,role=dealerRole.value||"personel";
+let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
+if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");
+if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
+if(data.dealers.some(x=>String(x.user||"").toLowerCase()===user.toLowerCase()))return alert("Bu kullanıcı adı kullanılıyor.");
+data.dealers.push({id:Date.now(),name,owner,phone,user,pass,role,permissions});
+dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";
+document.querySelectorAll(".dealer-permission").forEach(x=>x.checked=true);
+save()
+}
 function delDealer(id){if(!requireManager())return;if(confirm("Alt bayi silinsin mi?")){data.dealers=data.dealers.filter(x=>x.id!==id);save()}}
-function editDealerPassword(id){if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let p=prompt("Yeni şifreyi gir:");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");d.pass=p;save();alert("Alt bayi şifresi güncellendi.")}
+function editDealerPassword(id){if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let p=prompt("Yeni şifreyi gir:",d.pass||"");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");d.pass=p;save();alert("Alt bayi şifresi güncellendi.")}
+function toggleDealerPassword(id){
+if(!requireManager())return;let d=data.dealers.find(x=>x.id===id),el=document.getElementById("dealer-pass-"+id),btn=document.getElementById("dealer-pass-btn-"+id);if(!d||!el)return;
+let show=el.dataset.visible!=="1";el.textContent=show?(d.pass||""):"••••••";el.dataset.visible=show?"1":"0";if(btn)btn.textContent=show?"🙈 Gizle":"👁️ Göster"
+}
+function editDealerPermissions(id){
+if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;
+let current=Array.isArray(d.permissions)&&d.permissions.length?d.permissions:[...SECTION_PERMISSIONS];
+let selected=[];
+for(let key of SECTION_PERMISSIONS){let yes=confirm((current.includes(key)?"✅ ":"⬜ ")+SECTION_LABELS[key]+" erişimi verilsin mi?");if(yes)selected.push(key)}
+if(!selected.length)return alert("En az bir bölüm yetkisi seçilmelidir.");
+d.permissions=selected;save();alert("Alt bayi bölüm yetkileri güncellendi.")
+}
+function editDealerRole(id){
+if(!requireManager())return;let d=data.dealers.find(x=>x.id===id);if(!d)return;let makeManager=confirm("Bu kullanıcı Yönetici olsun mu?\nTamam = Yönetici\nİptal = Personel");d.role=makeManager?"manager":"personel";save()
+}
 
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active")});
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{if(!canAccessSection(b.dataset.page))return alert("Bu bölüme erişim yetkin yok.");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active")});
 function addGroup(){let g=newGroup.value.trim();if(!g)return alert("Grup adı gir.");if(g.toLowerCase()=="genel"||data.groups.some(x=>x.toLowerCase()==g.toLowerCase()))return alert("Bu grup zaten var.");data.groups.push(g);newGroup.value="";save()}
 function delGroup(g){if(data.products.some(x=>(x.group||"Genel")==g))return alert("Bu grupta ürün var. Önce ürünlerin grubunu değiştir veya ürünleri sil.");data.groups=data.groups.filter(x=>x!==g);save()}
 function addProduct(){
@@ -410,7 +488,13 @@ function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.$
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr><td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td><td>${x.role==="manager"?"Yönetici":"Personel"}</td><td><button onclick="editDealerPassword(${x.id})">Şifre Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td></tr>`).join("");
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr>
+<td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td>
+<td><span id="dealer-pass-${x.id}" data-visible="0">••••••</span><br><button id="dealer-pass-btn-${x.id}" onclick="toggleDealerPassword(${x.id})">👁️ Göster</button></td>
+<td>${x.role==="manager"?"Yönetici":"Personel"}<br><button onclick="editDealerRole(${x.id})">Seviye Değiştir</button></td>
+<td>${(Array.isArray(x.permissions)&&x.permissions.length?x.permissions:SECTION_PERMISSIONS).map(k=>SECTION_LABELS[k]||k).join(", ")}<br><button onclick="editDealerPermissions(${x.id})">Yetki Düzenle</button></td>
+<td><button onclick="editDealerPassword(${x.id})">Şifre Düzenle</button><button class="danger" onclick="delDealer(${x.id})">Sil</button></td>
+</tr>`).join("");
 
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder});
 let legacyGroups=data.products.map(x=>x.group||"Genel").filter(g=>g!="Genel");
@@ -419,7 +503,7 @@ let groups=["Genel",...data.groups];
 pGroup.innerHTML=groups.map(g=>`<option value="${g}">${g}</option>`).join("");
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
-productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}</td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+productRows.innerHTML=data.products.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.code||"-"}<br><button onclick="printProductBarcode(${x.id})">🖨️ Barkod Yazdır</button></td><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${money(x.buyPrice||0)}</td><td>${money(x.price)}</td><td>%${x.vat??0}</td><td>${x.unit||"Adet"}</td><td>${x.stock}</td><td>${isManager()?`<button onclick="editProduct(${x.id})">Düzenle</button><button class="danger" onclick="delProduct(${x.id})">Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
