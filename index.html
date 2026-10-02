@@ -59,7 +59,17 @@ body.dark .quick-menu .tool-btn{background:#111827;color:#dbeafe}
 @media(max-width:800px){
 .app{display:block}.side{width:100%;position:sticky;top:0;bottom:auto;padding:10px;z-index:400;overflow-x:auto}.logo{font-size:19px!important;padding:4px 8px 2px;white-space:nowrap}.sidebar-welcome{padding:0 8px 8px}.company-logo{margin:0 8px 6px;max-height:36px}.nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.nav button{width:auto;min-width:max-content;font-size:13px!important;padding:10px 11px;margin:0}.nav button:before{content:none!important}.main{margin-left:0;width:100%;padding:12px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.permission-grid{grid-template-columns:1fr 1fr}.panel{padding:14px;border-radius:13px}table{display:block;overflow-x:auto;white-space:nowrap}.btn,table button,.action-btn{min-height:44px;font-size:14px}.quick-menu{position:fixed;top:70px;right:10px;left:10px;width:auto;max-height:78vh;overflow:auto}.topbar{margin-bottom:8px}
 }
+
+.barcode-scanner-modal{display:none;position:fixed;inset:0;background:#0009;z-index:99999;align-items:center;justify-content:center;padding:16px}
+.barcode-scanner-box{width:min(520px,100%);background:white;border-radius:18px;padding:16px;box-shadow:0 24px 70px #0006}
+body.dark .barcode-scanner-box{background:#172033;color:white}
+.barcode-scanner-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.barcode-scan-row{display:flex;gap:8px;align-items:center}
+.barcode-scan-row input{margin:6px 0 12px}
+.barcode-scan-row .btn{white-space:nowrap}
+@media(max-width:600px){.barcode-scan-row{display:block}.barcode-scan-row .btn{width:100%;margin-bottom:10px}}
 </style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -117,7 +127,11 @@ body.dark .quick-menu .tool-btn{background:#111827;color:#dbeafe}
 
 <section id="products" class="page"><h1>Ürünler</h1>
 <div class="panel"><div class="grid">
-<div><label>Ürün Kodu / Barkod</label><input id="pCode" placeholder="Örn: 8691234567890"></div>
+<div><label>Ürün Kodu / Barkod / QR</label>
+  <div class="barcode-scan-row">
+    <input id="pCode" placeholder="Örn: 8691234567890">
+    <button class="btn" type="button" onclick="openBarcodeScanner()">📷 QR / Barkod Tara</button>
+  </div></div>
 <div><label>Ürün Adı</label><input id="pName" placeholder="Ürün adı"></div>
 <div><label>Ürün Grubu / Kategori</label><select id="pGroup"><option value="Genel">Genel</option></select></div>
 <div><label>Alış Fiyatı (₺)</label><input id="pBuyPrice" type="number" min="0" step="0.01"></div>
@@ -445,6 +459,43 @@ function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=
 function resetData(){if(!isMainUser())return alert("Bu işlem sadece ana yöneticiye açıktır.");if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings;data={products:[],customers:[],sales:[],groups:[],services:[],dealers:[],auth,settings};save()}}
 function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.${m}.${y}`}
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
+let barcodeScanner=null;
+async function openBarcodeScanner(){
+  const modal=document.getElementById("barcodeScannerModal");
+  if(!modal)return;
+  modal.style.display="flex";
+  if(typeof Html5Qrcode==="undefined"){
+    alert("QR/Barkod okuyucu yüklenemedi. İnternet bağlantını kontrol et.");
+    modal.style.display="none";
+    return;
+  }
+  try{
+    barcodeScanner=new Html5Qrcode("barcodeReader");
+    await barcodeScanner.start(
+      {facingMode:"environment"},
+      {fps:10,qrbox:{width:260,height:160},aspectRatio:1.5},
+      decodedText=>{
+        const code=document.getElementById("pCode");
+        if(code)code.value=decodedText;
+        if(navigator.vibrate)navigator.vibrate(100);
+        closeBarcodeScanner();
+      },
+      ()=>{}
+    );
+  }catch(e){
+    alert("Kamera açılamadı. Tarayıcıdan kamera izni vermeyi dene.");
+    closeBarcodeScanner();
+  }
+}
+function closeBarcodeScanner(){
+  const modal=document.getElementById("barcodeScannerModal");
+  if(barcodeScanner){
+    const s=barcodeScanner;
+    barcodeScanner=null;
+    Promise.resolve(s.stop()).catch(()=>{}).finally(()=>{try{s.clear()}catch(e){}});
+  }
+  if(modal)modal.style.display="none";
+}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
 if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>`<tr>
@@ -476,4 +527,14 @@ let rev=data.sales.reduce((a,x)=>a+x.total,0);cProducts.textContent=data.product
 restoreSession();
 render();
 </script>
+
+<div id="barcodeScannerModal" class="barcode-scanner-modal">
+  <div class="barcode-scanner-box">
+    <div class="barcode-scanner-head">
+      <div><b>QR / Barkod Tara</b><div class="muted">Telefon kamerasını ürünün koduna tut.</div></div>
+      <button class="btn red" type="button" onclick="closeBarcodeScanner()">Kapat</button>
+    </div>
+    <div id="barcodeReader"></div>
+  </div>
+</div>
 </body></html>
