@@ -766,27 +766,47 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 </div>
 <table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
-<section id="settings" class="page"><h1>Ayarlar</h1>
-<div class="panel"><h2>👑 Yönetici Seviyeleri</h2>
-<p><b>Ana Yönetici:</b> kullanıcılar, alt bayiler ve sistem ayarlarını yönetir.</p>
-<p><b>Yönetici:</b> kendisine verilen iş bölümlerini yönetir; ana yönetici ayarlarına ve alt bayi yönetimine erişemez.</p>
+<section id="settings" class="page"><h1>⚙️ Ayarlar</h1>
+<div class="panel">
+  <h2>👤 Hesabım</h2>
+  <p class="muted">Bu bilgiler yalnızca Yönetici ve Ana Yönetici hesaplarında görünür.</p>
+  <div class="grid">
+    <div><label>Kullanıcı Adı</label><input id="accountUsername" readonly></div>
+    <div><label>Şifre</label><div style="position:relative"><input id="accountPassword" type="password" readonly placeholder="Şifreyi görmek için yeniden giriş yap"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('accountPassword',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
+  </div>
+  <p id="accountPasswordNote" class="muted" style="font-size:12px"></p>
+  <button class="btn" type="button" onclick="logout()">Çıkış Yap</button>
 </div>
-<div class="panel"><h2>Görünüm</h2><p class="muted">CEPTE SATIŞ arka plan temasını seç.</p>
-<div class="theme-buttons"><button class="theme-btn light" onclick="setTheme('light')">☀️ Beyaz Mod</button><button class="theme-btn dark-choice" onclick="setTheme('dark')">🌙 Siyah Mod</button></div></div>
-<div class="panel"><h2>Firma Logosu</h2><p class="muted">Programda kullanılacak firma logosunu seç.</p>
-<input id="companyLogoInput" type="file" accept="image/*" capture="environment" onchange="saveCompanyLogo(this.files[0])">
+
+<div class="panel">
+  <h2>🎨 Ana Ekran Görünümü</h2>
+  <p class="muted">Uygulamanın arka planını beyaz veya siyah yapabilirsin.</p>
+  <div class="theme-buttons">
+    <button class="theme-btn light" type="button" onclick="setTheme('light')">☀️ Beyaz Arka Plan</button>
+    <button class="theme-btn dark-choice" type="button" onclick="setTheme('dark')">🌙 Siyah Arka Plan</button>
+  </div>
 </div>
-<div class="panel"><h2>Barkod Ayarları</h2>
-<div class="grid"><div><label>Barkod Ön Eki</label><input id="barcodePrefix" placeholder="UST"></div>
-<div><label style="display:flex;gap:8px;align-items:center;margin-top:32px"><input id="autoBarcode" type="checkbox" style="width:auto;margin:0"> Otomatik barkod oluştur</label></div></div>
-<button class="btn" type="button" onclick="saveBarcodeSettings()">Barkod Ayarlarını Kaydet</button>
+
+<div class="panel">
+  <h2>🏢 Firma Logosu</h2>
+  <p class="muted">Yönetici ve Ana Yönetici firma logosunu seçebilir veya değiştirebilir.</p>
+  <input id="companyLogoInput" type="file" accept="image/*" capture="environment" onchange="saveCompanyLogo(this.files[0])">
 </div>
-<div class="panel"><h2>Giriş Bilgileri</h2><p class="muted">Ana kullanıcı adı ve şifresini değiştir.</p>
-<div class="grid"><div><label>Kullanıcı Adı</label><input id="mainUsername"></div><div><label>Yeni Şifre</label><input id="mainPassword" type="password" placeholder="Yeni şifre"></div></div>
-<button class="btn" onclick="saveLoginSettings()">Giriş Bilgilerini Kaydet</button> <button class="btn" onclick="logout()">Çıkış Yap</button></div>
-<div class="panel"><h2>Veriler</h2><p class="muted">Kayıtları yenileyebilir veya bu tarayıcıdaki tüm verileri silebilirsin.</p>
-<button class="btn" type="button" onclick="refreshRecords()">🔄 Kayıtları Yenile</button>
-<button class="btn red" onclick="resetData()">Tüm Verileri Sil</button></div></section>
+
+<div id="mainOnlyBarcodeSettings" class="panel">
+  <h2>🏷️ Barkod Ayarları</h2>
+  <div class="grid"><div><label>Barkod Ön Eki</label><input id="barcodePrefix" placeholder="UST"></div>
+  <div><label style="display:flex;gap:8px;align-items:center;margin-top:32px"><input id="autoBarcode" type="checkbox" style="width:auto;margin:0"> Otomatik barkod oluştur</label></div></div>
+  <button class="btn" type="button" onclick="saveBarcodeSettings()">Barkod Ayarlarını Kaydet</button>
+</div>
+
+<div id="mainOnlyDataSettings" class="panel">
+  <h2>🗃️ Veriler</h2>
+  <p class="muted">Bu bölüm yalnızca Ana Yöneticiye açıktır.</p>
+  <button class="btn" type="button" onclick="refreshRecords()">🔄 Kayıtları Yenile</button>
+  <button class="btn red" onclick="resetData()">Tüm Verileri Sil</button>
+</div>
+</section>
 </main></div>
 
 <script>
@@ -822,6 +842,8 @@ async function restoreCloudSession(){
     const r=await cloudApi("me");
     sessionStorage.setItem("ceptesatis_login","1");
     sessionStorage.setItem("ceptesatis_user",JSON.stringify(r.user));
+    if(r.user&&(r.user.isMain||r.user.role==="manager"))sessionStorage.setItem("ceptesatis_current_password",pw);
+    else sessionStorage.removeItem("ceptesatis_current_password");
     document.getElementById("loginScreen").style.display="none";
     applyUserUI();
     await loadSalesIban();
@@ -838,7 +860,7 @@ function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_u
 const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports","receivables","pricecheck"];
 const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",receivables:"Veresiyeler",pricecheck:"Fiyat Gör"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
-function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="settings")return false;if(page==="dealers")return s.role==="manager";let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
+function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="settings")return s.role==="manager";if(page==="dealers")return s.role==="manager";let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
 function isMainManager(){let s=getSession();return !!s&&!!s.isMain}
 function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager")}
 function requireMainManager(){if(isMainManager())return true;alert("Bu işlem yalnızca Ana Yöneticiye açıktır.");return false}
@@ -848,6 +870,13 @@ let s=getSession(),n=document.getElementById("activeUserName"),r=document.getEle
 if(n)n.textContent=s?(s.name||s.username||"-"):"-";
 if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
 document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
+let au=document.getElementById("accountUsername"),ap=document.getElementById("accountPassword"),an=document.getElementById("accountPasswordNote");
+if(au)au.value=isManager()?(s?.username||""):"";
+if(ap)ap.value=isManager()?(sessionStorage.getItem("ceptesatis_current_password")||""):"";
+if(an)an.textContent=isManager()?(ap&&ap.value?"Şifre yalnızca bu giriş oturumu boyunca gösterilebilir.":"Şifre güvenlik nedeniyle sunucudan geri okunamaz. Görmek için çıkış yapıp tekrar giriş yap."):"";
+let mb=document.getElementById("mainOnlyBarcodeSettings"),md=document.getElementById("mainOnlyDataSettings");
+if(mb)mb.style.display=isMainManager()?"block":"none";
+if(md)md.style.display=isMainManager()?"block":"none";
 let ibanManagerBox=document.getElementById("saleIbanManagerBox");if(ibanManagerBox)ibanManagerBox.style.display=isManager()?"block":"none";
 let dealerRoleSelect=document.getElementById("dealerRole");
 if(dealerRoleSelect){
@@ -864,7 +893,7 @@ function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));ren
 function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
 function openDealersPage(){if(!requireManager())return;let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}
 function refreshRecords(){location.reload()}
-function saveCompanyLogo(file){if(!requireMainManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
+function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireMainManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
 function generateBarcode(){let prefix=(data.settings.barcodePrefix||"UST").replace(/\s+/g,"").toUpperCase();return prefix+String(Date.now()).slice(-9)}
 let productScannerStream=null,productScannerActive=false;
@@ -1034,8 +1063,8 @@ async function login(){
   }
 }
 document.addEventListener("DOMContentLoaded",()=>{const btn=document.getElementById("loginBtn"),pass=document.getElementById("loginPass");if(btn)btn.addEventListener("click",login);if(pass)pass.addEventListener("keydown",e=>{if(e.key==="Enter")login()});applySettingsUI();applyUserUI()});
-async function logout(){try{await cloudApi("logout")}catch(e){}sessionStorage.removeItem("ceptesatis_cloud_token");sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
-function saveLoginSettings(){if(!requireMainManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
+async function logout(){try{await cloudApi("logout")}catch(e){}sessionStorage.removeItem("ceptesatis_cloud_token");sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");sessionStorage.removeItem("ceptesatis_current_password");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
+function saveLoginSettings(){alert("Giriş bilgileri bulut hesabından yönetilir.")}
 async function addDealer(){
 if(!requireManager())return;
 let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(dealerRole.value||"personel"):"personel";
