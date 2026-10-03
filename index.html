@@ -779,6 +779,13 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 </div>
 
 <div class="panel">
+  <h2>▦ Barkod Okuyucu</h2>
+  <p class="muted">USB/Bluetooth barkod okuyucu klavye gibi çalışıyorsa otomatik bağlanır. Barkodu okutunca ilgili ekranda işlem yapılır.</p>
+  <div id="usbScannerStatus"><b>Durum:</b> Hazır</div>
+  <button class="btn" type="button" onclick="focusBarcodeScanner()">Barkod Okuyucuyu Hazırla</button>
+</div>
+
+<div class="panel">
   <h2>🎨 Ana Ekran Görünümü</h2>
   <p class="muted">Uygulamanın arka planını beyaz veya siyah yapabilirsin.</p>
   <div class="theme-buttons">
@@ -1115,7 +1122,7 @@ if(!requireMainManager())return;let makeManager=confirm("Bu kullanıcı Yönetic
 try{await cloudApi("set_role",{id,role:makeManager?"manager":"personel"});await refreshCloudDealers()}catch(e){alert(e.message)}
 }
 
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{if(!canAccessSection(b.dataset.page))return alert("Bu bölüme erişim yetkin yok.");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active")});
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{if(!canAccessSection(b.dataset.page))return alert("Bu bölüme erişim yetkin yok.");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");setTimeout(focusBarcodeScanner,80)});
 function addGroup(){let g=newGroup.value.trim();if(!g)return alert("Grup adı gir.");if(g.toLowerCase()=="genel"||data.groups.some(x=>x.toLowerCase()==g.toLowerCase()))return alert("Bu grup zaten var.");data.groups.push(g);newGroup.value="";save()}
 function delGroup(g){if(data.products.some(x=>(x.group||"Genel")==g))return alert("Bu grupta ürün var. Önce ürünlerin grubunu değiştir veya ürünleri sil.");data.groups=data.groups.filter(x=>x!==g);save()}
 let productEditId=null;
@@ -1249,6 +1256,50 @@ function addStock(id){
 }
 function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
 function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
+
+let usbBarcodeBuffer="",usbBarcodeLastKey=0;
+function activePageId(){return document.querySelector(".page.active")?.id||""}
+function focusBarcodeScanner(){
+  let page=activePageId(),target=null;
+  if(page==="sales")target=document.getElementById("saleSearchInput");
+  else if(page==="pricecheck")target=document.getElementById("priceCheckInput");
+  else if(page==="products")target=document.getElementById("productLookupCode");
+  if(target){target.focus();target.select?.()}
+  let st=document.getElementById("usbScannerStatus");if(st)st.innerHTML="<b>Durum:</b> Hazır — barkod okutabilirsin.";
+}
+function handleUsbBarcode(code){
+  code=String(code||"").trim();if(!code)return;
+  let page=activePageId();
+  if(page==="sales"){
+    let p=data.products.find(x=>String(x.code||"").trim()===code);
+    if(p){addProductToSale(p.id);return}
+    let i=document.getElementById("saleSearchInput");if(i){i.value=code;renderSaleSearchResults()}
+    alert("Bu barkoda ait ürün bulunamadı.");
+    return;
+  }
+  if(page==="pricecheck"){findPriceCheckProduct(code);return}
+  if(page==="products"){
+    let i=document.getElementById("productLookupCode");if(i)i.value=code;
+    fetchProductByBarcode();return;
+  }
+  let p=data.products.find(x=>String(x.code||"").trim()===code);
+  if(p)alert("Barkod okundu: "+p.name+" — "+money(p.price));
+  else alert("Barkod okundu ancak ürün bulunamadı: "+code);
+}
+document.addEventListener("keydown",e=>{
+  if(document.getElementById("loginScreen")?.style.display!=="none")return;
+  let tag=(document.activeElement?.tagName||"").toLowerCase();
+  let editable=tag==="input"||tag==="textarea"||tag==="select"||document.activeElement?.isContentEditable;
+  if(editable)return;
+  let now=Date.now();
+  if(now-usbBarcodeLastKey>120)usbBarcodeBuffer="";
+  usbBarcodeLastKey=now;
+  if(e.key==="Enter"){
+    if(usbBarcodeBuffer.length>=3){e.preventDefault();let code=usbBarcodeBuffer;usbBarcodeBuffer="";handleUsbBarcode(code)}
+    return;
+  }
+  if(e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey)usbBarcodeBuffer+=e.key;
+});
 
 let saleCart=[];
 let salePaymentType="Nakit";
