@@ -634,13 +634,6 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 
   <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
 
-  <button class="sale-scan" type="button" onclick="startSaleScanner()">▦ Tara</button>
-  <div id="saleScannerPanel">
-    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Barkod / QR Tara</b><button class="btn red" type="button" onclick="stopSaleScanner()">Kapat</button></div>
-    <video id="saleScannerVideo" playsinline autoplay muted></video>
-    <div id="saleScannerStatus" style="margin-top:7px;font-size:12px">Kamerayı barkoda tut.</div>
-  </div>
-
   <div id="saleGroupChips" class="sale-groups"></div>
 
   <div class="panel" style="margin-top:14px">
@@ -657,6 +650,15 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 
 
 <section id="service" class="page"><h1>Teknik Servis</h1>
+<div class="panel">
+  <h2>▦ Servis Barkod Okuyucu</h2>
+  <p class="muted">Bilgisayardaki USB/Bluetooth barkod okuyucu sadece Teknik Servis bölümünde çalışır. Yazdırdığın servis barkodunu okutabilirsin.</p>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <input id="serviceBarcodeInput" placeholder="Servis barkodunu okut veya yaz" autocomplete="off" style="margin:0;flex:1;min-width:240px" onkeydown="if(event.key==='Enter'){event.preventDefault();findServiceByBarcode(this.value)}">
+    <button class="btn" type="button" onclick="findServiceByBarcode(document.getElementById('serviceBarcodeInput')?.value)">Servis Kaydını Bul</button>
+  </div>
+  <div id="serviceBarcodeStatus" class="muted" style="margin-top:8px">Barkod okuyucu hazır.</div>
+</div>
 <div class="panel"><div class="grid">
 <div><label>Müşteri</label><select id="serviceCustomer"></select></div>
 <div><label>Ürün Kategorisi</label>
@@ -776,13 +778,6 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
   </div>
   <p id="accountPasswordNote" class="muted" style="font-size:12px"></p>
   <button class="btn" type="button" onclick="logout()">Çıkış Yap</button>
-</div>
-
-<div class="panel">
-  <h2>▦ Barkod Okuyucu</h2>
-  <p class="muted">USB/Bluetooth barkod okuyucu klavye gibi çalışıyorsa otomatik bağlanır. Barkodu okutunca ilgili ekranda işlem yapılır.</p>
-  <div id="usbScannerStatus"><b>Durum:</b> Hazır</div>
-  <button class="btn" type="button" onclick="focusBarcodeScanner()">Barkod Okuyucuyu Hazırla</button>
 </div>
 
 <div class="panel">
@@ -1260,34 +1255,30 @@ function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşte
 let usbBarcodeBuffer="",usbBarcodeLastKey=0;
 function activePageId(){return document.querySelector(".page.active")?.id||""}
 function focusBarcodeScanner(){
-  let page=activePageId(),target=null;
-  if(page==="sales")target=document.getElementById("saleSearchInput");
-  else if(page==="pricecheck")target=document.getElementById("priceCheckInput");
-  else if(page==="products")target=document.getElementById("productLookupCode");
+  if(activePageId()!=="service")return;
+  let target=document.getElementById("serviceBarcodeInput");
   if(target){target.focus();target.select?.()}
-  let st=document.getElementById("usbScannerStatus");if(st)st.innerHTML="<b>Durum:</b> Hazır — barkod okutabilirsin.";
+  let st=document.getElementById("serviceBarcodeStatus");if(st)st.textContent="Barkod okuyucu hazır — servis barkodunu okut.";
 }
-function handleUsbBarcode(code){
-  code=String(code||"").trim();if(!code)return;
-  let page=activePageId();
-  if(page==="sales"){
-    let p=data.products.find(x=>String(x.code||"").trim()===code);
-    if(p){addProductToSale(p.id);return}
-    let i=document.getElementById("saleSearchInput");if(i){i.value=code;renderSaleSearchResults()}
-    alert("Bu barkoda ait ürün bulunamadı.");
+function findServiceByBarcode(code){
+  code=String(code||"").trim();
+  let input=document.getElementById("serviceBarcodeInput"),st=document.getElementById("serviceBarcodeStatus");
+  if(input)input.value=code;
+  if(!code){if(st)st.textContent="Servis barkodu okut veya yaz.";return}
+  let s=data.services.find(x=>String(x.no||"").trim().toLocaleUpperCase("tr-TR")===code.toLocaleUpperCase("tr-TR"));
+  if(!s){
+    if(st)st.textContent="Servis kaydı bulunamadı: "+code;
     return;
   }
-  if(page==="pricecheck"){findPriceCheckProduct(code);return}
-  if(page==="products"){
-    let i=document.getElementById("productLookupCode");if(i)i.value=code;
-    fetchProductByBarcode();return;
-  }
-  let p=data.products.find(x=>String(x.code||"").trim()===code);
-  if(p)alert("Barkod okundu: "+p.name+" — "+money(p.price));
-  else alert("Barkod okundu ancak ürün bulunamadı: "+code);
+  if(st)st.innerHTML="<b>"+productEscape(s.no||code)+"</b> — "+productEscape(s.customer||"-")+" — "+productEscape((s.device||"")+" "+(s.model||""))+" — "+productEscape(s.status||"-");
+}
+function handleUsbBarcode(code){
+  if(activePageId()!=="service")return;
+  findServiceByBarcode(code);
 }
 document.addEventListener("keydown",e=>{
   if(document.getElementById("loginScreen")?.style.display!=="none")return;
+  if(activePageId()!=="service")return;
   let tag=(document.activeElement?.tagName||"").toLowerCase();
   let editable=tag==="input"||tag==="textarea"||tag==="select"||document.activeElement?.isContentEditable;
   if(editable)return;
