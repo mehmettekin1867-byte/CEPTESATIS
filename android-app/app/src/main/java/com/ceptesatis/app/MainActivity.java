@@ -39,6 +39,10 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+
+        // Eski web arayüzünün telefonda önbellekten açılmasını engelle.
+        webView.clearCache(true);
 
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
@@ -85,7 +89,8 @@ public class MainActivity extends Activity {
         });
 
         if (savedInstanceState == null) {
-            webView.loadUrl(APP_URL);
+            String freshUrl = APP_URL + "?app=android&t=" + System.currentTimeMillis();
+            webView.loadUrl(freshUrl);
         } else {
             webView.restoreState(savedInstanceState);
         }
