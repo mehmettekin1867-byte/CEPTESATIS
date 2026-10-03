@@ -40,6 +40,15 @@
 </div>
 
 <div class="card"><h2>Kayıtlı Alt Bayiler</h2><div id="dealerList" class="muted">Yükleniyor...</div></div>
+<div id="permEditCard" class="card" style="display:none">
+<h2 id="permEditTitle">Yetkileri Düzenle</h2>
+<p class="muted">Yetkileri tek tek kutucuklardan seç.</p>
+<div id="permEditBox" class="perms"></div>
+<div class="actions">
+<button class="btn" onclick="savePermissions()">Yetkileri Kaydet</button>
+<button onclick="closePermissionEditor()">İptal</button>
+</div>
+</div>
 </div>
 </div>
 <script>
@@ -90,11 +99,29 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&l
 async function loadDealers(){
  try{
   const r=await api("list_dealers");
-  dealerList.innerHTML=(r.dealers||[]).length?(r.dealers||[]).map(d=>'<div class="dealer"><b>'+esc(d.name||d.user)+'</b><div>'+esc(d.owner||"-")+' · '+esc(d.user)+' · '+(d.role==="manager"?"Yönetici":"Personel")+'</div><div class="muted">'+esc((d.permissions||[]).map(k=>PERMS[k]||k).join(", "))+'</div><div class="actions"><button onclick="changePassword('+JSON.stringify(String(d.id))+')">Şifre Değiştir</button><button onclick="changeRole('+JSON.stringify(String(d.id))+','+JSON.stringify(d.role)+')">Seviye Değiştir</button><button class="red" onclick="removeDealer('+JSON.stringify(String(d.id))+')">Sil</button></div></div>').join(""):'Henüz alt bayi yok.';
+  dealerList.innerHTML=(r.dealers||[]).length?(r.dealers||[]).map(d=>'<div class="dealer"><b>'+esc(d.name||d.user)+'</b><div>'+esc(d.owner||"-")+' · '+esc(d.user)+' · '+(d.role==="manager"?"Yönetici":"Personel")+'</div><div class="muted">'+esc((d.permissions||[]).map(k=>PERMS[k]||k).join(", "))+'</div><div class="actions"><button onclick="changePassword('+JSON.stringify(String(d.id))+')">Şifre Değiştir</button><button onclick="changeRole('+JSON.stringify(String(d.id))+','+JSON.stringify(d.role)+')">Seviye Değiştir</button><button onclick="openPermissionEditor('+JSON.stringify(String(d.id))+')">Yetki Düzenle</button><button class="red" onclick="removeDealer('+JSON.stringify(String(d.id))+')">Sil</button></div></div>').join(""):'Henüz alt bayi yok.';
+  window.__dealers=(r.dealers||[]);
  }catch(e){dealerList.textContent=e.message}
 }
 async function changePassword(id){const p=prompt("Yeni şifreyi gir:");if(!p)return;try{await api("set_password",{id,password:p.trim()});alert("Şifre güncellendi.")}catch(e){alert(e.message)}}
 async function changeRole(id,current){const make=confirm("Tamam = Yönetici\nİptal = Personel");try{await api("set_role",{id,role:make?"manager":"personel"});await loadDealers()}catch(e){alert(e.message)}}
+let permissionEditId=null;
+function openPermissionEditor(id){
+  const d=(window.__dealers||[]).find(x=>String(x.id)===String(id));if(!d)return;
+  permissionEditId=String(id);
+  const current=Array.isArray(d.permissions)&&d.permissions.length?d.permissions:Object.keys(PERMS);
+  permEditTitle.textContent=(d.name||d.user||"Alt Bayi")+" — Yetkileri Düzenle";
+  permEditBox.innerHTML=Object.entries(PERMS).map(([k,v])=>'<label><input class="perm-edit" type="checkbox" value="'+k+'" '+(current.includes(k)?"checked":"")+'> '+v+'</label>').join("");
+  permEditCard.style.display="block";
+  permEditCard.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function closePermissionEditor(){permissionEditId=null;permEditCard.style.display="none"}
+async function savePermissions(){
+  if(!permissionEditId)return alert("Önce kullanıcı seç.");
+  const permissions=[...document.querySelectorAll(".perm-edit:checked")].map(x=>x.value);
+  if(!permissions.length)return alert("En az bir yetki seç.");
+  try{await api("set_permissions",{id:permissionEditId,permissions});await loadDealers();closePermissionEditor();alert("Yetkiler kaydedildi.")}catch(e){alert(e.message)}
+}
 async function removeDealer(id){if(!confirm("Alt bayi silinsin mi?"))return;try{await api("delete_dealer",{id});await loadDealers()}catch(e){alert(e.message)}}
 showPanel();
 </script>
