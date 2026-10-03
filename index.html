@@ -548,21 +548,11 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <div class="panel"><div class="grid">
 <div><label>Ad / Firma</label><input id="cName"></div>
 <div><label>Telefon</label><input id="cPhone"></div>
-<div><label>Cari Grubu</label><select id="cGroup"><option>Genel</option></select></div>
-<div><label>Kaç Gün Sonra Hatırlat?</label>
-<input id="cReminderDays" type="number" min="1" max="365" step="1" value="30" placeholder="Örn: 15">
-<div class="muted" style="font-size:12px;margin-top:4px">1-365 gün arasında istediğin günü yazabilirsin.</div></div>
-<div><label>Ödeme Yapıldı</label>
-<select id="cPaymentDone" onchange="toggleCustomerPaidAmount()">
-<option value="0" selected>Hayır</option>
-<option value="1">Evet</option>
-</select></div>
-<div><label>Ödenen Tutar (₺)</label><input id="cPaidAmount" type="number" min="0" step="0.01" value="0" oninput="syncCustomerPaymentStatus()"></div>
+<div><label>Ödenen Tutar (₺)</label><input id="cPaidAmount" type="number" min="0" step="0.01" value="0"></div>
 </div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><div style="min-width:220px"><label>Yeni Cari Grubu</label><input id="newCustomerGroup" placeholder="Örn: Toptan"></div><button class="btn" type="button" onclick="addCustomerGroup()">Grup Ekle</button></div>
 <button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
 <div class="table-wrap">
-<table><thead><tr><th>Müşteri</th><th>Grup</th><th>Telefon</th><th>Ödeme Yapıldı</th><th>Ödenen Tutar</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
+<table><thead><tr><th>Müşteri</th><th>Telefon</th><th>Ödenen Tutar</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
 </div></div></section>
 
 <section id="sales" class="page">
@@ -735,7 +725,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
   <p class="muted">Kalan borcu olan müşteriler burada görünür. Hatırlatma günü müşteri kartından belirlenir.</p>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Müşteri</th><th>Telefon</th><th>Kalan Borç</th><th>Hatırlatma Tarihi</th><th>Kaç Gün Sonra</th><th>İşlem</th></tr></thead>
+      <thead><tr><th>Müşteri</th><th>Telefon</th><th>Kalan Borç</th><th>Ödeme Yapıldı mı?</th><th>Hatırlatma Tarihi</th><th>Kaç Gün Sonra</th><th>İşlem</th></tr></thead>
       <tbody id="receivableRows"></tbody>
     </table>
   </div>
@@ -1128,16 +1118,12 @@ if(Number(paid.value||0)>0)done.value="1";
 }
 function addCustomer(){
 let name=cName.value.trim();if(!name)return alert("Müşteri adı gir.");
-let days=Math.max(1,Math.min(30,+cReminderDays.value||30));
 let paidAmount=Math.max(0,Number(document.getElementById("cPaidAmount")?.value)||0);
-let paymentDone=(document.getElementById("cPaymentDone")?.value==="1")||paidAmount>0;
 let now=new Date();now.setHours(0,0,0,0);
 let created=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-let rd=new Date(now);rd.setDate(rd.getDate()+days);
-let reminder=`${rd.getFullYear()}-${String(rd.getMonth()+1).padStart(2,"0")}-${String(rd.getDate()).padStart(2,"0")}`;
-data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone.value.trim(),created,reminder,reminderDays:days,paymentDone,paidAmount});
-cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";
-let pd=document.getElementById("cPaymentDone"),pa=document.getElementById("cPaidAmount");if(pd)pd.value="0";if(pa)pa.value="0";
+data.customers.push({id:Date.now(),name,group:"Genel",phone:cPhone.value.trim(),created,reminder:"",reminderDays:0,paymentDone:paidAmount>0,paidAmount});
+cName.value=cPhone.value="";
+let pa=document.getElementById("cPaidAmount");if(pa)pa.value="0";
 save()
 }
 function editCustomerReminder(id){
@@ -1148,6 +1134,24 @@ function editCustomerReminder(id){
   x.reminderDays=days;
   let base=new Date();base.setHours(0,0,0,0);base.setDate(base.getDate()+days);
   x.reminder=`${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,"0")}-${String(base.getDate()).padStart(2,"0")}`;
+  save();
+}
+function markReceivablePaid(customerId,value){
+  if(value!=="1")return;
+  if(!canAccessSection("receivables"))return alert("Bu işlem için Veresiyeler yetkisi gerekli.");
+  let c=data.customers.find(x=>String(x.id)===String(customerId));if(!c)return;
+  if(!confirm(c.name+" için açık veresiye tamamen ödendi olarak işaretlensin mi?")){render();return}
+  let newlyPaid=0;
+  data.sales.forEach(s=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&s.customer===c.name);
+    if(same&&Number(s.remaining||0)>0){
+      newlyPaid+=Number(s.remaining||0);
+      s.paid=Number(s.paid||0)+Number(s.remaining||0);
+      s.remaining=0;
+    }
+  });
+  c.paidAmount=Number(c.paidAmount||0)+newlyPaid;
+  c.paymentDone=true;
   save();
 }
 function editCustomerPayment(id){
@@ -1736,7 +1740,7 @@ updateProductGroupOptions(groups);
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
-customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${x.paymentDone?"✅ Evet":"❌ Hayır"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>-</span>"}</td></tr>`).join("");
+customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.phone||"-"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${x.reminder?fmtDate(x.reminder)+(x.reminderDays?` (${x.reminderDays} gün)`:""):"-"}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>-</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
@@ -1779,8 +1783,8 @@ if(rc)rc.textContent=receivables.length;
 if(rt)rt.textContent=money(receivableTotalValue);
 if(rr)rr.innerHTML=receivables.length?receivables.map(x=>{
   let c=x.customerId!=null?data.customers.find(c=>String(c.id)===String(x.customerId)):data.customers.find(c=>c.name===x.customer);
-  return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerPayment(${c.id})">💰 Ödeme Düzenle</button><button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
-}).join(""):'<tr><td colspan="6" class="muted">Açık veresiye yok.</td></tr>';
+  return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?`<select onchange="markReceivablePaid(${c.id},this.value)"><option value="0" selected>Hayır</option><option value="1">Evet</option></select>`:"-"}</td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerPayment(${c.id})">💰 Ödeme Düzenle</button><button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
+}).join(""):'<tr><td colspan="7" class="muted">Açık veresiye yok.</td></tr>';
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
 sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");restoreCloudSession();
 render();
