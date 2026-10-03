@@ -1151,7 +1151,7 @@ function editCustomerReminder(id){
   save();
 }
 function editCustomerPayment(id){
-if(!canAccessSection("customers"))return alert("Bu işlem için Müşteriler yetkisi gerekli.");
+if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Müşteriler veya Veresiyeler yetkisi gerekli.");
 let x=data.customers.find(c=>c.id===id);if(!x)return;
 let current=Number(x.paidAmount||0);
 let v=prompt("Ödenen tutarı gir:",current.toFixed(2));if(v===null)return;
@@ -1736,7 +1736,7 @@ updateProductGroupOptions(groups);
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
-customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${x.paymentDone?"✅ Evet":"❌ Hayır"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td><button onclick="editCustomerPayment(${x.id})">💰 Ödeme Düzenle</button>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:""}</td></tr>`).join("");
+customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${x.phone||"-"}</td><td>${x.paymentDone?"✅ Evet":"❌ Hayır"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${fmtDate(x.reminder)}${x.reminderDays?` (${x.reminderDays} gün)`:""}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>-</span>"}</td></tr>`).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
@@ -1779,7 +1779,7 @@ if(rc)rc.textContent=receivables.length;
 if(rt)rt.textContent=money(receivableTotalValue);
 if(rr)rr.innerHTML=receivables.length?receivables.map(x=>{
   let c=x.customerId!=null?data.customers.find(c=>String(c.id)===String(x.customerId)):data.customers.find(c=>c.name===x.customer);
-  return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
+  return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerPayment(${c.id})">💰 Ödeme Düzenle</button><button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
 }).join(""):'<tr><td colspan="6" class="muted">Açık veresiye yok.</td></tr>';
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
 sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");restoreCloudSession();
