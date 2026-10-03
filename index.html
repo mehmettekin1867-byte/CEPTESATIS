@@ -752,8 +752,18 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <label><input class="dealer-permission" type="checkbox" value="service" checked> Teknik Servis</label>
 <label><input class="dealer-permission" type="checkbox" value="stock" checked> Stok</label>
 <label><input class="dealer-permission" type="checkbox" value="reports" checked> Raporlar</label>
+<label><input class="dealer-permission" type="checkbox" value="pricecheck" checked> Fiyat Gör</label>
 </div></div>
 <button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
+<div id="dealerPermissionEditor" class="permission-box" style="display:none;margin-top:16px">
+<h3 id="dealerPermissionTitle">Yetkileri Düzenle</h3>
+<p class="muted">İstediğin yetkileri tek tek kutucuklardan seçip kaydedebilirsin.</p>
+<div class="permission-grid" id="dealerPermissionEditGrid"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+<button class="btn" type="button" onclick="saveDealerPermissions()">Yetkileri Kaydet</button>
+<button class="btn red" type="button" onclick="cancelDealerPermissionEdit()">İptal</button>
+</div>
+</div>
 <table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
 <section id="settings" class="page"><h1>Ayarlar</h1>
@@ -1038,13 +1048,33 @@ alert("Alt bayi oluşturuldu. Artık internet olan her cihazdan giriş yapabilir
 async function delDealer(id){if(!requireMainManager())return;if(confirm("Alt bayi silinsin mi?")){try{await cloudApi("delete_dealer",{id});await refreshCloudDealers()}catch(e){alert(e.message)}}}
 async function editDealerPassword(id){if(!requireMainManager())return;let p=prompt("Yeni şifreyi gir:","");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");try{await cloudApi("set_password",{id,password:p});alert("Alt bayi şifresi güncellendi.")}catch(e){alert(e.message)}}
 function toggleDealerPassword(id){alert("Güvenlik nedeniyle buluttaki şifre görüntülenmez. İstersen Şifre Düzenle ile yeni şifre belirleyebilirsin.")}
-async function editDealerPermissions(id){
-if(!requireMainManager())return;let d=data.dealers.find(x=>String(x.id)===String(id));if(!d)return;
-let current=Array.isArray(d.permissions)&&d.permissions.length?d.permissions:[...SECTION_PERMISSIONS];
-let selected=[];
-for(let key of SECTION_PERMISSIONS){let yes=confirm((current.includes(key)?"✅ ":"⬜ ")+SECTION_LABELS[key]+" erişimi verilsin mi?");if(yes)selected.push(key)}
-if(!selected.length)return alert("En az bir bölüm yetkisi seçilmelidir.");
-try{await cloudApi("set_permissions",{id,permissions:selected});await refreshCloudDealers();alert("Alt bayi bölüm yetkileri güncellendi.")}catch(e){alert(e.message)}
+let dealerPermissionEditId=null;
+function editDealerPermissions(id){
+  if(!requireMainManager())return;
+  let d=data.dealers.find(x=>String(x.id)===String(id));if(!d)return;
+  dealerPermissionEditId=String(id);
+  let current=Array.isArray(d.permissions)&&d.permissions.length?d.permissions:[...SECTION_PERMISSIONS];
+  let title=document.getElementById("dealerPermissionTitle");
+  if(title)title.textContent=(d.name||d.user||"Alt Bayi")+" — Yetkileri Düzenle";
+  let grid=document.getElementById("dealerPermissionEditGrid");
+  if(grid)grid.innerHTML=SECTION_PERMISSIONS.map(key=>'<label><input class="dealer-permission-edit" type="checkbox" value="'+key+'" '+(current.includes(key)?"checked":"")+'> '+(SECTION_LABELS[key]||key)+'</label>').join("");
+  let box=document.getElementById("dealerPermissionEditor");if(box){box.style.display="block";box.scrollIntoView({behavior:"smooth",block:"nearest"})}
+}
+function cancelDealerPermissionEdit(){
+  dealerPermissionEditId=null;
+  let box=document.getElementById("dealerPermissionEditor");if(box)box.style.display="none";
+}
+async function saveDealerPermissions(){
+  if(!requireMainManager())return;
+  if(!dealerPermissionEditId)return alert("Önce bir kullanıcı seç.");
+  let selected=[...document.querySelectorAll(".dealer-permission-edit:checked")].map(x=>x.value);
+  if(!selected.length)return alert("En az bir yetki seçilmelidir.");
+  try{
+    await cloudApi("set_permissions",{id:dealerPermissionEditId,permissions:selected});
+    await refreshCloudDealers();
+    cancelDealerPermissionEdit();
+    alert("Yetkiler kaydedildi.");
+  }catch(e){alert(e.message||"Yetkiler kaydedilemedi.")}
 }
 async function editDealerRole(id){
 if(!requireMainManager())return;let makeManager=confirm("Bu kullanıcı Yönetici olsun mu?\nTamam = Yönetici\nİptal = Personel");
