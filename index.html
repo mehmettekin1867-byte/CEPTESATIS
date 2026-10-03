@@ -739,7 +739,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
 <div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="Şifre" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
-<div><label>Yetki Seviyesi</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
+<div><label>Yetki Seviyesi</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select><div class="manager-note">Normal yöneticiler yalnızca Personel hesabı oluşturabilir.</div></div>
 </div>
 <div class="permission-box"><h3>Erişebileceği Bölümler</h3>
 <div class="permission-grid">
@@ -809,7 +809,7 @@ async function cloudApi(action,payload={}){
   return out;
 }
 async function refreshCloudDealers(){
-  if(!isMainManager())return;
+  if(!isManager())return;
   const r=await cloudApi("list_dealers");
   data.dealers=Array.isArray(r.dealers)?r.dealers:[];
   localStorage.setItem("ceptesatis_data",JSON.stringify(data));
@@ -825,7 +825,7 @@ async function restoreCloudSession(){
     document.getElementById("loginScreen").style.display="none";
     applyUserUI();
     await loadSalesIban();
-    if(r.user?.isMain)await refreshCloudDealers();
+    if(r.user&&(r.user.isMain||r.user.role==="manager"))await refreshCloudDealers();
     else render();
   }catch(e){
     sessionStorage.removeItem("ceptesatis_cloud_token");
@@ -838,7 +838,7 @@ function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_u
 const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports","pricecheck"];
 const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",pricecheck:"Fiyat Gör"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
-function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="dealers"||page==="settings")return false;let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
+function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="settings")return false;if(page==="dealers")return s.role==="manager";let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
 function isMainManager(){let s=getSession();return !!s&&!!s.isMain}
 function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager")}
 function requireMainManager(){if(isMainManager())return true;alert("Bu işlem yalnızca Ana Yöneticiye açıktır.");return false}
@@ -849,6 +849,11 @@ if(n)n.textContent=s?(s.name||s.username||"-"):"-";
 if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
 document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
 let ibanManagerBox=document.getElementById("saleIbanManagerBox");if(ibanManagerBox)ibanManagerBox.style.display=isManager()?"block":"none";
+let dealerRoleSelect=document.getElementById("dealerRole");
+if(dealerRoleSelect){
+  dealerRoleSelect.innerHTML=isMainManager()?'<option value="personel">Personel</option><option value="manager">Yönetici</option>':'<option value="personel">Personel</option>';
+  dealerRoleSelect.value="personel";
+}
 let active=document.querySelector(".nav button.active");
 if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
 }
@@ -857,7 +862,7 @@ function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
 function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
-function openDealersPage(){if(!requireMainManager())return;let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}
+function openDealersPage(){if(!requireManager())return;let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireMainManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireMainManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
@@ -1022,7 +1027,7 @@ async function login(){
     if(r.user?.isMain&&localDealers.some(x=>(x.pass||x.password))){
       try{await cloudApi("sync_dealers",{dealers:localDealers})}catch(e){}
     }
-    if(r.user?.isMain)await refreshCloudDealers();
+    if(r.user&&(r.user.isMain||r.user.role==="manager"))await refreshCloudDealers();
     else render();
   }catch(e){
     if(errorEl)errorEl.textContent=e.message||"Kullanıcı adı veya şifre hatalı.";
@@ -1032,8 +1037,8 @@ document.addEventListener("DOMContentLoaded",()=>{const btn=document.getElementB
 async function logout(){try{await cloudApi("logout")}catch(e){}sessionStorage.removeItem("ceptesatis_cloud_token");sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");document.getElementById("loginPass").value="";document.getElementById("loginScreen").style.display="flex";applyUserUI()}
 function saveLoginSettings(){if(!requireMainManager())return;let u=mainUsername.value.trim(),pw=mainPassword.value;if(!u)return alert("Kullanıcı adı boş olamaz.");data.auth.username=u;if(pw)data.auth.password=pw;mainPassword.value="";save();alert("Giriş bilgileri kaydedildi.")}
 async function addDealer(){
-if(!requireMainManager())return;
-let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=dealerRole.value||"personel";
+if(!requireManager())return;
+let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(dealerRole.value||"personel"):"personel";
 let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
 if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");
 if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
@@ -1695,12 +1700,12 @@ function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.$
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
 if(typeof mainUsername!=="undefined")mainUsername.value=data.auth.username;
-if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>{let did=JSON.stringify(String(x.id));return `<tr>
+if(typeof dealerRows!=="undefined")dealerRows.innerHTML=data.dealers.map(x=>{let did=JSON.stringify(String(x.id)),main=isMainManager();return `<tr>
 <td>${x.name}</td><td>${x.owner||"-"}</td><td>${x.phone||"-"}</td><td>${x.user}</td>
 <td><span>🔒 Bulutta güvenli</span></td>
-<td>${x.role==="manager"?"Yönetici":"Personel"}<br><button onclick='editDealerRole(${did})'>Seviye Değiştir</button></td>
-<td>${(Array.isArray(x.permissions)&&x.permissions.length?x.permissions:SECTION_PERMISSIONS).map(k=>SECTION_LABELS[k]||k).join(", ")}<br><button onclick='editDealerPermissions(${did})'>Yetki Düzenle</button></td>
-<td><button onclick='editDealerPassword(${did})'>Şifre Düzenle</button><button class="danger" onclick='delDealer(${did})'>Sil</button></td>
+<td>${x.role==="manager"?"Yönetici":"Personel"}${main?"<br><button onclick='editDealerRole("+did+")'>Seviye Değiştir</button>":""}</td>
+<td>${(Array.isArray(x.permissions)&&x.permissions.length?x.permissions:SECTION_PERMISSIONS).map(k=>SECTION_LABELS[k]||k).join(", ")}${main?"<br><button onclick='editDealerPermissions("+did+")'>Yetki Düzenle</button>":""}</td>
+<td>${main?"<button onclick='editDealerPassword("+did+")'>Şifre Düzenle</button><button class='danger' onclick='delDealer("+did+")'>Sil</button>":"Sadece görüntüleme"}</td>
 </tr>`}).join("");
 
 data.customers.forEach(x=>{if(!x.created&&x.reminder)x.created=x.reminder;if(typeof x.paymentDone!=="boolean")x.paymentDone=Number(x.paidAmount||0)>0;if(x.paidAmount==null)x.paidAmount=0});
