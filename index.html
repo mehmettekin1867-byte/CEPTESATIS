@@ -120,6 +120,9 @@ body.dark .permission-box{background:#111827;border-color:#374151}
 .sale-payment span{display:block;font-size:22px;margin-bottom:4px}
 .sale-payment.cash{background:#dff8e9;color:#148a4a}.sale-payment.pos{background:#dff7fb;color:#14798b}.sale-payment.iban{background:#e8f0ff;color:#2457b8}.sale-payment.account{background:#fff0cc;color:#ad6b00}.sale-payment.partial{background:#ddebff;color:#1665c1}.sale-payment.other{background:#eee9ff;color:#6d4cc3}
 .sale-payment.active{outline:3px solid #1684ff;outline-offset:2px}
+.sale-iban-info{display:none;margin-top:10px;background:#eef5ff;border:1px solid #bfd4ff;border-radius:14px;padding:12px}
+.sale-iban-info b{display:block;margin-bottom:6px}.sale-iban-value{font-weight:900;letter-spacing:.7px;word-break:break-all}
+.sale-iban-manager{margin-top:10px!important;border:1px dashed #9db8e8}.sale-iban-manager h3{margin-top:0}
 .sale-pay-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .sale-pay-details .pay-box{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:9px 12px}
 .sale-pay-details label{display:block;font-size:12px;color:#6b7280}.sale-pay-details input{border:0;margin:2px 0 0;padding:4px 0;font-weight:900;font-size:18px}
@@ -632,6 +635,21 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
     <button class="sale-payment other" data-pay="Diğer" type="button" onclick="setSalePayment('Diğer')"><span>•••</span>Diğer</button>
   </div>
 
+  <div id="saleIbanInfo" class="sale-iban-info">
+    <b>🏦 Ödeme IBAN'ı</b>
+    <div id="saleIbanText" class="sale-iban-value">IBAN tanımlanmamış.</div>
+    <button class="btn" type="button" style="margin-top:8px" onclick="copySalesIban()">IBAN'ı Kopyala</button>
+  </div>
+
+  <div id="saleIbanManagerBox" class="panel sale-iban-manager" style="display:none">
+    <h3>🏦 IBAN Ayarı</h3>
+    <p class="muted">Yönetici ve Ana Yönetici buradan satışta kullanılacak IBAN'ı ekleyebilir veya değiştirebilir.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="saleIbanInput" placeholder="Örn: TR00 0000 0000 0000 0000 0000 00" style="margin:0;flex:1;min-width:260px">
+      <button class="btn" type="button" onclick="saveSalesIban()">IBAN'ı Kaydet</button>
+    </div>
+  </div>
+
   <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
 
   <button class="sale-scan" type="button" onclick="startSaleScanner()">▦ Tara</button>
@@ -796,6 +814,7 @@ async function restoreCloudSession(){
     sessionStorage.setItem("ceptesatis_user",JSON.stringify(r.user));
     document.getElementById("loginScreen").style.display="none";
     applyUserUI();
+    await loadSalesIban();
     if(r.user?.isMain)await refreshCloudDealers();
     else render();
   }catch(e){
@@ -819,6 +838,7 @@ let s=getSession(),n=document.getElementById("activeUserName"),r=document.getEle
 if(n)n.textContent=s?(s.name||s.username||"-"):"-";
 if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
 document.querySelectorAll(".nav button[data-page]").forEach(el=>{let page=el.dataset.page;el.style.display=canAccessSection(page)?"block":"none"});
+let ibanManagerBox=document.getElementById("saleIbanManagerBox");if(ibanManagerBox)ibanManagerBox.style.display=isManager()?"block":"none";
 let active=document.querySelector(".nav button.active");
 if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
 }
@@ -967,7 +987,7 @@ let labels=Array.from({length:count},()=>`<div class="label"><div class="name">$
 let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
 }
-function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode}
+function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode;updateSalesIbanUI()}
 function forgotPasswordWhatsApp(){
   const u=(document.getElementById("loginUser")?.value||"").trim();
   const msg="Merhaba, Cepte Satış giriş şifremi unuttum."+ (u?" Kullanıcı adım: "+u:"");
@@ -988,6 +1008,7 @@ async function login(){
     document.getElementById("loginScreen").style.display="none";
     if(errorEl)errorEl.textContent="";
     applyUserUI();
+    await loadSalesIban();
     if(r.user?.isMain&&localDealers.some(x=>(x.pass||x.password))){
       try{await cloudApi("sync_dealers",{dealers:localDealers})}catch(e){}
     }
@@ -1189,10 +1210,49 @@ function updateSaleAmounts(fromUser){
   let paid=Math.max(0,Math.min(total,Number(paidEl.value||0)));
   remEl.value=money(Math.max(0,total-paid));
 }
+function formatSalesIban(v){
+  let clean=String(v||"").replace(/\s+/g,"").toUpperCase();
+  return clean.replace(/(.{4})/g,"$1 ").trim();
+}
+function updateSalesIbanUI(){
+  let iban=String(data.settings?.salesIban||"");
+  let input=document.getElementById("saleIbanInput"),textEl=document.getElementById("saleIbanText");
+  if(input)input.value=formatSalesIban(iban);
+  if(textEl)textEl.textContent=iban?formatSalesIban(iban):"IBAN tanımlanmamış.";
+}
+async function loadSalesIban(){
+  if(!getSession())return;
+  try{
+    const r=await cloudApi("get_sales_iban");
+    data.settings.salesIban=String(r.iban||"");
+    localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+    updateSalesIbanUI();
+  }catch(e){updateSalesIbanUI()}
+}
+async function saveSalesIban(){
+  if(!requireManager())return;
+  let raw=(document.getElementById("saleIbanInput")?.value||"").replace(/\s+/g,"").toUpperCase();
+  if(raw&&!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(raw))return alert("Geçerli bir IBAN gir.");
+  try{
+    const r=await cloudApi("set_sales_iban",{iban:raw});
+    data.settings.salesIban=String(r.iban||"");
+    localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+    updateSalesIbanUI();
+    alert("IBAN kaydedildi.");
+  }catch(e){alert(e.message||"IBAN kaydedilemedi.")}
+}
+async function copySalesIban(){
+  let iban=String(data.settings?.salesIban||"");
+  if(!iban)return alert("Henüz IBAN tanımlanmamış.");
+  try{await navigator.clipboard.writeText(iban);alert("IBAN kopyalandı.");}
+  catch(e){prompt("IBAN:",formatSalesIban(iban))}
+}
 function setSalePayment(type){
   salePaymentType=type;salePaidTouched=false;
   document.querySelectorAll(".sale-payment").forEach(b=>b.classList.toggle("active",b.dataset.pay===type));
   let l=document.getElementById("salePaymentLabel");if(l)l.value=type;
+  let ibanInfo=document.getElementById("saleIbanInfo");if(ibanInfo)ibanInfo.style.display=type==="IBAN"?"block":"none";
+  updateSalesIbanUI();
   updateSaleAmounts(false);
 }
 function addProductToSale(id){
