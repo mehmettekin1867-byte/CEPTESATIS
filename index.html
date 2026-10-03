@@ -366,6 +366,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
 <button data-page="stock" data-short="📊">📊 Stok</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
+<button data-page="receivables" data-short="📒">📒 Veresiyeler</button>
 <button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 </div>
 </aside>
@@ -549,17 +550,8 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <div><label>Telefon</label><input id="cPhone"></div>
 <div><label>Cari Grubu</label><select id="cGroup"><option>Genel</option></select></div>
 <div><label>Kaç Gün Sonra Hatırlat?</label>
-<select id="cReminderDays">
-<option value="1">1 gün</option>
-<option value="2">2 gün</option>
-<option value="3">3 gün</option>
-<option value="7">7 gün</option>
-<option value="10">10 gün</option>
-<option value="15">15 gün</option>
-<option value="20">20 gün</option>
-<option value="25">25 gün</option>
-<option value="30" selected>30 gün (1 ay)</option>
-</select></div>
+<input id="cReminderDays" type="number" min="1" max="365" step="1" value="30" placeholder="Örn: 15">
+<div class="muted" style="font-size:12px;margin-top:4px">1-365 gün arasında istediğin günü yazabilirsin.</div></div>
 <div><label>Ödeme Yapıldı</label>
 <select id="cPaymentDone" onchange="toggleCustomerPaidAmount()">
 <option value="0" selected>Hayır</option>
@@ -732,6 +724,23 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 </div>
 </section>
 <section id="reports" class="page"><h1>Raporlar</h1><div class="cards"><div class="card">Toplam Satış<b id="rSales">0</b></div><div class="card">Toplam Ciro<b id="rRevenue">₺0</b></div></div></section>
+<section id="receivables" class="page">
+<h1>Veresiyeler</h1>
+<div class="cards">
+  <div class="card">Veresiye Müşteri<b id="receivableCustomerCount">0</b></div>
+  <div class="card">Toplam Kalan<b id="receivableTotal">₺0</b></div>
+</div>
+<div class="panel">
+  <h2>📒 Açık Veresiyeler</h2>
+  <p class="muted">Kalan borcu olan müşteriler burada görünür. Hatırlatma günü müşteri kartından belirlenir.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Müşteri</th><th>Telefon</th><th>Kalan Borç</th><th>Hatırlatma Tarihi</th><th>Kaç Gün Sonra</th><th>İşlem</th></tr></thead>
+      <tbody id="receivableRows"></tbody>
+    </table>
+  </div>
+</div>
+</section>
 <section id="dealers" class="page"><h1>Alt Bayiler</h1>
 <div class="panel"><h2>Alt Bayi Aç</h2><div class="grid">
 <div><label>Bayi Adı</label><input id="dealerName" placeholder="Bayi adı"></div>
@@ -752,6 +761,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <label><input class="dealer-permission" type="checkbox" value="service" checked> Teknik Servis</label>
 <label><input class="dealer-permission" type="checkbox" value="stock" checked> Stok</label>
 <label><input class="dealer-permission" type="checkbox" value="reports" checked> Raporlar</label>
+<label><input class="dealer-permission" type="checkbox" value="receivables" checked> Veresiyeler</label>
 <label><input class="dealer-permission" type="checkbox" value="pricecheck" checked> Fiyat Gör</label>
 </div></div>
 <button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
@@ -835,8 +845,8 @@ async function restoreCloudSession(){
 }
 
 function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
-const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports","pricecheck"];
-const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",pricecheck:"Fiyat Gör"};
+const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports","receivables","pricecheck"];
+const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",receivables:"Veresiyeler",pricecheck:"Fiyat Gör"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
 function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="settings")return false;if(page==="dealers")return s.role==="manager";let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
 function isMainManager(){let s=getSession();return !!s&&!!s.isMain}
@@ -1129,6 +1139,16 @@ data.customers.push({id:Date.now(),name,group:cGroup.value||"Genel",phone:cPhone
 cName.value=cPhone.value="";cGroup.value="Genel";cReminderDays.value="30";
 let pd=document.getElementById("cPaymentDone"),pa=document.getElementById("cPaidAmount");if(pd)pd.value="0";if(pa)pa.value="0";
 save()
+}
+function editCustomerReminder(id){
+  if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Müşteriler veya Veresiyeler yetkisi gerekli.");
+  let x=data.customers.find(c=>c.id===id);if(!x)return;
+  let v=prompt("Kaç gün sonra hatırlatılsın?",String(x.reminderDays||30));if(v===null)return;
+  let days=Math.max(1,Math.min(365,Number(v)||0));if(!days)return alert("1-365 arasında gün gir.");
+  x.reminderDays=days;
+  let base=new Date();base.setHours(0,0,0,0);base.setDate(base.getDate()+days);
+  x.reminder=`${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,"0")}-${String(base.getDate()).padStart(2,"0")}`;
+  save();
 }
 function editCustomerPayment(id){
 if(!canAccessSection("customers"))return alert("Bu işlem için Müşteriler yetkisi gerekli.");
@@ -1744,6 +1764,23 @@ updateServiceChoices();
 serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Teslim Tarihi Düzenle</button></td><td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret Düzenle</button></td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf Değiştir</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
 
 saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${x.paymentType||"Nakit"}</td><td>${money(x.paid!=null?x.paid:x.total)}</td><td>${money(x.remaining||0)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
+let receivableMap={};
+data.sales.forEach(s=>{
+  let remaining=Number(s.remaining||0);
+  if(remaining<=0)return;
+  let key=s.customerId!=null?String(s.customerId):("name:"+String(s.customer||"Müşterisiz satış"));
+  if(!receivableMap[key])receivableMap[key]={customerId:s.customerId,customer:s.customer||"Müşterisiz satış",remaining:0};
+  receivableMap[key].remaining+=remaining;
+});
+let receivables=Object.values(receivableMap).filter(x=>x.customer!=="Müşterisiz satış");
+let receivableTotalValue=receivables.reduce((a,x)=>a+x.remaining,0);
+let rc=document.getElementById("receivableCustomerCount"),rt=document.getElementById("receivableTotal"),rr=document.getElementById("receivableRows");
+if(rc)rc.textContent=receivables.length;
+if(rt)rt.textContent=money(receivableTotalValue);
+if(rr)rr.innerHTML=receivables.length?receivables.map(x=>{
+  let c=x.customerId!=null?data.customers.find(c=>String(c.id)===String(x.customerId)):data.customers.find(c=>c.name===x.customer);
+  return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
+}).join(""):'<tr><td colspan="6" class="muted">Açık veresiye yok.</td></tr>';
 let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
 sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");restoreCloudSession();
 render();
