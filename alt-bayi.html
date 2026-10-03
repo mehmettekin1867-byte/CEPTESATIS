@@ -14,7 +14,7 @@
 
 <div id="loginCard" class="card">
 <h2>Yönetici Girişi</h2>
-<p class="muted">Alt bayi oluşturmak için yönetici hesabıyla giriş yap.</p>
+<p class="muted">Alt bayi oluşturmak için Ana Yönetici hesabıyla giriş yap.</p>
 <div class="grid">
 <div><label>Kullanıcı adı</label><input id="loginUser" autocomplete="username"></div>
 <div><label>Şifre</label><input id="loginPass" type="password" autocomplete="current-password"></div>
@@ -60,7 +60,7 @@ function msg(id,text,ok=false){const e=document.getElementById(id);e.className=o
 async function login(){
  try{
   const r=await api("login",{username:loginUser.value.trim(),password:loginPass.value});
-  if(!(r.user?.isMain||r.user?.role==="manager"))throw new Error("Bu bölüm yalnızca yöneticilere açıktır.");
+  if(!r.user?.isMain)throw new Error("Bu bölüm yalnızca Ana Yöneticiye açıktır.");
   sessionStorage.setItem("ceptesatis_cloud_token",r.sessionToken);
   sessionStorage.setItem("ceptesatis_login","1");
   sessionStorage.setItem("ceptesatis_user",JSON.stringify(r.user));
@@ -70,7 +70,7 @@ async function login(){
 async function showPanel(){
  try{
   const r=await api("me");
-  if(!(r.user?.isMain||r.user?.role==="manager"))return;
+  if(!r.user?.isMain)return;
   loginCard.style.display="none";panel.style.display="block";await loadDealers();
  }catch(e){}
 }
