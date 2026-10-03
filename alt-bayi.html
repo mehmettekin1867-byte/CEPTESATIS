@@ -32,7 +32,7 @@
 <div><label>Telefon</label><input id="phone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="username" placeholder="Kullanıcı adı"></div>
 <div><label>Şifre</label><input id="password" type="password" placeholder="Şifre"></div>
-<div><label>Yetki Seviyesi</label><select id="role"><option value="personel">Personel</option><option value="manager">Yönetici</option></select></div>
+<div><label>Yetki Seviyesi</label><select id="role"><option value="personel">Personel</option><option value="manager">Yönetici</option></select><div class="muted" style="margin-top:5px">Normal yöneticiler yalnızca Personel hesabı oluşturabilir.</div></div>
 <div class="full"><label>Erişebileceği Bölümler</label><div class="perms" id="permBox"></div></div>
 </div>
 <button class="btn" onclick="createDealer()">Alt Bayi Oluştur</button>
@@ -69,7 +69,7 @@ function msg(id,text,ok=false){const e=document.getElementById(id);e.className=o
 async function login(){
  try{
   const r=await api("login",{username:loginUser.value.trim(),password:loginPass.value});
-  if(!r.user?.isMain)throw new Error("Bu bölüm yalnızca Ana Yöneticiye açıktır.");
+  if(!(r.user?.isMain||r.user?.role==="manager"))throw new Error("Bu bölüm yalnızca yönetici hesaplarına açıktır.");
   sessionStorage.setItem("ceptesatis_cloud_token",r.sessionToken);
   sessionStorage.setItem("ceptesatis_login","1");
   sessionStorage.setItem("ceptesatis_user",JSON.stringify(r.user));
@@ -79,8 +79,12 @@ async function login(){
 async function showPanel(){
  try{
   const r=await api("me");
-  if(!r.user?.isMain)return;
-  loginCard.style.display="none";panel.style.display="block";await loadDealers();
+  if(!(r.user?.isMain||r.user?.role==="manager"))return;
+  loginCard.style.display="none";panel.style.display="block";
+  window.__currentUser=r.user;
+  role.innerHTML=r.user?.isMain?'<option value="personel">Personel</option><option value="manager">Yönetici</option>':'<option value="personel">Personel</option>';
+  role.value="personel";
+  await loadDealers();
  }catch(e){}
 }
 async function createDealer(){
@@ -88,7 +92,7 @@ async function createDealer(){
  if(!name.value.trim()||!username.value.trim()||!password.value.trim())return msg("formMsg","Bayi adı, kullanıcı adı ve şifre gir.");
  if(!permissions.length)return msg("formMsg","En az bir yetki seç.");
  try{
-  await api("create_dealer",{name:name.value.trim(),owner:owner.value.trim(),phone:phone.value.trim(),username:username.value.trim(),password:password.value.trim(),role:role.value,permissions});
+  await api("create_dealer",{name:name.value.trim(),owner:owner.value.trim(),phone:phone.value.trim(),username:username.value.trim(),password:password.value.trim(),role:window.__currentUser?.isMain?role.value:"personel",permissions});
   name.value=owner.value=phone.value=username.value=password.value="";role.value="personel";
   document.querySelectorAll(".perm").forEach(x=>x.checked=true);
   msg("formMsg","Alt bayi oluşturuldu. Bu hesap artık internet olan her cihazdan giriş yapabilir.",true);
@@ -99,7 +103,7 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&l
 async function loadDealers(){
  try{
   const r=await api("list_dealers");
-  dealerList.innerHTML=(r.dealers||[]).length?(r.dealers||[]).map(d=>'<div class="dealer"><b>'+esc(d.name||d.user)+'</b><div>'+esc(d.owner||"-")+' · '+esc(d.user)+' · '+(d.role==="manager"?"Yönetici":"Personel")+'</div><div class="muted">'+esc((d.permissions||[]).map(k=>PERMS[k]||k).join(", "))+'</div><div class="actions"><button onclick="changePassword('+JSON.stringify(String(d.id))+')">Şifre Değiştir</button><button onclick="changeRole('+JSON.stringify(String(d.id))+','+JSON.stringify(d.role)+')">Seviye Değiştir</button><button onclick="openPermissionEditor('+JSON.stringify(String(d.id))+')">Yetki Düzenle</button><button class="red" onclick="removeDealer('+JSON.stringify(String(d.id))+')">Sil</button></div></div>').join(""):'Henüz alt bayi yok.';
+  dealerList.innerHTML=(r.dealers||[]).length?(r.dealers||[]).map(d=>{const actions=window.__currentUser?.isMain?'<div class="actions"><button onclick="changePassword('+JSON.stringify(String(d.id))+')">Şifre Değiştir</button><button onclick="changeRole('+JSON.stringify(String(d.id))+','+JSON.stringify(d.role)+')">Seviye Değiştir</button><button onclick="openPermissionEditor('+JSON.stringify(String(d.id))+')">Yetki Düzenle</button><button class="red" onclick="removeDealer('+JSON.stringify(String(d.id))+')">Sil</button></div>':'<div class="muted" style="margin-top:8px">Yönetici hesabı yalnızca Personel ekleyebilir.</div>';return '<div class="dealer"><b>'+esc(d.name||d.user)+'</b><div>'+esc(d.owner||"-")+' · '+esc(d.user)+' · '+(d.role==="manager"?"Yönetici":"Personel")+'</div><div class="muted">'+esc((d.permissions||[]).map(k=>PERMS[k]||k).join(", "))+'</div>'+actions+'</div>'}).join(""):'Henüz alt bayi yok.';
   window.__dealers=(r.dealers||[]);
  }catch(e){dealerList.textContent=e.message}
 }
