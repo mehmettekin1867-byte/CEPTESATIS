@@ -593,7 +593,6 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
 
   <div class="sale-pay-details">
     <div class="pay-box"><label>İskonto (%)</label><input id="saleDiscount" type="number" value="0" min="0" max="100" step="0.01" oninput="refreshSaleScreen()"></div>
-    <div class="pay-box"><label>Ödenen Tutar</label><input id="salePaidInput" type="number" value="0" min="0" step="0.01" oninput="updateSaleAmounts(true)"></div>
     <div class="pay-box"><label>Kalan</label><input id="saleRemainingInput" value="₺0,00" readonly></div>
     <div class="pay-box"><label>Ödeme Türü</label><input id="salePaymentLabel" value="Nakit" readonly></div>
   </div>
@@ -1585,6 +1584,7 @@ let saleCart=[];
 let salePaymentType="Nakit";
 let saleGroupFilter="Ana Liste";
 let salePaidTouched=false;
+let salePartialPaid=0;
 let saleScannerStream=null;
 let saleScannerTimer=null;
 
@@ -1618,15 +1618,12 @@ function refreshSaleScreen(){
   renderSaleCart();renderSaleGroupChips();updateSaleAmounts(false);
 }
 function updateSaleAmounts(fromUser){
-  if(fromUser)salePaidTouched=true;
-  let total=saleCartTotal(),paidEl=document.getElementById("salePaidInput"),remEl=document.getElementById("saleRemainingInput");
-  if(!paidEl||!remEl)return;
-  if(!salePaidTouched){
-    if(salePaymentType==="Veresiye")paidEl.value="0.00";
-    else if(salePaymentType==="Parçalı")paidEl.value=Math.min(Number(paidEl.value||0),total).toFixed(2);
-    else paidEl.value=total.toFixed(2);
-  }
-  let paid=Math.max(0,Math.min(total,Number(paidEl.value||0)));
+  let total=saleCartTotal(),remEl=document.getElementById("saleRemainingInput");
+  if(!remEl)return;
+  let paid=0;
+  if(salePaymentType==="Veresiye")paid=0;
+  else if(salePaymentType==="Parçalı")paid=Math.max(0,Math.min(total,Number(salePartialPaid||0)));
+  else paid=total;
   remEl.value=money(Math.max(0,total-paid));
 }
 function formatSalesIban(v){
@@ -1668,6 +1665,7 @@ async function copySalesIban(){
 }
 function setSalePayment(type){
   salePaymentType=type;salePaidTouched=false;
+  if(type!=="Parçalı")salePartialPaid=0;
   document.querySelectorAll(".sale-payment").forEach(b=>b.classList.toggle("active",b.dataset.pay===type));
   let l=document.getElementById("salePaymentLabel");if(l)l.value=type;
   let ibanInfo=document.getElementById("saleIbanInfo");if(ibanInfo)ibanInfo.style.display=type==="IBAN"?"block":"none";
@@ -1693,7 +1691,7 @@ function changeSaleCartQty(id,delta){
 function removeSaleCartItem(id){saleCart=saleCart.filter(x=>x.productId!==Number(id));salePaidTouched=false;refreshSaleScreen()}
 function clearSaleCart(){
   if(saleCart.length&&!confirm("Sepet temizlensin mi?"))return;
-  saleCart=[];salePaidTouched=false;
+  saleCart=[];salePaidTouched=false;salePartialPaid=0;
   let n=document.getElementById("saleNote");if(n)n.value="";
   let d=document.getElementById("saleDiscount");if(d)d.value="0";
   setSalePayment("Nakit");refreshSaleScreen();
@@ -1755,11 +1753,22 @@ function renderSaleGroupChips(){
 function setSaleGroupFilter(g){saleGroupFilter=g;renderSaleGroupChips();renderSaleSearchResults()}
 function completeSale(){
   if(!saleCart.length)return alert("Sepete ürün ekle.");
-  let total=saleCartTotal(),gross=saleCartGross(),discount=saleDiscountPct(),paidEl=document.getElementById("salePaidInput");
-  let paid=Math.max(0,Math.min(total,Number(paidEl?paidEl.value:0)||0)),remaining=Math.max(0,total-paid);
-  if(salePaymentType==="Parçalı"&&(paid<=0||paid>=total))return alert("Parçalı ödeme için ödenen tutarı, toplamdan düşük olacak şekilde gir.");
-  if(salePaymentType==="Veresiye"){paid=0;remaining=total}
-  if((salePaymentType==="Nakit"||salePaymentType==="Pos")&&!salePaidTouched){paid=total;remaining=0}
+  let total=saleCartTotal(),gross=saleCartGross(),discount=saleDiscountPct();
+  let paid=0,remaining=total;
+  if(salePaymentType==="Veresiye"){
+    paid=0;remaining=total;
+  }else if(salePaymentType==="Parçalı"){
+    if(!(salePartialPaid>0&&salePartialPaid<total)){
+      let v=prompt("Parçalı ödeme için alınan tutarı gir. Toplam: "+money(total),"");
+      if(v===null)return;
+      let amount=Number(String(v).replace(",","."));
+      if(!Number.isFinite(amount)||amount<=0||amount>=total)return alert("Ödenen tutar 0'dan büyük ve toplam tutardan küçük olmalı.");
+      salePartialPaid=amount;
+    }
+    paid=Math.max(0,Math.min(total,salePartialPaid));remaining=Math.max(0,total-paid);
+  }else{
+    paid=total;remaining=0;
+  }
   for(let item of saleCart){
     let p=data.products.find(x=>x.id===item.productId);
     if(!p||+p.stock<+item.qty)return alert((p?p.name:"Ürün")+" için yeterli stok yok.");
@@ -1784,7 +1793,7 @@ function completeSale(){
     });
   });
   let payment=salePaymentType;
-  saleCart=[];salePaidTouched=false;
+  saleCart=[];salePaidTouched=false;salePartialPaid=0;
   let noteEl=document.getElementById("saleNote");if(noteEl)noteEl.value="";
   let disc=document.getElementById("saleDiscount");if(disc)disc.value="0";
   save();setSalePayment("Nakit");refreshSaleScreen();
