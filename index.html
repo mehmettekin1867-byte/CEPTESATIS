@@ -437,7 +437,7 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
     <button class="btn" type="button" onclick="addCustomerGroup()">Cari Grubu Ekle</button>
   </div>
   <div class="table-wrap">
-    <table><thead><tr><th>Cari</th><th>Grup</th><th>Telefon</th><th>Borç</th><th>Teknik Servis</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
+    <table><thead><tr><th>Cari</th><th>Grup</th><th>Telefon</th><th>Ödenen Tutar</th><th>Kalan Tutar</th><th>Teknik Servis</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
   </div>
 </div></section>
 
@@ -489,7 +489,6 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
 
   <div class="sale-note"><input id="saleNote" placeholder="📝 Satış notu"></div>
   <div class="sale-toggle-row">
-    <label class="sale-toggle"><input id="saleShowPrice" type="checkbox" style="width:auto;margin:0 6px 0 0"> Fiyat gör</label>
     <label class="sale-toggle"><input id="saleReturnMode" type="checkbox" style="width:auto;margin:0 6px 0 0"> İade modu</label>
   </div>
 
@@ -1075,7 +1074,9 @@ count=Math.min(100,Math.floor(count));
 let svg=code128Svg(p.code);if(!svg)return alert("Barkod oluşturulamadı.");
 let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}<div class="price">${money(p.price)}</div></div>`).join("");
 let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
-w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script>
+
+</body></html>`);w.document.close()
 }
 function printServiceBarcode(id){
 let s=data.services.find(x=>x.id===id);if(!s)return;
@@ -1084,7 +1085,9 @@ let count=Number(prompt("Kaç adet servis barkodu yazdırılsın?","1"));if(!Num
 let customer=String(s.customer||"").replace(/</g,"&lt;"),device=String((s.device||"")+" "+(s.model||"")).replace(/</g,"&lt;");
 let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${code} • ${customer}</div>${svg}<div class="device">${device}</div></div>`).join("");
 let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
-w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script>
+
+</body></html>`);w.document.close()
 }
 function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode;updateSalesIbanUI()}
 function forgotPasswordWhatsApp(){
@@ -1212,6 +1215,12 @@ function formatPhoneDigits(d){
 }
 function formatCariPhone(input){if(input)input.value=formatPhoneDigits(input.value)}
 function whatsappPhone(v){let d=phoneDigits(v);return d.length===10?"90"+d:""}
+function customerPaid(c){
+  return data.sales.reduce((sum,s)=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
+    return sum+(same?(Number(s.paid)||0):0);
+  },0);
+}
 function customerDebt(c){
   return data.sales.reduce((sum,s)=>{
     let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
@@ -1910,7 +1919,7 @@ let quickSale=document.getElementById("quickSaleProducts");
 if(quickSale)quickSale.innerHTML=data.products.filter(p=>Number(p.stock)>0).slice(0,12).map(p=>`<button type="button" onclick="addProductToSale(${p.id})">⚡ ${productEscape(p.name)}<br><small>${money(p.price)} · Stok ${p.stock}</small></button>`).join("")||'<span class="muted">Stokta hızlı satış ürünü yok.</span>';
 customerRows.innerHTML=data.customers.map(x=>{
   let debt=customerDebt(x),services=customerActiveServices(x).length;
-  return `<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${formatPhoneDigits(x.phone||"")||"-"}</td><td><b>${money(debt)}</b></td><td>${services?services+" aktif":"-"}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`
+  return `<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${formatPhoneDigits(x.phone||"")||"-"}</td><td><b>${money(customerPaid(x))}</b></td><td><b>${money(debt)}</b></td><td>${services?services+" aktif":"-"}</td><td><button class="btn" type="button" onclick="showCustomerDetail(${x.id})">Müşteri Detayı</button> ${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`
 }).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
@@ -1974,4 +1983,25 @@ sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesa
 render();
 resetProductForm();
 </script>
-</body></html>
+
+
+<dialog id="customerDetailDialog" aria-label="Müşteri Detayı" style="width:min(900px,94vw);max-height:85vh;overflow:auto;border:0;border-radius:16px;padding:22px"><h2>Müşteri Detayı</h2><button class="btn" onclick="document.getElementById('customerDetailDialog').close()">Kapat</button><div id="customerDetailContent"></div></dialog>
+<style>#customerDetailDialog::backdrop{background:#0009}body.dark #customerDetailDialog{background:#172033;color:white}</style>
+<script>
+function showCustomerDetail(id){
+const c=data.customers.find(x=>String(x.id)===String(id));if(!c)return;
+const match=x=>String(x.customerId||'')===String(c.id)||(!x.customerId&&String(x.customer||'')===String(c.name||''));
+const sales=data.sales.filter(match),services=data.services.filter(match);
+const total=sales.reduce((n,x)=>n+(Number(x.total)||0),0),paid=sales.reduce((n,x)=>n+(Number(x.paid)||0),0);
+const box=document.getElementById('customerDetailContent');box.replaceChildren();
+function line(text){const p=document.createElement('p');p.textContent=text;box.append(p)}
+function heading(text){const h=document.createElement('h3');h.textContent=text;box.append(h)}
+heading(c.name);line('Telefon: '+(formatPhoneDigits(c.phone)||'—'));
+if(c.address)line('Adres: '+c.address);if(c.email)line('E-posta: '+c.email);if(c.note)line('Not: '+c.note);
+line('Toplam Satış: '+money(total));line('Ödenen Tutar: '+money(paid));line('Kalan Borç: '+money(customerDebt(c)));line('Aktif Teknik Servis: '+customerActiveServices(c).length);
+function table(headers,rows){const wrap=document.createElement('div');wrap.style.overflowX='auto';const t=document.createElement('table');const tr=document.createElement('tr');headers.forEach(x=>{const th=document.createElement('th');th.textContent=x;tr.append(th)});t.append(tr);rows.forEach(row=>{const r=document.createElement('tr');row.forEach(x=>{const td=document.createElement('td');td.textContent=x??'—';r.append(td)});t.append(r)});wrap.append(t);box.append(wrap)}
+heading('Satış Geçmişi');if(!sales.length)line('Henüz satış kaydı yok.');else table(['Tarih','Ürün','Adet','Ödeme','Toplam','Ödenen','Kalan'],sales.map(x=>[x.date,x.product,x.qty,x.paymentType,money(x.total),money(x.paid),money(x.remaining)]));
+heading('Teknik Servis Kayıtları');if(!services.length)line('Henüz teknik servis kaydı yok.');else table(['Servis No','Cihaz','Arıza / İşlem','Teslim','Ücret','Durum'],services.map(x=>[x.no,[x.brand,x.device,x.model].filter(Boolean).join(' '),x.fault,x.due,money(x.price),x.status]));
+document.getElementById('customerDetailDialog').showModal();
+}
+</script></body></html>
