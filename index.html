@@ -395,6 +395,16 @@ body.dark .cari-topbar p,body.dark .cari-name-wrap span,body.dark .cari-balance-
 }
 </style>
 
+
+<style>
+.cari-payment-add{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:9px}
+.cari-payment-add input{margin:0!important;min-width:0;height:40px;border-radius:11px!important;padding:8px 10px!important;font-size:14px!important}
+.cari-payment-add button{border:0;border-radius:11px;background:#1684ff;color:#fff;padding:0 13px;font-weight:900;cursor:pointer;white-space:nowrap}
+.cari-payment-add button:disabled{background:#cbd5e1;color:#64748b;cursor:not-allowed}
+body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:#31425f}
+@media(max-width:520px){.cari-payment-add{grid-template-columns:1fr 118px}.cari-payment-add button{padding:0 8px;font-size:12px}}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -1376,6 +1386,10 @@ function renderCariCards(){
         <div><small>Ödeme</small><strong>${money(paid)}</strong></div>
         <div><small>Kalan</small><strong class="${remaining>0?"is-due":""}">${money(remaining)}</strong></div>
       </div>
+      <div class="cari-payment-add" onclick="event.stopPropagation()">
+        <input id="cariPay_${c.id}" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Ödeme tutarı">
+        <button type="button" onclick="event.stopPropagation();addCustomerPaymentFromCard(${c.id})" ${remaining<=0?"disabled":""}>＋ Ödeme Ekle</button>
+      </div>
     </div>`;
   }).join("");
 }
@@ -1420,14 +1434,46 @@ function markReceivablePaid(customerId,value){
   c.paymentDone=true;
   save();
 }
+function applyCustomerPayment(id,amount){
+  if(!canAccessSection("customers")&&!canAccessSection("receivables")){alert("Bu işlem için Cari veya Veresiyeler yetkisi gerekli.");return false}
+  let c=data.customers.find(x=>String(x.id)===String(id));if(!c)return false;
+  amount=Number(String(amount??"").replace(",","."));
+  if(!Number.isFinite(amount)||amount<=0){alert("0'dan büyük geçerli bir ödeme tutarı gir.");return false}
+  const round2=n=>Math.round((Number(n)||0)*100)/100;
+  let debt=round2(customerDebt(c));
+  amount=round2(amount);
+  if(debt<=0){alert("Bu carinin açık borcu yok.");return false}
+  if(amount>debt){alert("Ödeme kalan borçtan fazla olamaz. Kalan: "+money(debt));return false}
+  let left=amount;
+  let openSales=data.sales.filter(s=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
+    return same&&Number(s.remaining||0)>0;
+  }).slice().reverse();
+  openSales.forEach(s=>{
+    if(left<=0)return;
+    let remaining=round2(s.remaining||0);
+    let part=round2(Math.min(remaining,left));
+    s.paid=round2((Number(s.paid)||0)+part);
+    s.remaining=round2(remaining-part);
+    left=round2(left-part);
+  });
+  c.paidAmount=round2(customerPaid(c));
+  c.paymentDone=round2(customerDebt(c))<=0;
+  save();
+  alert(money(amount)+" ödeme eklendi. Yeni kalan borç: "+money(customerDebt(c)));
+  return true;
+}
+function addCustomerPaymentFromCard(id){
+  let input=document.getElementById("cariPay_"+id);
+  if(!input)return;
+  applyCustomerPayment(id,input.value);
+}
 function editCustomerPayment(id){
-if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Cari yetkisi gerekli.");
-let x=data.customers.find(c=>c.id===id);if(!x)return;
-let current=Number(x.paidAmount||0);
-let v=prompt("Ödenen tutarı gir:",current.toFixed(2));if(v===null)return;
-let amount=Number(String(v).replace(",","."));if(!Number.isFinite(amount)||amount<0)return alert("Geçerli bir tutar gir.");
-let status=confirm(amount>0?"Ödeme yapıldı olarak işaretlensin mi?":"Ödeme yapıldı olarak işaretlensin mi?");
-x.paidAmount=amount;x.paymentDone=status||amount>0;save();
+  let c=data.customers.find(x=>String(x.id)===String(id));if(!c)return;
+  let debt=customerDebt(c);
+  let v=prompt("Eklenecek ödeme tutarı (Kalan: "+money(debt)+"):", "");
+  if(v===null)return;
+  applyCustomerPayment(id,v);
 }
 function addCustomerGroup(){let g=(document.getElementById("newCustomerGroup")?.value||"").trim();if(!g)return alert("Cari grup adı gir.");if(g.toLowerCase()==="genel"||data.customerGroups.some(x=>x.toLowerCase()===g.toLowerCase()))return alert("Bu cari grubu zaten var.");data.customerGroups.push(g);document.getElementById("newCustomerGroup").value="";save()}
 function changeProductGroup(id){
