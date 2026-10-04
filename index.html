@@ -932,6 +932,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
       <div class="grid">
         <div><label>Başlık</label><input id="noteTitle" maxlength="80" placeholder="Örn: Müşteriyi ara"></div>
         <div><label>Tarih / Hatırlatma</label><input id="noteDate" type="date"></div>
+        <div><label>Saat</label><input id="noteTime" type="time"></div>
       </div>
       <label>Not</label>
       <textarea id="noteText" rows="4" maxlength="1000" placeholder="Notunu yaz..." style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;resize:vertical"></textarea>
@@ -1106,12 +1107,14 @@ function addNote(){
   let title=(document.getElementById("noteTitle")?.value||"").trim();
   let text=(document.getElementById("noteText")?.value||"").trim();
   let date=(document.getElementById("noteDate")?.value||"").trim();
+  let time=(document.getElementById("noteTime")?.value||"").trim();
   if(!title&&!text)return alert("Not başlığı veya not metni gir.");
   let sess=getSession();
-  data.notes.unshift({id:Date.now(),title:title||"Not",text,date,created:new Date().toLocaleString("tr-TR"),user:sess?(sess.name||sess.username||"-"):"-"});
+  data.notes.unshift({id:Date.now(),title:title||"Not",text,date,time,created:new Date().toLocaleString("tr-TR"),user:sess?(sess.name||sess.username||"-"):"-"});
   document.getElementById("noteTitle").value="";
   document.getElementById("noteText").value="";
   document.getElementById("noteDate").value="";
+  document.getElementById("noteTime").value="";
   save();
 }
 function deleteNote(id){
@@ -1124,7 +1127,7 @@ function renderNotes(){
   if(count)count.textContent=rows.length+" not";
   if(!rows.length){box.innerHTML='<div class="notes-empty">Henüz not eklenmedi.</div>';return}
   box.innerHTML=rows.map(n=>'<article class="note-card">'+
-    '<div class="note-card-top"><div><b>'+productEscape(n.title||"Not")+'</b><small>'+(n.date?("📅 "+productEscape(fmtDate(n.date))+" · "):"")+productEscape(n.created||"")+'</small></div>'+
+    '<div class="note-card-top"><div><b>'+productEscape(n.title||"Not")+'</b><small>'+(n.date?("📅 "+productEscape(fmtDate(n.date))+" "):"")+(n.time?("⏰ "+productEscape(n.time)+" · "):(n.date?"· ":""))+productEscape(n.created||"")+'</small></div>'+
     '<button type="button" class="danger" onclick="deleteNote('+Number(n.id)+')">Sil</button></div>'+
     (n.text?'<p>'+productEscape(n.text).replace(/\n/g,"<br>")+'</p>':"")+
     (n.user?'<div class="note-user">Ekleyen: '+productEscape(n.user)+'</div>':"")+
