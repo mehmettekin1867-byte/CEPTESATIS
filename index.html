@@ -361,7 +361,7 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
 <div class="nav">
 <button class="active" data-page="home" data-short="🏠">🏠 Ana Sayfa</button>
 <button class="pricecheck-nav" data-page="pricecheck" data-short="🏷️">🏷️ Fiyat Gör</button>
-<button data-page="sales" data-short="🛒">🛒 Satış</button>
+<button data-page="sales" data-short="🛒">🛒 Satış Yap</button>
 <button data-page="customers" data-short="👥">👥 Cari</button>
 <button data-page="stock" data-short="📦">📦 Stok</button>
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
@@ -444,7 +444,7 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
 <section id="sales" class="page">
 <div class="sales-shell">
   <div class="sale-topbar">
-    <h1>Satış / Hızlı Satış</h1>
+    <h1>Satış Yap</h1>
     <div class="sale-icon-actions">
       <button class="sale-icon-btn" type="button" title="Sepeti temizle" onclick="clearSaleCart()">↩</button>
       <button class="sale-icon-btn" type="button" title="Yeni satış" onclick="clearSaleCart()">＋</button>
@@ -455,6 +455,9 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
   <div class="panel">
     <h2>⚡ Hızlı Satış</h2>
     <p class="muted">Sık kullanılan / stokta olan ürüne dokun, doğrudan sepete eklensin.</p>
+    <label for="saleGroupSelect"><b>Ürün Grubu</b></label>
+    <select id="saleGroupSelect" onchange="setSaleGroupFilter(this.value)"></select>
+    <div id="saleGroupChips" class="sale-groups" style="margin-bottom:12px"></div>
     <div id="quickSaleProducts" class="quick-sale-products"></div>
   </div>
 
@@ -525,7 +528,7 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
 
   <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
 
-  <div id="saleGroupChips" class="sale-groups"></div>
+
 
   <div class="panel" style="margin-top:14px">
     <h2>Satış Geçmişi</h2>
@@ -901,7 +904,7 @@ async function restoreCloudSession(){
 
 function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
 const SECTION_PERMISSIONS=["home","pricecheck","sales","customers","stock","service","offers","reports"];
-const SECTION_LABELS={home:"Ana Sayfa",pricecheck:"Fiyat Gör",sales:"Satış",customers:"Cari",stock:"Stok",service:"Teknik Servis",offers:"Teklif",reports:"Raporlar",products:"Stok",groups:"Stok",receivables:"Cari"};
+const SECTION_LABELS={home:"Ana Sayfa",pricecheck:"Fiyat Gör",sales:"Satış Yap",customers:"Cari",stock:"Stok",service:"Teknik Servis",offers:"Teklif",reports:"Raporlar",products:"Stok",groups:"Stok",receivables:"Cari"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
 function canAccessSection(page){
   let s=getSession();if(!s)return false;if(s.isMain)return true;
@@ -1526,16 +1529,40 @@ function renderSaleSearchResults(){
 function saleSearchKeydown(e){
   if(e.key!=="Enter")return;e.preventDefault();
   let q=e.target.value.trim().toLocaleLowerCase("tr-TR");if(!q)return;
-  let exact=data.products.find(p=>p.showOnSales!==0&&(p.code||"").toLocaleLowerCase("tr-TR")===q);
-  if(!exact)exact=data.products.find(p=>p.showOnSales!==0&&(p.name||"").toLocaleLowerCase("tr-TR").includes(q));
+  let exact=data.products.find(p=>saleProductInGroup(p)&&(p.code||"").toLocaleLowerCase("tr-TR")===q);
+  if(!exact)exact=data.products.find(p=>saleProductInGroup(p)&&(p.name||"").toLocaleLowerCase("tr-TR").includes(q));
   if(exact)addProductToSale(exact.id);else alert("Ürün bulunamadı.");
 }
-function renderSaleGroupChips(){
-  let box=document.getElementById("saleGroupChips");if(!box)return;
-  let gs=["Ana Liste",...[...new Set(data.products.filter(p=>p.showOnSales!==0).map(p=>p.group||"Genel"))]];
-  box.innerHTML=gs.map(g=>'<button type="button" class="sale-group-btn '+(saleGroupFilter===g?"active":"")+'" onclick="setSaleGroupFilter('+JSON.stringify(g)+')">'+g+'</button>').join("");
+function saleProductInGroup(p){
+  return p.showOnSales!==0&&(saleGroupFilter==="Ana Liste"||(p.group||"Genel")===saleGroupFilter);
 }
-function setSaleGroupFilter(g){saleGroupFilter=g;renderSaleGroupChips();let i=document.getElementById("saleSearchInput");if(i)i.value="";renderSaleSearchResults()}
+function renderQuickSaleProducts(){
+  const box=document.getElementById("quickSaleProducts");if(!box)return;
+  box.replaceChildren();
+  const products=data.products.filter(p=>saleProductInGroup(p)&&Number(p.stock)>0).slice(0,12);
+  for(const p of products){
+    const button=document.createElement("button");button.type="button";
+    button.textContent="⚡ "+p.name;
+    button.append(document.createElement("br"));
+    const small=document.createElement("small");small.textContent=money(p.price)+" · Stok "+p.stock;button.append(small);
+    button.onclick=()=>addProductToSale(p.id);box.append(button);
+  }
+  if(!products.length){const empty=document.createElement("span");empty.className="muted";empty.textContent="Bu grupta stokta ürün yok.";box.append(empty)}
+}
+function renderSaleGroupChips(){
+  const box=document.getElementById("saleGroupChips"),select=document.getElementById("saleGroupSelect");
+  const gs=[...new Set(["Ana Liste",...(data.groups||[]),...data.products.filter(p=>p.showOnSales!==0).map(p=>p.group||"Genel")])];
+  if(!gs.includes(saleGroupFilter))saleGroupFilter="Ana Liste";
+  if(box)box.replaceChildren();if(select)select.replaceChildren();
+  for(const g of gs){
+    const label=g==="Ana Liste"?"Tüm Ürün Grupları":g;
+    if(select){const option=document.createElement("option");option.value=g;option.textContent=label;select.append(option)}
+    if(box){const button=document.createElement("button");button.type="button";button.className="sale-group-btn"+(saleGroupFilter===g?" active":"");button.textContent=label;button.onclick=()=>setSaleGroupFilter(g);box.append(button)}
+  }
+  if(select)select.value=saleGroupFilter;
+  renderQuickSaleProducts();
+}
+function setSaleGroupFilter(g){saleGroupFilter=g;renderSaleGroupChips();renderSaleSearchResults()}
 function completeSale(){
   if(!saleCart.length)return alert("Sepete ürün ekle.");
   let total=saleCartTotal(),gross=saleCartGross(),discount=saleDiscountPct(),paidEl=document.getElementById("salePaidInput");
@@ -1915,8 +1942,7 @@ updateProductGroupOptions(groups);
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
-let quickSale=document.getElementById("quickSaleProducts");
-if(quickSale)quickSale.innerHTML=data.products.filter(p=>Number(p.stock)>0).slice(0,12).map(p=>`<button type="button" onclick="addProductToSale(${p.id})">⚡ ${productEscape(p.name)}<br><small>${money(p.price)} · Stok ${p.stock}</small></button>`).join("")||'<span class="muted">Stokta hızlı satış ürünü yok.</span>';
+renderQuickSaleProducts();
 customerRows.innerHTML=data.customers.map(x=>{
   let debt=customerDebt(x),services=customerActiveServices(x).length;
   return `<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${formatPhoneDigits(x.phone||"")||"-"}</td><td><b>${money(customerPaid(x))}</b></td><td><b>${money(debt)}</b></td><td>${services?services+" aktif":"-"}</td><td><button class="btn" type="button" onclick="showCustomerDetail(${x.id})">Müşteri Detayı</button> ${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`
