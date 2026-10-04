@@ -416,6 +416,15 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 @media(max-width:700px){.notes-head h1{font-size:27px}.note-card{padding:12px}.note-card-top b{font-size:15px}}
 </style>
 
+
+<style>
+.note-card-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.note-card-actions button{border:0;border-radius:10px;padding:8px 10px;font-weight:800;cursor:pointer;background:#e7f0ff;color:#145ecf}
+.note-card-actions button.danger{background:#fee2e2;color:#b91c1c}
+.note-form-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:560px){.note-card-top{gap:8px}.note-card-actions{flex-direction:column}.note-card-actions button{padding:7px 8px;font-size:12px}}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -936,7 +945,10 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
       </div>
       <label>Not</label>
       <textarea id="noteText" rows="4" maxlength="1000" placeholder="Notunu yaz..." style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;resize:vertical"></textarea>
-      <button class="btn" type="button" onclick="addNote()" style="margin-top:10px">＋ Not Ekle</button>
+      <div class="note-form-actions">
+        <button id="noteSaveBtn" class="btn" type="button" onclick="addNote()" style="margin-top:10px">＋ Not Ekle</button>
+        <button id="noteCancelEditBtn" class="btn red" type="button" onclick="cancelNoteEdit()" style="margin-top:10px;display:none">İptal</button>
+      </div>
     </div>
     <div class="notes-list-head"><b>KAYITLI NOTLAR</b><span id="notesCount">0 not</span></div>
     <div id="notesList" class="notes-list"></div>
@@ -1103,6 +1115,15 @@ function setNotesEnabled(enabled){
     let homeBtn=document.querySelector('.nav button[data-page="home"]');if(homeBtn)homeBtn.click();
   }
 }
+let noteEditId=null;
+function resetNoteForm(){
+  noteEditId=null;
+  let title=document.getElementById("noteTitle"),text=document.getElementById("noteText"),date=document.getElementById("noteDate"),time=document.getElementById("noteTime");
+  if(title)title.value="";if(text)text.value="";if(date)date.value="";if(time)time.value="";
+  let saveBtn=document.getElementById("noteSaveBtn"),cancelBtn=document.getElementById("noteCancelEditBtn");
+  if(saveBtn)saveBtn.textContent="＋ Not Ekle";
+  if(cancelBtn)cancelBtn.style.display="none";
+}
 function addNote(){
   let title=(document.getElementById("noteTitle")?.value||"").trim();
   let text=(document.getElementById("noteText")?.value||"").trim();
@@ -1110,15 +1131,31 @@ function addNote(){
   let time=(document.getElementById("noteTime")?.value||"").trim();
   if(!title&&!text)return alert("Not başlığı veya not metni gir.");
   let sess=getSession();
+  if(noteEditId!=null){
+    let n=data.notes.find(x=>String(x.id)===String(noteEditId));if(!n)return alert("Düzenlenecek not bulunamadı.");
+    n.title=title||"Not";n.text=text;n.date=date;n.time=time;n.updated=new Date().toLocaleString("tr-TR");
+    resetNoteForm();save();alert("Not güncellendi.");return;
+  }
   data.notes.unshift({id:Date.now(),title:title||"Not",text,date,time,created:new Date().toLocaleString("tr-TR"),user:sess?(sess.name||sess.username||"-"):"-"});
-  document.getElementById("noteTitle").value="";
-  document.getElementById("noteText").value="";
-  document.getElementById("noteDate").value="";
-  document.getElementById("noteTime").value="";
-  save();
+  resetNoteForm();save();
 }
+function editNote(id){
+  let n=data.notes.find(x=>String(x.id)===String(id));if(!n)return;
+  noteEditId=n.id;
+  document.getElementById("noteTitle").value=n.title||"";
+  document.getElementById("noteText").value=n.text||"";
+  document.getElementById("noteDate").value=n.date||"";
+  document.getElementById("noteTime").value=n.time||"";
+  let saveBtn=document.getElementById("noteSaveBtn"),cancelBtn=document.getElementById("noteCancelEditBtn");
+  if(saveBtn)saveBtn.textContent="✓ Değişiklikleri Kaydet";
+  if(cancelBtn)cancelBtn.style.display="inline-block";
+  document.querySelector(".notes-form")?.scrollIntoView({behavior:"smooth",block:"start"});
+  setTimeout(()=>document.getElementById("noteTitle")?.focus(),250);
+}
+function cancelNoteEdit(){resetNoteForm()}
 function deleteNote(id){
   if(!confirm("Bu not silinsin mi?"))return;
+  if(String(noteEditId)===String(id))resetNoteForm();
   data.notes=data.notes.filter(n=>String(n.id)!==String(id));save();
 }
 function renderNotes(){
@@ -1127,8 +1164,8 @@ function renderNotes(){
   if(count)count.textContent=rows.length+" not";
   if(!rows.length){box.innerHTML='<div class="notes-empty">Henüz not eklenmedi.</div>';return}
   box.innerHTML=rows.map(n=>'<article class="note-card">'+
-    '<div class="note-card-top"><div><b>'+productEscape(n.title||"Not")+'</b><small>'+(n.date?("📅 "+productEscape(fmtDate(n.date))+" "):"")+(n.time?("⏰ "+productEscape(n.time)+" · "):(n.date?"· ":""))+productEscape(n.created||"")+'</small></div>'+
-    '<button type="button" class="danger" onclick="deleteNote('+Number(n.id)+')">Sil</button></div>'+
+    '<div class="note-card-top"><div><b>'+productEscape(n.title||"Not")+'</b><small>'+(n.date?("📅 "+productEscape(fmtDate(n.date))+" "):"")+(n.time?("⏰ "+productEscape(n.time)+" · "):(n.date?"· ":""))+productEscape(n.updated?("Güncellendi: "+n.updated):(n.created||""))+'</small></div>'+
+    '<div class="note-card-actions"><button type="button" onclick="editNote('+Number(n.id)+')">✏️ Düzenle</button><button type="button" class="danger" onclick="deleteNote('+Number(n.id)+')">Sil</button></div></div>'+
     (n.text?'<p>'+productEscape(n.text).replace(/\n/g,"<br>")+'</p>':"")+
     (n.user?'<div class="note-user">Ekleyen: '+productEscape(n.user)+'</div>':"")+
   '</article>').join("");
