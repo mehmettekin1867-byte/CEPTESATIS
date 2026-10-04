@@ -346,6 +346,55 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 .quick-sale-products button{border:1px solid #dbe3ef;background:#fff;border-radius:13px;padding:10px 13px;cursor:pointer;font-weight:700}
 body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-color:#374151}
 </style>
+
+<style>
+/* --- CEPTE SATIŞ / Cari kart görünümü --- */
+.cari-shell{max-width:860px;margin:0 auto;padding-bottom:92px}
+.cari-topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.cari-topbar h1{font-size:34px;margin:2px 0 5px;letter-spacing:-.6px}
+.cari-topbar p{margin:0;color:#64748b}
+.cari-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;color:#1684ff}
+.cari-add-top,.cari-add-bottom{border:0;background:#1684ff;color:#fff;border-radius:14px;padding:13px 17px;font-weight:900;cursor:pointer;box-shadow:0 7px 18px #1684ff2e}
+.cari-search-wrap{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8edf4;border-radius:16px;padding:0 14px;box-shadow:0 3px 14px #0f172a0a}
+.cari-search-wrap span{font-size:25px;color:#7c8798;transform:rotate(-15deg)}
+.cari-search-wrap input{border:0!important;margin:0!important;padding:15px 2px!important;outline:0;background:transparent!important}
+.cari-list-head{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 9px;color:#374151;font-size:12px;letter-spacing:.06em}
+.cari-page-controls{display:flex;align-items:center;gap:8px;letter-spacing:0;color:#5b6575}
+.cari-page-controls button{width:30px;height:30px;border:0;border-radius:10px;background:#fff;cursor:pointer;font-size:22px;line-height:1;box-shadow:0 1px 5px #0000000d}
+.cari-card-list{display:grid;gap:10px}
+.cari-card{background:#fff;border:1px solid #edf1f6;border-radius:17px;padding:13px;box-shadow:0 4px 14px #0f172a0a;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.cari-card:hover{transform:translateY(-1px);box-shadow:0 8px 20px #0f172a12}
+.cari-card:focus{outline:3px solid #1684ff33}
+.cari-card-main{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center}
+.cari-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#eaf5ff;color:#1684ff;font-size:18px}
+.cari-name-wrap{min-width:0}
+.cari-name-wrap b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cari-name-wrap span{display:block;color:#8a94a3;font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cari-chevron{color:#9aa4b2;font-size:26px}
+.cari-balance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#f7f8fa;border-radius:12px;margin-top:10px;padding:10px 12px}
+.cari-balance-grid small{display:block;color:#9199a6;font-size:10px;margin-bottom:3px}
+.cari-balance-grid strong{display:block;font-size:14px;color:#202733}
+.cari-balance-grid .is-due{color:#ef4444}
+.cari-footer{position:sticky;bottom:8px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #e9edf3;border-radius:17px;padding:12px 14px;margin-top:12px;box-shadow:0 12px 28px #0f172a18}
+.cari-footer small{display:block;color:#8b94a2;font-size:10px}
+.cari-footer strong{display:block;font-size:19px;margin-top:2px}
+.cari-new-form{margin-top:16px;background:#fff;border:1px solid #e7edf5;border-radius:18px;padding:17px;box-shadow:0 10px 26px #0f172a12}
+.cari-form-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cari-form-head b{display:block;font-size:20px}.cari-form-head span{display:block;color:#8b94a2;font-size:12px;margin-top:3px}
+.cari-form-head button{border:0;background:#f1f5f9;width:34px;height:34px;border-radius:10px;cursor:pointer}
+.cari-form-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cari-form-actions input{max-width:250px;margin:0}
+.cari-empty{text-align:center;color:#94a3b8;padding:34px 12px;background:#fff;border:1px dashed #d9e1ec;border-radius:17px}
+body.dark .cari-search-wrap,body.dark .cari-card,body.dark .cari-footer,body.dark .cari-new-form,body.dark .cari-page-controls button{background:#172033;color:#f3f4f6;border-color:#31425f}
+body.dark .cari-balance-grid{background:#101827}body.dark .cari-balance-grid strong{color:#f3f4f6}body.dark .cari-balance-grid .is-due{color:#f87171}
+body.dark .cari-topbar p,body.dark .cari-name-wrap span,body.dark .cari-balance-grid small{color:#aeb8c7}
+@media(max-width:700px){
+  #customers{margin:-2px}.cari-shell{padding-bottom:82px}.cari-topbar{align-items:flex-start}.cari-topbar h1{font-size:27px}.cari-topbar p{font-size:13px}.cari-add-top{display:none}
+  .cari-search-wrap{border-radius:14px}.cari-card{border-radius:15px;padding:11px}.cari-balance-grid{padding:9px 10px}
+  .cari-balance-grid strong{font-size:13px}.cari-name-wrap b{font-size:15px}.cari-footer{bottom:6px}.cari-new-form .grid{grid-template-columns:1fr}.cari-form-actions{display:grid;grid-template-columns:1fr}.cari-form-actions input{max-width:none}
+}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -424,22 +473,59 @@ body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-co
 
 
 
-<section id="customers" class="page"><h1>Cari</h1>
-<div class="panel">
-  <div class="grid">
-    <div><label>Ad-Soyad / Firma</label><input id="cName" placeholder="Ad Soyad veya Firma"></div>
-    <div><label>Telefon</label><input id="cPhone" inputmode="numeric" maxlength="13" placeholder="555 123 45 67" oninput="formatCariPhone(this)"><div class="muted" style="font-size:12px">10 hane: 000 000 00 00</div></div>
-    <div><label>Cari Grubu</label><select id="cGroup"><option value="Genel">Genel</option></select></div>
+<section id="customers" class="page">
+  <div class="cari-shell">
+    <div class="cari-topbar">
+      <div>
+        <div class="cari-kicker">CARİ TAKİP</div>
+        <h1>Cari</h1>
+        <p>Borç, ödeme ve kalan bakiyeleri tek ekranda görün.</p>
+      </div>
+      <button class="cari-add-top" type="button" onclick="toggleCariForm(true)">＋ Yeni Cari</button>
+    </div>
+
+    <div class="cari-search-wrap">
+      <span>⌕</span>
+      <input id="cariSearch" autocomplete="off" placeholder="Cari adı veya telefon ile arayın" oninput="cariPage=1;renderCariCards()">
+    </div>
+
+    <div class="cari-list-head">
+      <b>CARİLER</b>
+      <div class="cari-page-controls">
+        <button type="button" onclick="changeCariPage(-1)" aria-label="Önceki sayfa">‹</button>
+        <span id="cariPageInfo">Sayfa 1 / 1</span>
+        <button type="button" onclick="changeCariPage(1)" aria-label="Sonraki sayfa">›</button>
+      </div>
+    </div>
+
+    <div id="cariCards" class="cari-card-list"></div>
+
+    <div class="cari-footer">
+      <div>
+        <small>Kalan toplam alacak</small>
+        <strong id="cariTotalReceivable">₺0,00</strong>
+      </div>
+      <button class="cari-add-bottom" type="button" onclick="toggleCariForm(true)">＋ Yeni cari</button>
+    </div>
+
+    <div id="cariNewForm" class="cari-new-form" style="display:none">
+      <div class="cari-form-head">
+        <div><b>Yeni Cari Ekle</b><span>Ad, telefon ve grup bilgilerini gir.</span></div>
+        <button type="button" onclick="toggleCariForm(false)">✕</button>
+      </div>
+      <div class="grid">
+        <div><label>Ad-Soyad / Firma</label><input id="cName" placeholder="Ad Soyad veya Firma"></div>
+        <div><label>Telefon</label><input id="cPhone" inputmode="numeric" maxlength="13" placeholder="555 123 45 67" oninput="formatCariPhone(this)"><div class="muted" style="font-size:12px">10 hane: 000 000 00 00</div></div>
+        <div><label>Cari Grubu</label><select id="cGroup"><option value="Genel">Genel</option></select></div>
+      </div>
+      <div class="cari-form-actions">
+        <button class="btn" onclick="addCustomer()">Cariyi Kaydet</button>
+        <input id="newCustomerGroup" placeholder="Yeni cari grubu">
+        <button class="btn" type="button" onclick="addCustomerGroup()">Grup Ekle</button>
+      </div>
+    </div>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <button class="btn" onclick="addCustomer()">Cari Ekle</button>
-    <input id="newCustomerGroup" placeholder="Yeni cari grubu" style="max-width:240px;margin:0">
-    <button class="btn" type="button" onclick="addCustomerGroup()">Cari Grubu Ekle</button>
-  </div>
-  <div class="table-wrap">
-    <table><thead><tr><th>Cari</th><th>Grup</th><th>Telefon</th><th>Ödenen Tutar</th><th>Kalan Tutar</th><th>Teknik Servis</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
-  </div>
-</div></section>
+</section>
 
 <section id="sales" class="page">
 <div class="sales-shell">
@@ -1236,6 +1322,64 @@ function customerActiveServices(c){
     return same&&!["Teslim Edildi","İade"].includes(s.status||"Bekliyor");
   });
 }
+
+let cariPage=1;
+const cariPageSize=10;
+function customerTotalSales(c){
+  return data.sales.reduce((sum,s)=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
+    return sum+(same?(Number(s.total)||0):0);
+  },0);
+}
+function toggleCariForm(open){
+  let box=document.getElementById("cariNewForm");if(!box)return;
+  box.style.display=open?"block":"none";
+  if(open){setTimeout(()=>document.getElementById("cName")?.focus(),50);box.scrollIntoView({behavior:"smooth",block:"start"})}
+}
+function cariFilteredCustomers(){
+  let q=(document.getElementById("cariSearch")?.value||"").trim().toLocaleLowerCase("tr-TR");
+  if(!q)return data.customers.slice();
+  let digits=phoneDigits(q);
+  return data.customers.filter(c=>{
+    let name=String(c.name||"").toLocaleLowerCase("tr-TR");
+    let group=String(c.group||"Genel").toLocaleLowerCase("tr-TR");
+    let phone=phoneDigits(c.phone||"");
+    return name.includes(q)||group.includes(q)||(digits&&phone.includes(digits));
+  });
+}
+function changeCariPage(step){
+  let rows=cariFilteredCustomers(),pages=Math.max(1,Math.ceil(rows.length/cariPageSize));
+  cariPage=Math.max(1,Math.min(pages,cariPage+step));renderCariCards();
+}
+function renderCariCards(){
+  let box=document.getElementById("cariCards");if(!box)return;
+  let rows=cariFilteredCustomers(),pages=Math.max(1,Math.ceil(rows.length/cariPageSize));
+  if(cariPage>pages)cariPage=pages;
+  let start=(cariPage-1)*cariPageSize,visible=rows.slice(start,start+cariPageSize);
+  let info=document.getElementById("cariPageInfo");if(info)info.textContent="Sayfa "+cariPage+" / "+pages;
+  let totalEl=document.getElementById("cariTotalReceivable");
+  if(totalEl)totalEl.textContent=money(data.customers.reduce((n,c)=>n+customerDebt(c),0));
+  if(!visible.length){box.innerHTML='<div class="cari-empty">Cari bulunamadı.</div>';return}
+  box.innerHTML=visible.map(c=>{
+    let total=customerTotalSales(c),paid=customerPaid(c),remaining=customerDebt(c),services=customerActiveServices(c).length;
+    return `<div class="cari-card" role="button" tabindex="0" onclick="showCustomerDetail(${c.id})" onkeydown="if(event.key==='Enter'){showCustomerDetail(${c.id})}">
+      <div class="cari-card-main">
+        <div class="cari-avatar">♙</div>
+        <div class="cari-name-wrap">
+          <b>${productEscape(c.name||"-")}</b>
+          <span>${productEscape(formatPhoneDigits(c.phone||"")||"Telefon yok")} · ${productEscape(c.group||"Genel")}${services?" · "+services+" aktif servis":""}</span>
+        </div>
+        <span class="cari-chevron">›</span>
+      </div>
+      <div class="cari-balance-grid">
+        <div><small>Borç</small><strong>${money(total)}</strong></div>
+        <div><small>Ödeme</small><strong>${money(paid)}</strong></div>
+        <div><small>Kalan</small><strong class="${remaining>0?"is-due":""}">${money(remaining)}</strong></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
 function addCustomer(){
   let name=(document.getElementById("cName")?.value||"").trim();
   if(!name)return alert("Ad-Soyad / Firma gir.");
@@ -1943,10 +2087,7 @@ let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefine
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
 renderQuickSaleProducts();
-customerRows.innerHTML=data.customers.map(x=>{
-  let debt=customerDebt(x),services=customerActiveServices(x).length;
-  return `<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${formatPhoneDigits(x.phone||"")||"-"}</td><td><b>${money(customerPaid(x))}</b></td><td><b>${money(debt)}</b></td><td>${services?services+" aktif":"-"}</td><td><button class="btn" type="button" onclick="showCustomerDetail(${x.id})">Müşteri Detayı</button> ${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`
-}).join("");
+renderCariCards();
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
@@ -2023,6 +2164,7 @@ const box=document.getElementById('customerDetailContent');box.replaceChildren()
 function line(text){const p=document.createElement('p');p.textContent=text;box.append(p)}
 function heading(text){const h=document.createElement('h3');h.textContent=text;box.append(h)}
 heading(c.name);line('Telefon: '+(formatPhoneDigits(c.phone)||'—'));
+if(isManager()){const del=document.createElement('button');del.className='danger';del.textContent='Cari Sil';del.onclick=()=>{document.getElementById('customerDetailDialog').close();delCustomer(c.id)};box.append(del)}
 if(c.address)line('Adres: '+c.address);if(c.email)line('E-posta: '+c.email);if(c.note)line('Not: '+c.note);
 line('Toplam Satış: '+money(total));line('Ödenen Tutar: '+money(paid));line('Kalan Borç: '+money(customerDebt(c)));line('Aktif Teknik Servis: '+customerActiveServices(c).length);
 function table(headers,rows){const wrap=document.createElement('div');wrap.style.overflowX='auto';const t=document.createElement('table');const tr=document.createElement('tr');headers.forEach(x=>{const th=document.createElement('th');th.textContent=x;tr.append(th)});t.append(tr);rows.forEach(row=>{const r=document.createElement('tr');row.forEach(x=>{const td=document.createElement('td');td.textContent=x??'—';r.append(td)});t.append(r)});wrap.append(t);box.append(wrap)}
