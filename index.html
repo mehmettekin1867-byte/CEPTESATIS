@@ -341,6 +341,10 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
   .theme-buttons{grid-template-columns:1fr}
 }
 
+
+.quick-sale-products{display:flex;gap:8px;flex-wrap:wrap}
+.quick-sale-products button{border:1px solid #dbe3ef;background:#fff;border-radius:13px;padding:10px 13px;cursor:pointer;font-weight:700}
+body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-color:#374151}
 </style>
 </head>
 <body>
@@ -356,17 +360,14 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <div class="sidebar-welcome">HOŞGELDİNİZ<b id="activeUserName">-</b><small id="activeUserRole"></small></div>
 <div class="nav">
 <button class="active" data-page="home" data-short="🏠">🏠 Ana Sayfa</button>
-<button data-page="products" data-short="📦">📦 Ürünler</button>
-<button data-page="groups" data-short="🗂️">🗂️ Ürün Grupları</button>
 <button class="pricecheck-nav" data-page="pricecheck" data-short="🏷️">🏷️ Fiyat Gör</button>
-<button data-page="customers" data-short="👥">👥 Müşteriler</button>
-<button data-page="sales" data-short="🛒">🛒 Satış Yap</button>
-<button class="manager-nav" data-page="dealers" data-short="🏪">🏪 Alt Bayi Ekle</button>
-<button data-page="offers" data-short="🧾">🧾 Teklif Hazırla</button>
+<button data-page="sales" data-short="🛒">🛒 Satış</button>
+<button data-page="customers" data-short="👥">👥 Cari</button>
+<button data-page="stock" data-short="📦">📦 Stok</button>
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
-<button data-page="stock" data-short="📊">📊 Stok</button>
+<button data-page="offers" data-short="🧾">🧾 Teklif</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
-<button data-page="receivables" data-short="📒">📒 Veresiyeler</button>
+<button class="manager-nav" data-page="dealers" data-short="👤">👤 Kullanıcı</button>
 <button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 </div>
 </aside>
@@ -376,11 +377,11 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <h1>Ana Sayfa</h1><p class="muted">CEPTE SATIŞ yönetim paneli</p>
 <div class="cards">
 <div class="card">Ürün Sayısı<b id="cProducts">0</b></div>
-<div class="card">Müşteri Sayısı<b id="cCustomers">0</b></div>
+<div class="card">Cari Sayısı<b id="cCustomers">0</b></div>
 <div class="card">Satış Sayısı<b id="cSales">0</b></div>
 <div class="card">Toplam Ciro<b id="cRevenue">₺0</b></div>
 </div>
-<div class="panel"><h2>🔔 Günü Gelen Müşteriler</h2><div id="dueCustomers"><p class="muted">Bugün için hatırlatma yok.</p></div></div>
+<div class="panel"><h2>🔔 Günü Gelen Cariler</h2><div id="dueCustomers"><p class="muted">Bugün için hatırlatma yok.</p></div></div>
 <div class="panel"><h2>📅 2 Gün İçinde Yaklaşan Hatırlatmalar</h2><div id="upcomingCustomers"><p class="muted">Yaklaşan hatırlatma yok.</p></div></div>
 <div class="panel"><h2>Hoş geldin</h2><p>Sol menüden ürün, müşteri, satış ve teklif işlemlerini yönetebilirsin.</p></div>
 </section>
@@ -419,11 +420,189 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
   </div>
 </section>
 
-<section id="products" class="page">
+
+
+
+
+<section id="customers" class="page"><h1>Cari</h1>
+<div class="panel">
+  <div class="grid">
+    <div><label>Ad-Soyad / Firma</label><input id="cName" placeholder="Ad Soyad veya Firma"></div>
+    <div><label>Telefon</label><input id="cPhone" inputmode="numeric" maxlength="13" placeholder="555 123 45 67" oninput="formatCariPhone(this)"><div class="muted" style="font-size:12px">10 hane: 000 000 00 00</div></div>
+    <div><label>Cari Grubu</label><select id="cGroup"><option value="Genel">Genel</option></select></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="btn" onclick="addCustomer()">Cari Ekle</button>
+    <input id="newCustomerGroup" placeholder="Yeni cari grubu" style="max-width:240px;margin:0">
+    <button class="btn" type="button" onclick="addCustomerGroup()">Cari Grubu Ekle</button>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Cari</th><th>Grup</th><th>Telefon</th><th>Borç</th><th>Teknik Servis</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
+  </div>
+</div></section>
+
+<section id="sales" class="page">
+<div class="sales-shell">
+  <div class="sale-topbar">
+    <h1>Satış / Hızlı Satış</h1>
+    <div class="sale-icon-actions">
+      <button class="sale-icon-btn" type="button" title="Sepeti temizle" onclick="clearSaleCart()">↩</button>
+      <button class="sale-icon-btn" type="button" title="Yeni satış" onclick="clearSaleCart()">＋</button>
+      <button class="sale-icon-btn" type="button" title="Yazdır" onclick="window.print()">🖨️</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>⚡ Hızlı Satış</h2>
+    <p class="muted">Sık kullanılan / stokta olan ürüne dokun, doğrudan sepete eklensin.</p>
+    <div id="quickSaleProducts" class="quick-sale-products"></div>
+  </div>
+
+  <div class="sale-summary">
+    <div><small>Miktar</small><b id="saleSummaryQty">0.00</b></div>
+    <div><small>Brüt</small><b id="saleSummaryGross">₺0,00</b></div>
+    <div><small>İskonto</small><b id="saleSummaryDiscount">%0.00</b></div>
+    <div><small>Tutar</small><b id="saleSummaryTotal" class="sale-grand">₺0,00</b></div>
+  </div>
+
+  <div class="sale-search-row">
+    <div class="sale-search-wrap">
+      <input id="saleSearchInput" placeholder="🔎 Ürün barkodunu oku veya ürün ara..." autocomplete="off" oninput="renderSaleSearchResults()" onkeydown="saleSearchKeydown(event)">
+      <div id="saleSearchResults" class="sale-search-results"></div>
+    </div>
+    <div class="sale-price-type"><select id="salePriceType"><option>Peşin</option></select></div>
+  </div>
+
+  <div class="sale-customer-line">
+    <button id="saleCustomerPill" class="sale-customer-pill active" type="button" onclick="document.getElementById('saleCustomer').focus()">Müşterisiz satış<br><small>Borç: 0,00</small></button>
+  </div>
+
+  <div id="saleCart" class="sale-cart"></div>
+
+  <div class="sale-customer-card">
+    <div>
+      <b id="saleCustomerLabel">Müşterisiz satış</b>
+      <div class="muted" style="font-size:12px">Satışı bir cariye bağlamak istersen seç.</div>
+    </div>
+    <select id="saleCustomer" onchange="updateSaleCustomerLabel()"><option value="">Müşterisiz satış</option></select>
+  </div>
+
+  <div class="sale-note"><input id="saleNote" placeholder="📝 Satış notu"></div>
+  <div class="sale-toggle-row">
+    <label class="sale-toggle"><input id="saleShowPrice" type="checkbox" style="width:auto;margin:0 6px 0 0"> Fiyat gör</label>
+    <label class="sale-toggle"><input id="saleReturnMode" type="checkbox" style="width:auto;margin:0 6px 0 0"> İade modu</label>
+  </div>
+
+  <div class="sale-pay-details">
+    <div class="pay-box"><label>İskonto (%)</label><input id="saleDiscount" type="number" value="0" min="0" max="100" step="0.01" oninput="refreshSaleScreen()"></div>
+    <div class="pay-box"><label>Ödenen Tutar</label><input id="salePaidInput" type="number" value="0" min="0" step="0.01" oninput="updateSaleAmounts(true)"></div>
+    <div class="pay-box"><label>Kalan</label><input id="saleRemainingInput" value="₺0,00" readonly></div>
+    <div class="pay-box"><label>Ödeme Türü</label><input id="salePaymentLabel" value="Nakit" readonly></div>
+  </div>
+
+  <div class="sale-payment-grid">
+    <button class="sale-payment cash active" data-pay="Nakit" type="button" onclick="setSalePayment('Nakit')"><span>💵</span>Nakit</button>
+    <button class="sale-payment pos" data-pay="Pos" type="button" onclick="setSalePayment('Pos')"><span>💳</span>Pos</button>
+    <button class="sale-payment iban" data-pay="IBAN" type="button" onclick="setSalePayment('IBAN')"><span>🏦</span>IBAN</button>
+    <button class="sale-payment account" data-pay="Veresiye" type="button" onclick="setSalePayment('Veresiye')"><span>📒</span>Veresiye</button>
+    <button class="sale-payment partial" data-pay="Parçalı" type="button" onclick="setSalePayment('Parçalı')"><span>💱</span>Parçalı</button>
+    <button class="sale-payment other" data-pay="Diğer" type="button" onclick="setSalePayment('Diğer')"><span>•••</span>Diğer</button>
+  </div>
+
+  <div id="saleIbanInfo" class="sale-iban-info">
+    <b>🏦 Ödeme IBAN'ı</b>
+    <div id="saleIbanText" class="sale-iban-value">IBAN tanımlanmamış.</div>
+    <button class="btn" type="button" style="margin-top:8px" onclick="copySalesIban()">IBAN'ı Kopyala</button>
+  </div>
+
+  <div id="saleIbanManagerBox" class="panel sale-iban-manager" style="display:none">
+    <h3>🏦 IBAN Ayarı</h3>
+    <p class="muted">Yönetici ve Ana Yönetici buradan satışta kullanılacak IBAN'ı ekleyebilir veya değiştirebilir.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="saleIbanInput" placeholder="Örn: TR00 0000 0000 0000 0000 0000 00" style="margin:0;flex:1;min-width:260px">
+      <button class="btn" type="button" onclick="saveSalesIban()">IBAN'ı Kaydet</button>
+    </div>
+  </div>
+
+  <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
+
+  <div id="saleGroupChips" class="sale-groups"></div>
+
+  <div class="panel" style="margin-top:14px">
+    <h2>Satış Geçmişi</h2>
+    <table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>Ödeme</th><th>Ödenen</th><th>Kalan</th><th>İşlem</th></tr></thead><tbody id="saleRows"></tbody></table>
+    <p class="manager-note">Satış düzenleme yalnızca yönetici kullanıcılarında aktiftir.</p>
+  </div>
+</div>
+</section>
+
+<section id="offers" class="page"><h1>Teklif Hazırla</h1>
+<div class="panel"><div class="grid"><div><label>Müşteri</label><select id="offerCustomer"></select></div><div><label>Ürün</label><select id="offerProduct"></select></div><div><label>Adet</label><input id="offerQty" type="number" value="1" min="1"></div><div><label>İskonto (%)</label><input id="discount" type="number" value="0" min="0" max="100"></div></div>
+<button class="btn" onclick="calculateOffer()">Teklifi Hesapla</button><div id="offerResult" class="total">Toplam: ₺0</div><button class="btn" onclick="window.print()">Yazdır / PDF Kaydet</button></div></section>
+
+
+<section id="service" class="page"><h1>Teknik Servis</h1>
+<div class="panel">
+  <h2>▦ Servis Barkod Okuyucu</h2>
+  <p class="muted">USB/Bluetooth barkod okuyucu ile servis kaydını bulabilirsin.</p>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <input id="serviceBarcodeInput" placeholder="Servis barkodunu okut veya yaz" autocomplete="off" style="margin:0;flex:1;min-width:240px" onkeydown="if(event.key==='Enter'){event.preventDefault();findServiceByBarcode(this.value)}">
+    <button class="btn" type="button" onclick="findServiceByBarcode(document.getElementById('serviceBarcodeInput')?.value)">Servis Kaydını Bul</button>
+  </div>
+  <div id="serviceBarcodeStatus" class="muted" style="margin-top:8px">Barkod okuyucu hazır.</div>
+</div>
+
+<div class="panel">
+  <div class="grid">
+    <div><label>Cari (İsteğe Bağlı)</label><select id="serviceCustomer" onchange="syncServiceCustomerFields()"><option value="">Cari seçmeden devam et</option></select></div>
+    <div><label>Müşteri Adı *</label><input id="serviceFirstName" placeholder="Ad"></div>
+    <div><label>Müşteri Soyadı *</label><input id="serviceLastName" placeholder="Soyad"></div>
+    <div><label>Telefon</label><input id="servicePhone" inputmode="numeric" maxlength="13" placeholder="555 123 45 67" oninput="formatCariPhone(this)"></div>
+
+    <div><label>Ürün Kategorisi</label>
+      <select id="serviceCategory" onchange="updateServiceChoices()">
+        <option>Telefon</option><option>Tablet</option><option>Dizüstü Bilgisayar</option>
+        <option>Masaüstü Bilgisayar</option><option>Televizyon</option><option>Monitör</option>
+        <option>Yazıcı</option><option>Oyun Konsolu</option><option>Akıllı Saat</option>
+        <option>Kulaklık</option><option>Modem / Router</option><option>Kamera</option><option>Diğer</option>
+      </select>
+    </div>
+    <div><label>Marka</label><select id="serviceBrand" onchange="updateServiceModels()"></select></div>
+    <div><label>Cihaz / Ürün Türü</label><select id="serviceDevice" onchange="toggleServiceCustomDevice()"></select></div>
+    <div id="serviceCustomDeviceWrap" style="display:none"><label>Cihaz Türünü Kendim Yazacağım</label><input id="serviceCustomDevice" placeholder="Cihaz türünü yaz"></div>
+    <div><label>Cihaz Modeli</label><select id="serviceModel" onchange="toggleCustomModel()"></select></div>
+    <div id="customModelWrap" style="display:none"><label>Modeli Kendim Yazacağım</label><input id="serviceCustomModel" placeholder="Model adını yaz"></div>
+    <div><label>Arıza / Yapılacak İşlem</label><input id="serviceFault" list="serviceFaultOptions" placeholder="Arıza açıklaması"><datalist id="serviceFaultOptions"></datalist></div>
+    <div><label>Kullanılacak Yedek Parça</label><input id="serviceSparePart" placeholder="Örn: Ekran, batarya, soket"></div>
+
+    <div><label>Teslim Süresi</label>
+      <select id="serviceWorkDays" onchange="toggleServiceManualDays();previewServiceDue()">
+        <option value="1">1 iş günü</option>
+        <option value="3">3 iş günü</option>
+        <option value="5">5 iş günü</option>
+        <option value="10" selected>10 iş günü</option>
+        <option value="manual">Manuel</option>
+      </select>
+      <div id="serviceManualDaysWrap" style="display:none"><input id="serviceManualDays" type="number" min="1" max="365" value="1" placeholder="Gün sayısı" oninput="previewServiceDue()"></div>
+      <div id="serviceDuePreview" class="muted">Tahmini teslim tarihi otomatik hesaplanır.</div>
+    </div>
+    <div><label>Servis Ücreti (₺)</label><input id="servicePrice" type="number" min="0" step="0.01" value="0"></div>
+    <div><label>Durum</label><select id="serviceStatus"><option>Bekliyor</option><option>İşlemde</option><option>Hazır</option><option>Teslim Edildi</option><option>İade</option></select></div>
+    <div><label>Cihaz / Ürün Fotoğrafı</label><input id="serviceImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kameradan doğrudan fotoğraf ekleyebilirsin.</div></div>
+  </div>
+  <button class="btn" onclick="addService()">Servis Kaydı Ekle</button>
+  <div class="table-wrap">
+    <table><thead><tr><th>Foto</th><th>No</th><th>Ad Soyad</th><th>Telefon</th><th>Cihaz</th><th>Model</th><th>Arıza</th><th>Yedek Parça</th><th>Teslim</th><th>Ücret</th><th>Durum</th><th>İşlem</th></tr></thead><tbody id="serviceRows"></tbody></table>
+  </div>
+</div></section>
+
+<section id="stock" class="page"><h1>Stok</h1>
+<div class="panel"><p class="muted">Ürün kartları, ürün grupları ve stok işlemleri artık tek ekrandadır.</p></div>
+
 <div class="products-shell">
   <div class="products-hero">
     <div class="products-hero-badge">📦 CEPTE SATIŞ</div>
-    <div class="products-hero-title">Ürünler elinizin altında</div>
+    <div class="products-hero-title">Stok ve ürünler elinizin altında</div>
     <div class="products-hero-sub">Stok, grup ve fiyata göre anında filtreleyin. Ürün kartı ile barkod, fiyat, stok, KDV ve ürün görselini kolayca yönetin.</div>
   </div>
 
@@ -431,7 +610,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
     <div class="panel products-list-panel">
       <div class="products-panel-head">
         <div>
-          <h2>Ürünler</h2>
+          <h2>Stok / Ürünler</h2>
           <div class="muted" id="productListCount">0 ürün</div>
         </div>
       </div>
@@ -537,157 +716,12 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
     </div>
   </div>
 </div>
-</section>
 
-<section id="groups" class="page"><h1>Ürün Grupları</h1>
+<h2>🗂️ Ürün Grupları</h2>
 <div class="panel"><div class="grid"><div><label>Yeni Grup Adı</label><input id="newGroup" placeholder="Örn: Elektronik"></div></div>
 <button class="btn" onclick="addGroup()">Grup Ekle</button>
-<table><thead><tr><th>Grup Adı</th><th>Ürün Sayısı</th><th></th></tr></thead><tbody id="groupRows"></tbody></table></div></section>
+<table><thead><tr><th>Grup Adı</th><th>Ürün Sayısı</th><th></th></tr></thead><tbody id="groupRows"></tbody></table></div>
 
-<section id="customers" class="page"><h1>Müşteriler</h1>
-<div class="panel"><div class="grid">
-<div><label>Ad / Firma</label><input id="cName"></div>
-<div><label>Telefon</label><input id="cPhone"></div>
-<div><label>Ödenen Tutar (₺)</label><input id="cPaidAmount" type="number" min="0" step="0.01" value="0"></div>
-</div>
-<button class="btn" onclick="addCustomer()">Müşteri Ekle</button>
-<div class="table-wrap">
-<table><thead><tr><th>Müşteri</th><th>Telefon</th><th>Ödenen Tutar</th><th>Hatırlatma</th><th>İşlem</th></tr></thead><tbody id="customerRows"></tbody></table>
-</div></div></section>
-
-<section id="sales" class="page">
-<div class="sales-shell">
-  <div class="sale-topbar">
-    <h1>Satış Yap</h1>
-    <div class="sale-icon-actions">
-      <button class="sale-icon-btn" type="button" title="Sepeti temizle" onclick="clearSaleCart()">↩</button>
-      <button class="sale-icon-btn" type="button" title="Yeni satış" onclick="clearSaleCart()">＋</button>
-      <button class="sale-icon-btn" type="button" title="Yazdır" onclick="window.print()">🖨️</button>
-    </div>
-  </div>
-
-  <div class="sale-summary">
-    <div><small>Miktar</small><b id="saleSummaryQty">0.00</b></div>
-    <div><small>Brüt</small><b id="saleSummaryGross">₺0,00</b></div>
-    <div><small>İskonto</small><b id="saleSummaryDiscount">%0.00</b></div>
-    <div><small>Tutar</small><b id="saleSummaryTotal" class="sale-grand">₺0,00</b></div>
-  </div>
-
-  <div class="sale-search-row">
-    <div class="sale-search-wrap">
-      <input id="saleSearchInput" placeholder="🔎 Ürün barkodunu oku veya ürün ara..." autocomplete="off" oninput="renderSaleSearchResults()" onkeydown="saleSearchKeydown(event)">
-      <div id="saleSearchResults" class="sale-search-results"></div>
-    </div>
-    <div class="sale-price-type"><select id="salePriceType"><option>Peşin</option></select></div>
-  </div>
-
-  <div class="sale-customer-line">
-    <button id="saleCustomerPill" class="sale-customer-pill active" type="button" onclick="document.getElementById('saleCustomer').focus()">Müşterisiz satış<br><small>Borç: 0,00</small></button>
-  </div>
-
-  <div id="saleCart" class="sale-cart"></div>
-
-  <div class="sale-customer-card">
-    <div>
-      <b id="saleCustomerLabel">Müşterisiz satış</b>
-      <div class="muted" style="font-size:12px">Satışı bir cariye bağlamak istersen seç.</div>
-    </div>
-    <select id="saleCustomer" onchange="updateSaleCustomerLabel()"><option value="">Müşterisiz satış</option></select>
-  </div>
-
-  <div class="sale-note"><input id="saleNote" placeholder="📝 Satış notu"></div>
-  <div class="sale-toggle-row">
-    <label class="sale-toggle"><input id="saleShowPrice" type="checkbox" style="width:auto;margin:0 6px 0 0"> Fiyat gör</label>
-    <label class="sale-toggle"><input id="saleReturnMode" type="checkbox" style="width:auto;margin:0 6px 0 0"> İade modu</label>
-  </div>
-
-  <div class="sale-pay-details">
-    <div class="pay-box"><label>İskonto (%)</label><input id="saleDiscount" type="number" value="0" min="0" max="100" step="0.01" oninput="refreshSaleScreen()"></div>
-    <div class="pay-box"><label>Ödenen Tutar</label><input id="salePaidInput" type="number" value="0" min="0" step="0.01" oninput="updateSaleAmounts(true)"></div>
-    <div class="pay-box"><label>Kalan</label><input id="saleRemainingInput" value="₺0,00" readonly></div>
-    <div class="pay-box"><label>Ödeme Türü</label><input id="salePaymentLabel" value="Nakit" readonly></div>
-  </div>
-
-  <div class="sale-payment-grid">
-    <button class="sale-payment cash active" data-pay="Nakit" type="button" onclick="setSalePayment('Nakit')"><span>💵</span>Nakit</button>
-    <button class="sale-payment pos" data-pay="Pos" type="button" onclick="setSalePayment('Pos')"><span>💳</span>Pos</button>
-    <button class="sale-payment iban" data-pay="IBAN" type="button" onclick="setSalePayment('IBAN')"><span>🏦</span>IBAN</button>
-    <button class="sale-payment account" data-pay="Veresiye" type="button" onclick="setSalePayment('Veresiye')"><span>📒</span>Veresiye</button>
-    <button class="sale-payment partial" data-pay="Parçalı" type="button" onclick="setSalePayment('Parçalı')"><span>💱</span>Parçalı</button>
-    <button class="sale-payment other" data-pay="Diğer" type="button" onclick="setSalePayment('Diğer')"><span>•••</span>Diğer</button>
-  </div>
-
-  <div id="saleIbanInfo" class="sale-iban-info">
-    <b>🏦 Ödeme IBAN'ı</b>
-    <div id="saleIbanText" class="sale-iban-value">IBAN tanımlanmamış.</div>
-    <button class="btn" type="button" style="margin-top:8px" onclick="copySalesIban()">IBAN'ı Kopyala</button>
-  </div>
-
-  <div id="saleIbanManagerBox" class="panel sale-iban-manager" style="display:none">
-    <h3>🏦 IBAN Ayarı</h3>
-    <p class="muted">Yönetici ve Ana Yönetici buradan satışta kullanılacak IBAN'ı ekleyebilir veya değiştirebilir.</p>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <input id="saleIbanInput" placeholder="Örn: TR00 0000 0000 0000 0000 0000 00" style="margin:0;flex:1;min-width:260px">
-      <button class="btn" type="button" onclick="saveSalesIban()">IBAN'ı Kaydet</button>
-    </div>
-  </div>
-
-  <button class="sale-save" type="button" onclick="completeSale()">Satışı Kaydet</button>
-
-  <div id="saleGroupChips" class="sale-groups"></div>
-
-  <div class="panel" style="margin-top:14px">
-    <h2>Satış Geçmişi</h2>
-    <table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>Ödeme</th><th>Ödenen</th><th>Kalan</th><th>İşlem</th></tr></thead><tbody id="saleRows"></tbody></table>
-    <p class="manager-note">Satış düzenleme yalnızca yönetici kullanıcılarında aktiftir.</p>
-  </div>
-</div>
-</section>
-
-<section id="offers" class="page"><h1>Teklif Hazırla</h1>
-<div class="panel"><div class="grid"><div><label>Müşteri</label><select id="offerCustomer"></select></div><div><label>Ürün</label><select id="offerProduct"></select></div><div><label>Adet</label><input id="offerQty" type="number" value="1" min="1"></div><div><label>İskonto (%)</label><input id="discount" type="number" value="0" min="0" max="100"></div></div>
-<button class="btn" onclick="calculateOffer()">Teklifi Hesapla</button><div id="offerResult" class="total">Toplam: ₺0</div><button class="btn" onclick="window.print()">Yazdır / PDF Kaydet</button></div></section>
-
-
-<section id="service" class="page"><h1>Teknik Servis</h1>
-<div class="panel">
-  <h2>▦ Servis Barkod Okuyucu</h2>
-  <p class="muted">Bilgisayardaki USB/Bluetooth barkod okuyucu sadece Teknik Servis bölümünde çalışır. Yazdırdığın servis barkodunu okutabilirsin.</p>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <input id="serviceBarcodeInput" placeholder="Servis barkodunu okut veya yaz" autocomplete="off" style="margin:0;flex:1;min-width:240px" onkeydown="if(event.key==='Enter'){event.preventDefault();findServiceByBarcode(this.value)}">
-    <button class="btn" type="button" onclick="findServiceByBarcode(document.getElementById('serviceBarcodeInput')?.value)">Servis Kaydını Bul</button>
-  </div>
-  <div id="serviceBarcodeStatus" class="muted" style="margin-top:8px">Barkod okuyucu hazır.</div>
-</div>
-<div class="panel"><div class="grid">
-<div><label>Müşteri</label><select id="serviceCustomer"></select></div>
-<div><label>Ürün Kategorisi</label>
-<select id="serviceCategory" onchange="updateServiceChoices()">
-<option>Telefon</option><option>Tablet</option><option>Dizüstü Bilgisayar</option>
-<option>Masaüstü Bilgisayar</option><option>Televizyon</option><option>Monitör</option>
-<option>Yazıcı</option><option>Oyun Konsolu</option><option>Akıllı Saat</option>
-<option>Kulaklık</option><option>Modem / Router</option><option>Kamera</option>
-<option>Diğer</option>
-</select></div>
-<div><label>Marka</label><select id="serviceBrand" onchange="updateServiceModels()"></select></div>
-<div><label>Cihaz / Ürün Türü</label><select id="serviceDevice" onchange="toggleServiceCustomDevice()"></select></div>
-<div id="serviceCustomDeviceWrap" style="display:none"><label>Cihaz Türünü Kendim Yazacağım</label><input id="serviceCustomDevice" placeholder="Cihaz türünü yaz"></div>
-<div><label>Cihaz Modeli</label><select id="serviceModel" onchange="toggleCustomModel()"></select></div>
-<div id="customModelWrap" style="display:none"><label>Modeli Kendim Yazacağım</label><input id="serviceCustomModel" placeholder="Model adını yaz"></div>
-<div><label>Arıza / Yapılacak İşlem</label><input id="serviceFault" list="serviceFaultOptions" placeholder="Kategoriye göre öneriler gelir"><datalist id="serviceFaultOptions"></datalist></div>
-<div><label>Teslim Süresi</label><select id="serviceWorkDays" onchange="previewServiceDue()">
-<option value="10">10 iş günü</option>
-<option value="20">20 iş günü</option>
-<option value="30">30 iş günü</option>
-</select><div id="serviceDuePreview" class="muted">Tahmini teslim tarihi otomatik hesaplanır.</div></div>
-<div><label>Servis Ücreti (₺)</label><input id="servicePrice" type="number" min="0" step="0.01" value="0"></div>
-<div><label>Durum</label><select id="serviceStatus"><option>Bekliyor</option><option>İşlemde</option><option>Hazır</option><option>Teslim Edildi</option><option>İade</option></select></div>
-<div><label>Cihaz / Ürün Fotoğrafı</label><input id="serviceImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kameradan doğrudan fotoğraf ekleyebilirsin.</div></div>
-</div><button class="btn" onclick="addService()">Servis Kaydı Ekle</button>
-<table><thead><tr><th>Foto</th><th>No</th><th>Müşteri</th><th>Kategori</th><th>Marka</th><th>Cihaz</th><th>Model</th><th>Arıza</th><th>Teslim</th><th>Ücret</th><th>Durum</th><th></th></tr></thead><tbody id="serviceRows"></tbody></table>
-</div></section>
-
-<section id="stock" class="page"><h1>Stok</h1>
 <div class="panel">
 <h2>➕ Stok Ekle</h2>
 <div class="grid">
@@ -714,8 +748,19 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <p class="muted">Sonradan eklenen stok miktarları tarih ve yeni stok bilgisiyle kaydedilir.</p>
 <table><thead><tr><th>Tarih</th><th>Ürün</th><th>Eklenen</th><th>Önceki</th><th>Yeni Stok</th><th>Kullanıcı</th></tr></thead><tbody id="stockHistoryRows"></tbody></table>
 </div>
+
 </section>
-<section id="reports" class="page"><h1>Raporlar</h1><div class="cards"><div class="card">Toplam Satış<b id="rSales">0</b></div><div class="card">Toplam Ciro<b id="rRevenue">₺0</b></div></div></section>
+<section id="reports" class="page"><h1>Raporlar</h1>
+<div class="cards">
+  <div class="card">Günlük Satış<b id="rDailySales">0</b></div>
+  <div class="card">Günlük Ciro<b id="rDailyRevenue">₺0</b></div>
+  <div class="card">Haftalık Satış<b id="rWeeklySales">0</b></div>
+  <div class="card">Haftalık Ciro<b id="rWeeklyRevenue">₺0</b></div>
+  <div class="card">Aylık Satış<b id="rMonthlySales">0</b></div>
+  <div class="card">Aylık Ciro<b id="rMonthlyRevenue">₺0</b></div>
+</div>
+<div class="panel"><p class="muted">Günlük: bugün · Haftalık: son 7 gün · Aylık: içinde bulunduğumuz ay.</p></div>
+</section>
 <section id="receivables" class="page">
 <h1>Veresiyeler</h1>
 <div class="cards">
@@ -733,9 +778,9 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
   </div>
 </div>
 </section>
-<section id="dealers" class="page"><h1>Alt Bayiler</h1>
-<div class="panel"><h2>Alt Bayi Aç</h2><div class="grid">
-<div><label>Bayi Adı</label><input id="dealerName" placeholder="Bayi adı"></div>
+<section id="dealers" class="page"><h1>Kullanıcılar</h1>
+<div class="panel"><h2>Kullanıcı Ekle</h2><div class="grid">
+<div><label>Ad Soyad / Firma</label><input id="dealerName" placeholder="Ad Soyad / Firma"></div>
 <div><label>Yetkili</label><input id="dealerOwner" placeholder="Yetkili kişi"></div>
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
@@ -745,18 +790,15 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <div class="permission-box"><h3>Erişebileceği Bölümler</h3>
 <div class="permission-grid">
 <label><input class="dealer-permission" type="checkbox" value="home" checked> Ana Sayfa</label>
-<label><input class="dealer-permission" type="checkbox" value="products" checked> Ürünler</label>
-<label><input class="dealer-permission" type="checkbox" value="groups" checked> Ürün Grupları</label>
-<label><input class="dealer-permission" type="checkbox" value="customers" checked> Cariler</label>
-<label><input class="dealer-permission" type="checkbox" value="sales" checked> Satış</label>
-<label><input class="dealer-permission" type="checkbox" value="offers" checked> Teklif</label>
-<label><input class="dealer-permission" type="checkbox" value="service" checked> Teknik Servis</label>
-<label><input class="dealer-permission" type="checkbox" value="stock" checked> Stok</label>
-<label><input class="dealer-permission" type="checkbox" value="reports" checked> Raporlar</label>
-<label><input class="dealer-permission" type="checkbox" value="receivables" checked> Veresiyeler</label>
 <label><input class="dealer-permission" type="checkbox" value="pricecheck" checked> Fiyat Gör</label>
+<label><input class="dealer-permission" type="checkbox" value="sales" checked> Satış</label>
+<label><input class="dealer-permission" type="checkbox" value="customers" checked> Cari</label>
+<label><input class="dealer-permission" type="checkbox" value="stock" checked> Stok</label>
+<label><input class="dealer-permission" type="checkbox" value="service" checked> Teknik Servis</label>
+<label><input class="dealer-permission" type="checkbox" value="offers" checked> Teklif</label>
+<label><input class="dealer-permission" type="checkbox" value="reports" checked> Raporlar</label>
 </div></div>
-<button class="btn" onclick="addDealer()">Alt Bayi Oluştur</button>
+<button class="btn" onclick="addDealer()">Kullanıcı Oluştur</button>
 <div id="dealerPermissionEditor" class="permission-box" style="display:none;margin-top:16px">
 <h3 id="dealerPermissionTitle">Yetkileri Düzenle</h3>
 <p class="muted">İstediğin yetkileri tek tek kutucuklardan seçip kaydedebilirsin.</p>
@@ -766,7 +808,7 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 <button class="btn red" type="button" onclick="cancelDealerPermissionEdit()">İptal</button>
 </div>
 </div>
-<table><thead><tr><th>Bayi</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
+<table><thead><tr><th>Kullanıcı</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
 <section id="settings" class="page"><h1>⚙️ Ayarlar</h1>
 <div class="panel">
@@ -859,10 +901,21 @@ async function restoreCloudSession(){
 }
 
 function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
-const SECTION_PERMISSIONS=["home","products","groups","customers","sales","offers","service","stock","reports","receivables","pricecheck"];
-const SECTION_LABELS={home:"Ana Sayfa",products:"Ürünler",groups:"Ürün Grupları",customers:"Cariler",sales:"Satış",offers:"Teklif",service:"Teknik Servis",stock:"Stok",reports:"Raporlar",receivables:"Veresiyeler",pricecheck:"Fiyat Gör"};
+const SECTION_PERMISSIONS=["home","pricecheck","sales","customers","stock","service","offers","reports"];
+const SECTION_LABELS={home:"Ana Sayfa",pricecheck:"Fiyat Gör",sales:"Satış",customers:"Cari",stock:"Stok",service:"Teknik Servis",offers:"Teklif",reports:"Raporlar",products:"Stok",groups:"Stok",receivables:"Cari"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
-function canAccessSection(page){let s=getSession();if(!s)return false;if(s.isMain)return true;if(page==="settings")return s.role==="manager";if(page==="dealers")return s.role==="manager";let perms=effectivePermissions(s);if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("products")||perms.includes("sales");return perms.includes(page)}
+function canAccessSection(page){
+  let s=getSession();if(!s)return false;if(s.isMain)return true;
+  if(page==="settings")return s.role==="manager";
+  if(page==="dealers")return s.role==="manager";
+  let perms=effectivePermissions(s);
+  if(page==="products"||page==="groups")page="stock";
+  if(page==="receivables")page="customers";
+  if(page==="pricecheck")return perms.includes("pricecheck")||perms.includes("stock")||perms.includes("products")||perms.includes("sales");
+  if(page==="stock")return perms.includes("stock")||perms.includes("products")||perms.includes("groups");
+  if(page==="customers")return perms.includes("customers")||perms.includes("receivables");
+  return perms.includes(page)
+}
 function isMainManager(){let s=getSession();return !!s&&!!s.isMain}
 function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager")}
 function requireMainManager(){if(isMainManager())return true;alert("Bu işlem yalnızca Ana Yöneticiye açıktır.");return false}
@@ -1071,18 +1124,18 @@ async function addDealer(){
 if(!requireManager())return;
 let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(dealerRole.value||"personel"):"personel";
 let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
-if(!name||!user||!pass)return alert("Bayi adı, kullanıcı adı ve şifre gir.");
+if(!name||!user||!pass)return alert("Ad Soyad / Firma, kullanıcı adı ve şifre gir.");
 if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
 try{
 await cloudApi("create_dealer",{name,owner,phone,username:user,password:pass,role,permissions});
 dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";
 document.querySelectorAll(".dealer-permission").forEach(x=>x.checked=true);
 await refreshCloudDealers();
-alert("Alt bayi oluşturuldu. Artık internet olan her cihazdan giriş yapabilir.");
-}catch(e){alert(e.message||"Alt bayi oluşturulamadı.")}
+alert("Kullanıcı oluşturuldu. Artık internet olan her cihazdan giriş yapabilir.");
+}catch(e){alert(e.message||"Kullanıcı oluşturulamadı.")}
 }
-async function delDealer(id){if(!requireMainManager())return;if(confirm("Alt bayi silinsin mi?")){try{await cloudApi("delete_dealer",{id});await refreshCloudDealers()}catch(e){alert(e.message)}}}
-async function editDealerPassword(id){if(!requireMainManager())return;let p=prompt("Yeni şifreyi gir:","");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");try{await cloudApi("set_password",{id,password:p});alert("Alt bayi şifresi güncellendi.")}catch(e){alert(e.message)}}
+async function delDealer(id){if(!requireMainManager())return;if(confirm("Kullanıcı silinsin mi?")){try{await cloudApi("delete_dealer",{id});await refreshCloudDealers()}catch(e){alert(e.message)}}}
+async function editDealerPassword(id){if(!requireMainManager())return;let p=prompt("Yeni şifreyi gir:","");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");try{await cloudApi("set_password",{id,password:p});alert("Kullanıcı şifresi güncellendi.")}catch(e){alert(e.message)}}
 function toggleDealerPassword(id){alert("Güvenlik nedeniyle buluttaki şifre görüntülenmez. İstersen Şifre Düzenle ile yeni şifre belirleyebilirsin.")}
 let dealerPermissionEditId=null;
 function editDealerPermissions(id){
@@ -1147,18 +1200,44 @@ function syncCustomerPaymentStatus(){
 let done=document.getElementById("cPaymentDone"),paid=document.getElementById("cPaidAmount");if(!done||!paid)return;
 if(Number(paid.value||0)>0)done.value="1";
 }
+function phoneDigits(v){
+  let d=String(v||"").replace(/\D/g,"");
+  if(d.length===11&&d.startsWith("0"))d=d.slice(1);
+  if(d.length===12&&d.startsWith("90"))d=d.slice(2);
+  return d.slice(0,10);
+}
+function formatPhoneDigits(d){
+  d=phoneDigits(d);
+  return [d.slice(0,3),d.slice(3,6),d.slice(6,8),d.slice(8,10)].filter(Boolean).join(" ");
+}
+function formatCariPhone(input){if(input)input.value=formatPhoneDigits(input.value)}
+function whatsappPhone(v){let d=phoneDigits(v);return d.length===10?"90"+d:""}
+function customerDebt(c){
+  return data.sales.reduce((sum,s)=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
+    return sum+(same?Math.max(0,Number(s.remaining||0)):0);
+  },0);
+}
+function customerActiveServices(c){
+  return data.services.filter(s=>{
+    let same=String(s.customerId||"")===String(c.id)||(!s.customerId&&String(s.customer||"")===String(c.name||""));
+    return same&&!["Teslim Edildi","İade"].includes(s.status||"Bekliyor");
+  });
+}
 function addCustomer(){
-let name=cName.value.trim();if(!name)return alert("Müşteri adı gir.");
-let paidAmount=Math.max(0,Number(document.getElementById("cPaidAmount")?.value)||0);
-let now=new Date();now.setHours(0,0,0,0);
-let created=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-data.customers.push({id:Date.now(),name,group:"Genel",phone:cPhone.value.trim(),created,reminder:"",reminderDays:0,paymentDone:paidAmount>0,paidAmount});
-cName.value=cPhone.value="";
-let pa=document.getElementById("cPaidAmount");if(pa)pa.value="0";
-save()
+  let name=(document.getElementById("cName")?.value||"").trim();
+  if(!name)return alert("Ad-Soyad / Firma gir.");
+  let digits=phoneDigits(document.getElementById("cPhone")?.value||"");
+  if(digits.length!==10)return alert("Telefon 10 hane olmalı. Örnek: 555 123 45 67");
+  let group=document.getElementById("cGroup")?.value||"Genel";
+  let now=new Date();now.setHours(0,0,0,0);
+  let created=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+  data.customers.push({id:Date.now(),name,group,phone:formatPhoneDigits(digits),created,reminder:"",reminderDays:0});
+  document.getElementById("cName").value="";document.getElementById("cPhone").value="";
+  save();
 }
 function editCustomerReminder(id){
-  if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Müşteriler veya Veresiyeler yetkisi gerekli.");
+  if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Cari yetkisi gerekli.");
   let x=data.customers.find(c=>c.id===id);if(!x)return;
   let v=prompt("Kaç gün sonra hatırlatılsın?",String(x.reminderDays||30));if(v===null)return;
   let days=Math.max(1,Math.min(365,Number(v)||0));if(!days)return alert("1-365 arasında gün gir.");
@@ -1186,7 +1265,7 @@ function markReceivablePaid(customerId,value){
   save();
 }
 function editCustomerPayment(id){
-if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Müşteriler veya Veresiyeler yetkisi gerekli.");
+if(!canAccessSection("customers")&&!canAccessSection("receivables"))return alert("Bu işlem için Cari yetkisi gerekli.");
 let x=data.customers.find(c=>c.id===id);if(!x)return;
 let current=Number(x.paidAmount||0);
 let v=prompt("Ödenen tutarı gir:",current.toFixed(2));if(v===null)return;
@@ -1250,7 +1329,15 @@ function addStock(id){
   addStockAmount(p,qty);
 }
 function delProduct(id){if(!requireManager())return;if(confirm("Bu ürün silinsin mi?")){data.products=data.products.filter(x=>x.id!==id);save()}}
-function delCustomer(id){if(!requireManager())return;if(confirm("Bu cari/müşteri silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}}
+function delCustomer(id){
+  if(!requireManager())return;
+  let c=data.customers.find(x=>x.id===id);if(!c)return;
+  let debt=customerDebt(c);
+  if(debt>0)return alert("Bu cari silinemez. Açık borcu var: "+money(debt));
+  let active=customerActiveServices(c);
+  if(active.length)return alert("Bu cari silinemez. Teknik serviste "+active.length+" aktif ürünü/kaydı var.");
+  if(confirm("Bu cari silinsin mi?")){data.customers=data.customers.filter(x=>x.id!==id);save()}
+}
 
 let usbBarcodeBuffer="",usbBarcodeLastKey=0;
 function activePageId(){return document.querySelector(".page.active")?.id||""}
@@ -1700,97 +1787,105 @@ while(added<days){d.setDate(d.getDate()+1);let day=d.getDay();if(day!==0&&day!==
 return d
 }
 function isoLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function toggleServiceManualDays(){
+  let manual=document.getElementById("serviceWorkDays")?.value==="manual";
+  let wrap=document.getElementById("serviceManualDaysWrap");if(wrap)wrap.style.display=manual?"block":"none";
+}
+function selectedServiceDays(){
+  let v=document.getElementById("serviceWorkDays")?.value||"10";
+  if(v==="manual")return Math.max(1,Math.min(365,Number(document.getElementById("serviceManualDays")?.value)||1));
+  return Math.max(1,Number(v)||10);
+}
 function previewServiceDue(){
-let days=+serviceWorkDays.value||10,d=addBusinessDays(new Date(),days);
-serviceDuePreview.textContent=`Tahmini teslim: ${fmtDate(isoLocal(d))}`;
+  toggleServiceManualDays();
+  let days=selectedServiceDays(),d=addBusinessDays(new Date(),days);
+  let out=document.getElementById("serviceDuePreview");if(out)out.textContent=`Tahmini teslim: ${fmtDate(isoLocal(d))} (${days} iş günü)`;
+}
+function syncServiceCustomerFields(){
+  let sel=document.getElementById("serviceCustomer"),c=data.customers.find(x=>String(x.id)===String(sel?.value||""));
+  if(!c)return;
+  let parts=String(c.name||"").trim().split(/\s+/);
+  let first=parts.shift()||"",last=parts.join(" ");
+  document.getElementById("serviceFirstName").value=first;
+  document.getElementById("serviceLastName").value=last;
+  document.getElementById("servicePhone").value=formatPhoneDigits(c.phone||"");
 }
 function addService(){
-let c=data.customers.find(x=>x.id==serviceCustomer.value),category=serviceCategory.value,brand=serviceBrand.value,device=serviceDevice.value==="__custom__"?(document.getElementById("serviceCustomDevice")?.value||"").trim():serviceDevice.value,model=serviceModel.value==="__custom__"?serviceCustomModel.value.trim():serviceModel.value,fault=serviceFault.value.trim();
-if(!c||!device||!fault||!model)return alert("Müşteri, cihaz, model ve arıza bilgilerini gir.");
-let workDays=+serviceWorkDays.value||10,due=isoLocal(addBusinessDays(new Date(),workDays)),file=document.getElementById("serviceImage")?.files?.[0];
-let finish=image=>{data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customer:c.name,category,brand,device,model,fault,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});
-serviceFault.value=serviceCustomModel.value="";let scd=document.getElementById("serviceCustomDevice");if(scd)scd.value="";
-serviceWorkDays.value="10";updateServiceChoices();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";save()};
-if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
+  let customerId=document.getElementById("serviceCustomer")?.value||"";
+  let firstName=(document.getElementById("serviceFirstName")?.value||"").trim();
+  let lastName=(document.getElementById("serviceLastName")?.value||"").trim();
+  if(!firstName||!lastName)return alert("Müşteri adı ve soyadı zorunludur.");
+  let phone=formatPhoneDigits(document.getElementById("servicePhone")?.value||"");
+  let category=serviceCategory.value,brand=serviceBrand.value;
+  let device=serviceDevice.value==="__custom__"?(document.getElementById("serviceCustomDevice")?.value||"").trim():serviceDevice.value;
+  let model=serviceModel.value==="__custom__"?serviceCustomModel.value.trim():serviceModel.value;
+  let fault=serviceFault.value.trim(),sparePart=(document.getElementById("serviceSparePart")?.value||"").trim();
+  if(!device||!fault||!model)return alert("Cihaz, model ve arıza bilgilerini gir.");
+  let workDays=selectedServiceDays(),due=isoLocal(addBusinessDays(new Date(),workDays)),file=document.getElementById("serviceImage")?.files?.[0];
+  let customer=(firstName+" "+lastName).trim();
+  let finish=image=>{
+    data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customerId:customerId||null,customer,firstName,lastName,phone,category,brand,device,model,fault,sparePart,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});
+    document.getElementById("serviceFirstName").value="";
+    document.getElementById("serviceLastName").value="";
+    document.getElementById("servicePhone").value="";
+    document.getElementById("serviceSparePart").value="";
+    serviceFault.value=serviceCustomModel.value="";
+    let scd=document.getElementById("serviceCustomDevice");if(scd)scd.value="";
+    serviceWorkDays.value="10";document.getElementById("serviceManualDays").value="1";
+    updateServiceChoices();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";
+    if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";
+    save()
+  };
+  if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
 }
 function editService(id){
-  let x=data.services.find(s=>s.id===id);
-  if(!x)return;
-
-  let customer=prompt("Müşteri / Cari:",x.customer||"");
-  if(customer===null)return;
-  let category=prompt("Kategori:",x.category||"Diğer");
-  if(category===null)return;
-  let brand=prompt("Marka:",x.brand||"");
-  if(brand===null)return;
-  let device=prompt("Cihaz / Ürün:",x.device||"");
-  if(device===null)return;
-  let model=prompt("Model:",x.model||"");
-  if(model===null)return;
-  let fault=prompt("Arıza / Yapılacak İşlem:",x.fault||"");
-  if(fault===null)return;
-  let workDays=prompt("Teslim süresi (iş günü):",x.workDays||10);
-  if(workDays===null)return;
-  let price=prompt("Servis ücreti:",x.price||0);
-  if(price===null)return;
-  let status=prompt("Durum: Bekliyor / İşlemde / Hazır / Teslim Edildi / İade",x.status||"Bekliyor");
-  if(status===null)return;
-
-  workDays=Number(workDays);
-  price=Number(String(price).replace(",","."));
-  if(!device.trim()||!model.trim()||!fault.trim())return alert("Cihaz, model ve arıza boş olamaz.");
+  let x=data.services.find(s=>s.id===id);if(!x)return;
+  let parts=String(x.customer||"").trim().split(/\s+/),oldFirst=x.firstName||parts.shift()||"",oldLast=x.lastName||parts.join(" ");
+  let firstName=prompt("Müşteri adı:",oldFirst);if(firstName===null)return;
+  let lastName=prompt("Müşteri soyadı:",oldLast);if(lastName===null)return;
+  firstName=firstName.trim();lastName=lastName.trim();if(!firstName||!lastName)return alert("Ad ve soyad zorunludur.");
+  let phone=prompt("Telefon (10 hane):",x.phone||"");if(phone===null)return;phone=formatPhoneDigits(phone);
+  let category=prompt("Kategori:",x.category||"Diğer");if(category===null)return;
+  let brand=prompt("Marka:",x.brand||"");if(brand===null)return;
+  let device=prompt("Cihaz / Ürün:",x.device||"");if(device===null)return;
+  let model=prompt("Model:",x.model||"");if(model===null)return;
+  let fault=prompt("Arıza / Yapılacak İşlem:",x.fault||"");if(fault===null)return;
+  let sparePart=prompt("Kullanılacak yedek parça:",x.sparePart||"");if(sparePart===null)return;
+  let workDays=prompt("Teslim süresi (1, 3, 5, 10 veya manuel gün):",x.workDays||10);if(workDays===null)return;
+  let price=prompt("Servis ücreti:",x.price||0);if(price===null)return;
+  let status=prompt("Durum: Bekliyor / İşlemde / Hazır / Teslim Edildi / İade",x.status||"Bekliyor");if(status===null)return;
+  workDays=Number(workDays);price=Number(String(price).replace(",","."));
   if(!Number.isFinite(workDays)||workDays<1)return alert("Teslim süresini kontrol et.");
   if(!Number.isFinite(price)||price<0)return alert("Servis ücretini kontrol et.");
-
-  const allowedStatus=["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"];
-  if(!allowedStatus.includes(status))status=x.status||"Bekliyor";
-
-  x.customer=customer.trim()||x.customer;
-  x.category=category.trim()||"Diğer";
-  x.brand=brand.trim();
-  x.device=device.trim();
-  x.model=model.trim();
-  x.fault=fault.trim();
-  x.workDays=workDays;
-  x.due=isoLocal(addBusinessDays(new Date(),workDays));
-  x.price=price;
-  x.status=status;
-  save();
-  alert("Teknik servis kaydı güncellendi.");
+  let allowedStatus=["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"];if(!allowedStatus.includes(status))status=x.status||"Bekliyor";
+  Object.assign(x,{firstName,lastName,customer:(firstName+" "+lastName).trim(),phone,category:category.trim()||"Diğer",brand:brand.trim(),device:device.trim(),model:model.trim(),fault:fault.trim(),sparePart:sparePart.trim(),workDays,due:isoLocal(addBusinessDays(new Date(),workDays)),price,status});
+  save();alert("Teknik servis kaydı güncellendi.");
 }
-function editServiceImage(id,file){let x=data.services.find(s=>s.id===id);if(!x||!file)return;let r=new FileReader();r.onload=e=>{x.image=e.target.result;save();alert("Servis fotoğrafı güncellendi.")};r.readAsDataURL(file)}
-function pickServiceImage(id){let input=document.createElement("input");input.type="file";input.accept="image/*";input.setAttribute("capture","environment");input.onchange=()=>editServiceImage(id,input.files&&input.files[0]);input.click()}
-function editServicePrice(id){
+function sendServiceWhatsApp(id){
   let x=data.services.find(s=>s.id===id);if(!x)return;
-  let v=prompt("Yeni servis ücretini gir:",Number(x.price||0).toFixed(2));
-  if(v===null)return;
-  v=Number(String(v).replace(",","."));
-  if(!Number.isFinite(v)||v<0)return alert("Geçerli bir servis ücreti gir.");
-  x.price=v;save();alert("Servis ücreti güncellendi.")
-}
-function editServiceDue(id){
-  let x=data.services.find(s=>s.id===id);if(!x)return;
-  let current=x.due?fmtDate(x.due):"";
-  let v=prompt("Yeni teslim tarihini gir (GG.AA.YYYY veya YYYY-AA-GG):",current);
-  if(v===null)return;
-  v=v.trim();
-  let iso="";
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) iso=v;
-  else{
-    let m=v.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
-    if(m) iso=m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
-  }
-  let d=new Date(iso+"T00:00:00");
-  if(!iso||Number.isNaN(d.getTime()))return alert("Geçerli bir teslim tarihi gir.");
-  x.due=iso;
-  x.workDays=null;
-  save();
-  alert("Teslim tarihi güncellendi.")
+  let phone=whatsappPhone(x.phone||"");
+  if(!phone)return alert("Bu servis kaydında geçerli telefon numarası yok.");
+  let msg="Merhaba "+(x.customer||"")+", "+(x.no||"servis kaydı")+" numaralı "+(x.device||"cihaz")+" "+(x.model||"")+" cihazınız için durum: "+(x.status||"Bekliyor")+".";
+  if(x.sparePart)msg+=" Kullanılacak yedek parça: "+x.sparePart+".";
+  if(x.due)msg+=" Tahmini teslim: "+fmtDate(x.due)+".";
+  window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(msg),"_blank","noopener,noreferrer");
 }
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
 function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
 
 function resetData(){if(!requireManager())return;if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings,dealers=data.dealers;data={products:[],customers:[],sales:[],groups:[],services:[],customerGroups:[],stockMovements:[],dealers,auth,settings};save()}}
+function saleDateObject(v){
+  let s=String(v||"").trim();
+  let m=s.match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:\D+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0),+(m[6]||0));
+  let d=new Date(s);return Number.isNaN(d.getTime())?null:d;
+}
+function renderPeriodReports(){
+  let now=new Date(),dayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()),weekStart=new Date(dayStart);weekStart.setDate(weekStart.getDate()-6),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const calc=start=>{let rows=data.sales.filter(s=>{let d=saleDateObject(s.date);return d&&d>=start&&d<=now});return {count:rows.length,revenue:rows.reduce((a,s)=>a+(+s.total||0),0)}};
+  let d=calc(dayStart),w=calc(weekStart),m=calc(monthStart);
+  [["rDailySales",d.count],["rDailyRevenue",money(d.revenue)],["rWeeklySales",w.count],["rWeeklyRevenue",money(w.revenue)],["rMonthlySales",m.count],["rMonthlyRevenue",money(m.revenue)]].forEach(([id,val])=>{let el=document.getElementById(id);if(el)el.textContent=val});
+}
 function fmtDate(d){if(!d)return "-";let [y,m,day]=d.split("-");return `${day}.${m}.${y}`}
 function setReminder(id){let c=data.customers.find(x=>x.id===id);if(!c)return;let d=prompt("Yeni hatırlatma tarihi (YYYY-MM-DD):",c.reminder||"");if(d!==null){c.reminder=d;save()}}
 function render(){
@@ -1811,12 +1906,17 @@ updateProductGroupOptions(groups);
 let customerGroups=["Genel",...data.customerGroups];if(typeof cGroup!=="undefined")cGroup.innerHTML=customerGroups.map(g=>`<option value="${g}">${g}</option>`).join("");
 groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x=>(x.group||"Genel")==g).length}</td><td>${g=="Genel"?"":`<button onclick="delGroup('${g.replace(/'/g,"\\'")}')">Sil</button>`}</td></tr>`).join("");
 renderProductList();
-customerRows.innerHTML=data.customers.map(x=>`<tr><td>${x.name}</td><td>${x.phone||"-"}</td><td><b>${money(x.paidAmount||0)}</b></td><td>${x.reminder?fmtDate(x.reminder)+(x.reminderDays?` (${x.reminderDays} gün)`:""):"-"}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"<span class='muted'>-</span>"}</td></tr>`).join("");
+let quickSale=document.getElementById("quickSaleProducts");
+if(quickSale)quickSale.innerHTML=data.products.filter(p=>Number(p.stock)>0).slice(0,12).map(p=>`<button type="button" onclick="addProductToSale(${p.id})">⚡ ${productEscape(p.name)}<br><small>${money(p.price)} · Stok ${p.stock}</small></button>`).join("")||'<span class="muted">Stokta hızlı satış ürünü yok.</span>';
+customerRows.innerHTML=data.customers.map(x=>{
+  let debt=customerDebt(x),services=customerActiveServices(x).length;
+  return `<tr><td>${x.name}</td><td>${x.group||"Genel"}</td><td>${formatPhoneDigits(x.phone||"")||"-"}</td><td><b>${money(debt)}</b></td><td>${services?services+" aktif":"-"}</td><td>${isManager()?`<button class="danger" onclick="delCustomer(${x.id})">Cari Sil</button>`:"-"}</td></tr>`
+}).join("");
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
 let upcoming=data.customers.filter(x=>x.reminder&&x.reminder>todayStr&&x.reminder<=limitStr).sort((a,b)=>a.reminder.localeCompare(b.reminder));
-dueCustomers.innerHTML=due.length?due.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>🔔 ${x.name}</b> — ${x.phone||"Telefon yok"} — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Bugün için günü gelen müşteri yok.</p>`;
+dueCustomers.innerHTML=due.length?due.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>🔔 ${x.name}</b> — ${x.phone||"Telefon yok"} — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Bugün için günü gelen cari yok.</p>`;
 upcomingCustomers.innerHTML=upcoming.length?upcoming.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #e5e7eb"><b>${x.name}</b> — ${fmtDate(x.reminder)}</div>`).join(""):`<p class="muted">Önümüzdeki 2 gün için hatırlatma yok.</p>`;
 let stockGroupSelect=document.getElementById("stockGroupSelect");
 if(stockGroupSelect){let oldStockGroup=stockGroupSelect.value;stockGroupSelect.innerHTML='<option value="">Tüm Gruplar</option>'+groups.map(g=>'<option value="'+productEscape(g)+'">'+productEscape(g)+'</option>').join("");if([...stockGroupSelect.options].some(o=>o.value===oldStockGroup))stockGroupSelect.value=oldStockGroup}
@@ -1833,10 +1933,23 @@ if(typeof saleCustomer!=="undefined"){
   if([...saleCustomer.options].some(o=>o.value===old))saleCustomer.value=old;
 }
 updateSaleCustomerLabel();refreshSaleScreen();
-serviceCustomer.innerHTML=co;
+serviceCustomer.innerHTML='<option value="">Cari seçmeden devam et</option>'+co;
 previewServiceDue();
 updateServiceChoices();
-serviceRows.innerHTML=data.services.map(x=>`<tr><td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td><td>${x.no}</td><td>${x.customer}</td><td>${x.category||"Diğer"}</td><td>${x.brand||"-"}</td><td>${x.device}</td><td>${x.model||"-"}</td><td>${x.fault}</td><td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Teslim Tarihi Düzenle</button></td><td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret Düzenle</button></td><td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td><td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf Değiştir</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td></tr>`).join("");
+serviceRows.innerHTML=data.services.map(x=>`<tr>
+<td>${x.image?`<img src="${x.image}" class="photo-thumb">`:"-"}</td>
+<td>${x.no}</td>
+<td>${x.customer||"-"}</td>
+<td>${formatPhoneDigits(x.phone||"")||"-"}</td>
+<td>${x.device||"-"}</td>
+<td>${x.model||"-"}</td>
+<td>${x.fault||"-"}</td>
+<td>${x.sparePart||"-"}</td>
+<td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Tarih</button></td>
+<td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret</button></td>
+<td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td>
+<td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="sendServiceWhatsApp(${x.id})">💬 WhatsApp</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td>
+</tr>`).join("");
 
 saleRows.innerHTML=data.sales.map(x=>`<tr><td>${x.date}</td><td>${x.customer}</td><td>${x.product}</td><td>${x.qty}</td><td>${money(x.total)}</td><td>${x.paymentType||"Nakit"}</td><td>${money(x.paid!=null?x.paid:x.total)}</td><td>${money(x.remaining||0)}</td><td>${isManager()?`<button onclick="editSale(${x.id})">Satışı Düzenle</button>`:"<span class='muted'>Yönetici yetkisi gerekli</span>"}</td></tr>`).join("");
 let receivableMap={};
@@ -1856,7 +1969,7 @@ if(rr)rr.innerHTML=receivables.length?receivables.map(x=>{
   let c=x.customerId!=null?data.customers.find(c=>String(c.id)===String(x.customerId)):data.customers.find(c=>c.name===x.customer);
   return `<tr><td>${productEscape(x.customer)}</td><td>${productEscape(c?.phone||"-")}</td><td><b>${money(x.remaining)}</b></td><td>${c?`<select onchange="markReceivablePaid(${c.id},this.value)"><option value="0" selected>Hayır</option><option value="1">Evet</option></select>`:"-"}</td><td>${c?.reminder?fmtDate(c.reminder):"-"}</td><td>${c?.reminderDays?c.reminderDays+" gün":"-"}</td><td>${c?`<button onclick="editCustomerPayment(${c.id})">💰 Ödeme Düzenle</button><button onclick="editCustomerReminder(${c.id})">🔔 Hatırlatmayı Düzenle</button>`:"-"}</td></tr>`;
 }).join(""):'<tr><td colspan="7" class="muted">Açık veresiye yok.</td></tr>';
-let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=rSales.textContent=data.sales.length;cRevenue.textContent=rRevenue.textContent=money(rev);applySettingsUI();applyUserUI()}
+let rev=data.sales.reduce((a,x)=>a+(+x.total||0),0);cProducts.textContent=data.products.length;cCustomers.textContent=data.customers.length;cSales.textContent=data.sales.length;cRevenue.textContent=money(rev);renderPeriodReports();applySettingsUI();applyUserUI()}
 sessionStorage.removeItem("ceptesatis_login");sessionStorage.removeItem("ceptesatis_user");restoreCloudSession();
 render();
 resetProductForm();
