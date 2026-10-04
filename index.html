@@ -405,6 +405,17 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
 @media(max-width:520px){.cari-payment-add{grid-template-columns:1fr 118px}.cari-payment-add button{padding:0 8px;font-size:12px}}
 </style>
 
+
+<style>
+/* --- Notlar --- */
+.notes-shell{max-width:900px;margin:0 auto}.notes-head{margin-bottom:14px}.notes-kicker{font-size:11px;font-weight:900;letter-spacing:.15em;color:#1684ff}.notes-head h1{margin:4px 0 5px;font-size:32px}.notes-head p{margin:0;color:#64748b}
+.notes-form textarea{font:inherit;background:#fff;color:#1f2937}.notes-list-head{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 9px;font-size:12px;color:#64748b;letter-spacing:.06em}.notes-list{display:grid;gap:10px}
+.note-card{background:#fff;border:1px solid #e8edf4;border-radius:16px;padding:15px;box-shadow:0 4px 14px #0f172a0a}.note-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.note-card-top b{font-size:17px}.note-card-top small{display:block;color:#8b94a2;margin-top:4px}.note-card p{line-height:1.55;margin:12px 0 4px;white-space:normal;word-break:break-word}.note-user{font-size:11px;color:#94a3b8;margin-top:10px}.notes-empty{padding:35px;text-align:center;color:#94a3b8;background:#fff;border:1px dashed #cbd5e1;border-radius:16px}
+.notes-setting-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;font-weight:800;cursor:pointer}.notes-setting-toggle input{width:20px;height:20px;margin:0}
+body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{background:#172033;color:#f3f4f6;border-color:#31425f}body.dark .notes-setting-toggle{background:#111827;border-color:#374151}body.dark .notes-head p,body.dark .note-card-top small{color:#aeb8c7}
+@media(max-width:700px){.notes-head h1{font-size:27px}.note-card{padding:12px}.note-card-top b{font-size:15px}}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -426,6 +437,7 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
 <button data-page="service" data-short="🔧">🔧 Teknik Servis</button>
 <button data-page="offers" data-short="🧾">🧾 Teklif</button>
 <button data-page="reports" data-short="📈">📈 Raporlar</button>
+<button id="notesNavBtn" data-page="notes" data-short="📝">📝 Notlar</button>
 <button class="manager-nav" data-page="dealers" data-short="👤">👤 Kullanıcı</button>
 <button class="manager-nav" data-page="settings" data-short="⚙️">⚙️ Ayarlar</button>
 </div>
@@ -907,6 +919,29 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
 </div>
 <table><thead><tr><th>Kullanıcı</th><th>Yetkili</th><th>Telefon</th><th>Kullanıcı</th><th>Şifre</th><th>Seviye</th><th>Bölüm Yetkileri</th><th>İşlem</th></tr></thead><tbody id="dealerRows"></tbody></table></div></section>
 
+<section id="notes" class="page">
+  <div class="notes-shell">
+    <div class="notes-head">
+      <div>
+        <div class="notes-kicker">HIZLI NOTLAR</div>
+        <h1>📝 Notlar</h1>
+        <p>Hatırlamak istediğin bilgileri buraya kaydedebilirsin.</p>
+      </div>
+    </div>
+    <div class="panel notes-form">
+      <div class="grid">
+        <div><label>Başlık</label><input id="noteTitle" maxlength="80" placeholder="Örn: Müşteriyi ara"></div>
+        <div><label>Tarih / Hatırlatma</label><input id="noteDate" type="date"></div>
+      </div>
+      <label>Not</label>
+      <textarea id="noteText" rows="4" maxlength="1000" placeholder="Notunu yaz..." style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;resize:vertical"></textarea>
+      <button class="btn" type="button" onclick="addNote()" style="margin-top:10px">＋ Not Ekle</button>
+    </div>
+    <div class="notes-list-head"><b>KAYITLI NOTLAR</b><span id="notesCount">0 not</span></div>
+    <div id="notesList" class="notes-list"></div>
+  </div>
+</section>
+
 <section id="settings" class="page"><h1>⚙️ Ayarlar</h1>
 <div class="panel">
   <h2>👤 Hesabım</h2>
@@ -926,6 +961,15 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
     <button class="theme-btn light" type="button" onclick="setTheme('light')">☀️ Beyaz Arka Plan</button>
     <button class="theme-btn dark-choice" type="button" onclick="setTheme('dark')">🌙 Siyah Arka Plan</button>
   </div>
+</div>
+
+<div class="panel">
+  <h2>📝 Notlar Menüsü</h2>
+  <p class="muted">Sol menüdeki Notlar bölümünü açıp kapatabilirsin.</p>
+  <label class="notes-setting-toggle">
+    <input id="notesEnabledSetting" type="checkbox" onchange="setNotesEnabled(this.checked)">
+    <span>Notlar bölümü sol menüde görünsün</span>
+  </label>
 </div>
 
 <div class="panel">
@@ -952,7 +996,7 @@ body.dark .cari-payment-add input{background:#101827;color:#f3f4f6;border-color:
 
 <script>
 let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
-if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.stockMovements)data.stockMovements=[];if(!data.settings)data.settings={};
+if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.stockMovements)data.stockMovements=[];if(!data.notes)data.notes=[];if(!data.settings)data.settings={};if(typeof data.settings.notesEnabled!=="boolean")data.settings.notesEnabled=true;
 if(!data.auth)data.auth={username:"admin18",password:"1234"};
 if(data.settings.ustaLoginMigration!=="2026-10-02-1"){data.auth.username="admin18";data.auth.password="1234";data.settings.ustaLoginMigration="2026-10-02-1";localStorage.setItem("ceptesatis_data",JSON.stringify(data));}
 data.sales.forEach((s,i)=>{if(!s.id)s.id=Date.now()+i});
@@ -1002,7 +1046,9 @@ const SECTION_PERMISSIONS=["home","pricecheck","sales","customers","stock","serv
 const SECTION_LABELS={home:"Ana Sayfa",pricecheck:"Fiyat Gör",sales:"Satış Yap",customers:"Cari",stock:"Stok",service:"Teknik Servis",offers:"Teklif",reports:"Raporlar",products:"Stok",groups:"Stok",receivables:"Cari"};
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
 function canAccessSection(page){
-  let s=getSession();if(!s)return false;if(s.isMain)return true;
+  let s=getSession();if(!s)return false;
+  if(page==="notes")return data.settings.notesEnabled!==false;
+  if(s.isMain)return true;
   if(page==="settings")return s.role==="manager";
   if(page==="dealers")return s.role==="manager";
   let perms=effectivePermissions(s);
@@ -1047,6 +1093,43 @@ function openDealersPage(){if(!requireManager())return;let b=document.querySelec
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireMainManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
+function setNotesEnabled(enabled){
+  if(!requireManager()){let t=document.getElementById("notesEnabledSetting");if(t)t.checked=data.settings.notesEnabled!==false;return}
+  data.settings.notesEnabled=!!enabled;
+  localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+  applySettingsUI();applyUserUI();
+  if(!enabled&&document.getElementById("notes")?.classList.contains("active")){
+    let homeBtn=document.querySelector('.nav button[data-page="home"]');if(homeBtn)homeBtn.click();
+  }
+}
+function addNote(){
+  let title=(document.getElementById("noteTitle")?.value||"").trim();
+  let text=(document.getElementById("noteText")?.value||"").trim();
+  let date=(document.getElementById("noteDate")?.value||"").trim();
+  if(!title&&!text)return alert("Not başlığı veya not metni gir.");
+  let sess=getSession();
+  data.notes.unshift({id:Date.now(),title:title||"Not",text,date,created:new Date().toLocaleString("tr-TR"),user:sess?(sess.name||sess.username||"-"):"-"});
+  document.getElementById("noteTitle").value="";
+  document.getElementById("noteText").value="";
+  document.getElementById("noteDate").value="";
+  save();
+}
+function deleteNote(id){
+  if(!confirm("Bu not silinsin mi?"))return;
+  data.notes=data.notes.filter(n=>String(n.id)!==String(id));save();
+}
+function renderNotes(){
+  let box=document.getElementById("notesList"),count=document.getElementById("notesCount");if(!box)return;
+  let rows=Array.isArray(data.notes)?data.notes:[];
+  if(count)count.textContent=rows.length+" not";
+  if(!rows.length){box.innerHTML='<div class="notes-empty">Henüz not eklenmedi.</div>';return}
+  box.innerHTML=rows.map(n=>'<article class="note-card">'+
+    '<div class="note-card-top"><div><b>'+productEscape(n.title||"Not")+'</b><small>'+(n.date?("📅 "+productEscape(fmtDate(n.date))+" · "):"")+productEscape(n.created||"")+'</small></div>'+
+    '<button type="button" class="danger" onclick="deleteNote('+Number(n.id)+')">Sil</button></div>'+
+    (n.text?'<p>'+productEscape(n.text).replace(/\n/g,"<br>")+'</p>':"")+
+    (n.user?'<div class="note-user">Ekleyen: '+productEscape(n.user)+'</div>':"")+
+  '</article>').join("");
+}
 function generateBarcode(){let prefix=(data.settings.barcodePrefix||"UST").replace(/\s+/g,"").toUpperCase();return prefix+String(Date.now()).slice(-9)}
 let productScannerStream=null,productScannerActive=false;
 function applyScannedProductData(raw){
@@ -1187,7 +1270,15 @@ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis
 
 </body></html>`);w.document.close()
 }
-function applySettingsUI(){let logo=document.getElementById("companyLogo");if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode");if(bp)bp.value=data.settings.barcodePrefix||"UST";if(ab)ab.checked=!!data.settings.autoBarcode;updateSalesIbanUI()}
+function applySettingsUI(){
+  let logo=document.getElementById("companyLogo");
+  if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}
+  let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode"),notesToggle=document.getElementById("notesEnabledSetting");
+  if(bp)bp.value=data.settings.barcodePrefix||"UST";
+  if(ab)ab.checked=!!data.settings.autoBarcode;
+  if(notesToggle)notesToggle.checked=data.settings.notesEnabled!==false;
+  updateSalesIbanUI();
+}
 function forgotPasswordWhatsApp(){
   const u=(document.getElementById("loginUser")?.value||"").trim();
   const msg="Merhaba, Cepte Satış giriş şifremi unuttum."+ (u?" Kullanıcı adım: "+u:"");
@@ -2143,6 +2234,7 @@ groupRows.innerHTML=groups.map(g=>`<tr><td>${g}</td><td>${data.products.filter(x
 renderProductList();
 renderQuickSaleProducts();
 renderCariCards();
+renderNotes();
 let today=new Date();today.setHours(0,0,0,0);let todayStr=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
 let due=data.customers.filter(x=>x.reminder&&x.reminder<=todayStr);
 let limit=new Date(today);limit.setDate(limit.getDate()+2);let limitStr=`${limit.getFullYear()}-${String(limit.getMonth()+1).padStart(2,"0")}-${String(limit.getDate()).padStart(2,"0")}`;
