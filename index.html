@@ -680,19 +680,30 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
       <div class="offer-head-actions">
         <button class="btn" type="button" onclick="newOffer()">＋ Yeni Teklif</button>
         <button class="btn" type="button" onclick="printOffer()">🖨️ Yazdır / PDF</button>
+        <button class="btn" type="button" onclick="shareOfferWhatsApp()">💬 WhatsApp’ta Paylaş</button>
       </div>
     </div>
 
     <div class="offer-workspace">
       <div class="offer-controls">
         <div class="panel offer-control-card">
+          <h2>Hazır Kamera Teklifleri</h2>
+          <div class="offer-head-actions">
+            <button class="btn" type="button" onclick="loadOfferTemplate(4)">📷 4 Kamera</button>
+            <button class="btn" type="button" onclick="loadOfferTemplate(8)">📷 8 Kamera</button>
+          </div>
+          <p class="muted">Paketi seç; ürünleri, adetleri ve fiyatları düzenle. İlk kullanımda fiyatları gir.</p>
+          <button id="saveOfferTemplateButton" class="btn small" type="button" disabled onclick="saveOfferTemplate()">Paketi Kaydet</button>
+          <p id="offerTemplateStatus" class="muted" role="status"></p>
+        </div>
+        <div class="panel offer-control-card">
           <h2>Firma Bilgileri</h2>
           <label>Firma Adı</label>
-          <input id="offerCompanyName" placeholder="Firma adı" oninput="renderOfferPreview()">
+          <input id="offerCompanyName" placeholder="Firma adı" oninput="renderOfferPreview()" onchange="persistOfferCompany()">
           <label>Adres</label>
-          <textarea id="offerCompanyAddress" rows="3" placeholder="Firma adresi" oninput="renderOfferPreview()"></textarea>
+          <textarea id="offerCompanyAddress" rows="3" placeholder="Firma adresi" oninput="renderOfferPreview()" onchange="persistOfferCompany()"></textarea>
           <label>Telefon</label>
-          <input id="offerCompanyPhone" placeholder="Telefon" oninput="renderOfferPreview()">
+          <input id="offerCompanyPhone" placeholder="Telefon" oninput="renderOfferPreview()" onchange="persistOfferCompany()">
           <button class="btn small" type="button" onclick="saveOfferCompanySettings()">Firma Bilgilerini Kaydet</button>
         </div>
 
@@ -807,7 +818,9 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
     <div><label>Cihaz Modeli</label><select id="serviceModel" onchange="toggleCustomModel()"></select></div>
     <div id="customModelWrap" style="display:none"><label>Modeli Kendim Yazacağım</label><input id="serviceCustomModel" placeholder="Model adını yaz"></div>
     <div><label>Arıza / Yapılacak İşlem</label><input id="serviceFault" list="serviceFaultOptions" placeholder="Arıza açıklaması"><datalist id="serviceFaultOptions"></datalist></div>
-    <div><label>Kullanılacak Yedek Parça</label><input id="serviceSparePart" placeholder="Örn: Ekran, batarya, soket"></div>
+    <div><label>Yedek Parça Notu</label><input id="serviceSparePart" placeholder="Ek parça açıklaması (isteğe bağlı)"></div>
+    <div><label>Stoktan Yedek Parça</label><button class="btn" type="button" onclick="openServiceParts()">＋ Stoktan Parça Ekle</button><div id="servicePartsSummary" class="muted">Parça seçilmedi.</div></div>
+    <div><label>İşçilik Ücreti (₺)</label><input id="serviceLabor" type="number" min="0" step="0.01" value="0" oninput="renderServiceDraftTotal()"></div>
 
     <div><label>Teslim Süresi</label>
       <select id="serviceWorkDays" onchange="toggleServiceManualDays();previewServiceDue()">
@@ -820,7 +833,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
       <div id="serviceManualDaysWrap" style="display:none"><input id="serviceManualDays" type="number" min="1" max="365" value="1" placeholder="Gün sayısı" oninput="previewServiceDue()"></div>
       <div id="serviceDuePreview" class="muted">Tahmini teslim tarihi otomatik hesaplanır.</div>
     </div>
-    <div><label>Servis Ücreti (₺)</label><input id="servicePrice" type="number" min="0" step="0.01" value="0"></div>
+    <div><label>Ek Servis Ücreti (₺)</label><input id="servicePrice" type="number" min="0" step="0.01" value="0" oninput="renderServiceDraftTotal()"><div id="serviceDraftTotal" role="status">Toplam: ₺0,00</div></div>
     <div><label>Durum</label><select id="serviceStatus"><option>Bekliyor</option><option>İşlemde</option><option>Hazır</option><option>Teslim Edildi</option><option>İade</option></select></div>
     <div><label>Cihaz / Ürün Fotoğrafı</label><input id="serviceImage" type="file" accept="image/*" capture="environment"><div class="camera-note">Telefonda kameradan doğrudan fotoğraf ekleyebilirsin.</div></div>
   </div>
@@ -978,9 +991,9 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 <table><thead><tr><th>Grup</th><th>Ürün</th><th>Mevcut Stok</th><th>İşlem</th></tr></thead><tbody id="stockRows"></tbody></table>
 </div>
 <div class="panel">
-<h2>Stok Giriş Geçmişi</h2>
+<h2>Stok Hareketleri</h2>
 <p class="muted">Sonradan eklenen stok miktarları tarih ve yeni stok bilgisiyle kaydedilir.</p>
-<table><thead><tr><th>Tarih</th><th>Ürün</th><th>Eklenen</th><th>Önceki</th><th>Yeni Stok</th><th>Kullanıcı</th></tr></thead><tbody id="stockHistoryRows"></tbody></table>
+<table><thead><tr><th>Tarih</th><th>Ürün</th><th>Giriş / Çıkış</th><th>Önceki</th><th>Yeni Stok</th><th>Kullanıcı</th></tr></thead><tbody id="stockHistoryRows"></tbody></table>
 </div>
 
 </section>
@@ -1105,6 +1118,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
   <input id="companyLogoInput" type="file" accept="image/*" capture="environment" onchange="saveCompanyLogo(this.files[0])">
 </div>
 
+<div class="panel"><h2>🖨️ Barkod Görünümü — Tüm Modüller</h2><p>Yazı boyutu, etiket ölçüsü ve barkod yüksekliğini ayarla.</p><button class="btn" type="button" onclick="openBarcodeLayoutSettings()">Barkod Düzenleme Ayarları</button></div>
 <div id="mainOnlyBarcodeSettings" class="panel">
   <h2>🏷️ Barkod Ayarları</h2>
   <div class="grid"><div><label>Barkod Ön Eki</label><input id="barcodePrefix" placeholder="UST"></div>
@@ -1121,6 +1135,19 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 </section>
 </main></div>
 
+<dialog id="servicePartsDialog" style="width:min(700px,94vw);border:0;border-radius:16px;padding:24px">
+  <h2>Yedek Parça ve İşçilik</h2>
+  <p class="muted">Yeni serviste parçalar servis kaydı oluşturulunca stoktan düşer. Kayıtlı serviste değişiklikler Kaydet ile uygulanır.</p>
+  <label>Stok Ürünü</label><select id="servicePartProduct" onchange="syncServicePartPrice()"></select>
+  <div class="offer-control-grid"><div><label>Adet</label><input id="servicePartQty" type="number" min="0.01" step="0.01" value="1"></div><div><label>Birim Fiyat (₺)</label><input id="servicePartPrice" type="number" min="0" step="0.01" value="0"></div></div>
+  <button class="btn" type="button" onclick="addServicePartLine()">＋ Parçayı Ekle</button>
+  <div id="servicePartsLines"></div>
+  <label>İşçilik Ücreti (₺)</label><input id="servicePartsLabor" type="number" min="0" step="0.01" value="0" oninput="renderServicePartsLines()">
+  <p id="servicePartsTotal" role="status"></p>
+  <button class="btn" type="button" onclick="saveServiceParts()">Kaydet</button>
+  <button type="button" onclick="document.getElementById('servicePartsDialog').close()">Vazgeç</button>
+</dialog>
+<style>.offer-editor-item{grid-template-columns:minmax(0,1fr) 96px 34px}.offer-description-input{grid-column:1/-1;width:100%}#servicePartsDialog::backdrop{background:#0008}#servicePartsLines>div{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ddd}body.dark #servicePartsDialog{background:#172033;color:white}</style>
 <script>
 let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
 if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.stockMovements)data.stockMovements=[];if(!data.notes)data.notes=[];if(!data.settings)data.settings={};if(typeof data.settings.notesEnabled!=="boolean")data.settings.notesEnabled=true;
@@ -1438,7 +1465,7 @@ function printProductBarcode(id){
     dialog=document.createElement("dialog");dialog.id="productBarcodeDialog";
     dialog.setAttribute("aria-labelledby","productBarcodeTitle");
     dialog.style.cssText="width:min(420px,94vw);border:0;border-radius:16px;padding:24px";
-    dialog.innerHTML='<form id="productBarcodeForm"><h2 id="productBarcodeTitle">Barkod Yazdır</h2><label for="productBarcodeCount">Etiket adedi</label><input id="productBarcodeCount" type="number" min="1" max="100" step="1" value="1" required><fieldset style="border:1px solid #d1d5db;border-radius:10px;padding:14px;margin-bottom:16px"><legend>Etikette satış fiyatı</legend><label style="display:block;margin-bottom:12px"><input type="radio" name="barcodePrice" value="show" checked style="width:auto;margin:0 8px 0 0">Fiyat görünsün</label><label style="display:block"><input type="radio" name="barcodePrice" value="hide" style="width:auto;margin:0 8px 0 0">Fiyat görünmesin</label></fieldset><div style="display:flex;gap:10px"><button class="btn" type="submit">Yazdır</button><button class="btn" type="button" id="productBarcodeCancel">Vazgeç</button></div></form>';
+    dialog.innerHTML='<form id="productBarcodeForm"><h2 id="productBarcodeTitle">Barkod Yazdır</h2><label for="productBarcodeCount">Etiket adedi</label><input id="productBarcodeCount" type="number" min="1" max="100" step="1" value="1" required><fieldset style="border:1px solid #d1d5db;border-radius:10px;padding:14px;margin-bottom:16px"><legend>Etikette satış fiyatı</legend><label style="display:block;margin-bottom:12px"><input type="radio" name="barcodePrice" value="show" checked style="width:auto;margin:0 8px 0 0">Fiyat görünsün</label><label style="display:block"><input type="radio" name="barcodePrice" value="hide" style="width:auto;margin:0 8px 0 0">Fiyat görünmesin</label></fieldset><div style="display:flex;gap:10px"><button class="btn" type="submit">Yazdır</button><button class="btn" type="button" onclick="openBarcodeLayoutSettings()">⚙️ Barkod Ayarları</button><button class="btn" type="button" id="productBarcodeCancel">Vazgeç</button></div></form>';
     document.body.append(dialog);
     document.getElementById("productBarcodeCancel").onclick=()=>dialog.close();
   }
@@ -1451,28 +1478,53 @@ function printProductBarcode(id){
   };
   dialog.showModal();
 }
+function barcodeLayout(){
+  const s=data.settings?.barcodeLayout||{};
+  const range=(v,d,min,max)=>Number.isFinite(Number(v))&&Number(v)>=min&&Number(v)<=max?Number(v):d;
+  return {width:range(s.width,70,40,150),height:range(s.height,50,25,150),font:range(s.font,14,10,28),barHeight:range(s.barHeight,16,8,45)};
+}
+function barcodeLabelStyle(c){return `@page{size:${c.width}mm ${c.height}mm;margin:0}*{box-sizing:border-box}body{margin:0;background:white;color:black;font-family:Arial,sans-serif}.label{width:${c.width}mm;height:${c.height}mm;padding:2mm;text-align:center;break-after:page;font-size:${c.font}px;font-weight:700;line-height:1.15;overflow-wrap:anywhere;display:flex;flex-direction:column;justify-content:center;gap:1mm}.label svg{width:100%;height:${c.barHeight}mm;flex-shrink:0}.barcode-code{letter-spacing:.5px}.label:last-child{break-after:auto}`}
+function barcodeBars(code){return code128Svg(code).replace(/<text[\s\S]*?<\/text>/,'').replace(/viewBox="0 0 ([\d.]+) 75"/,'viewBox="0 0 $1 62" preserveAspectRatio="none"')}
+function barcodeLabelHTML(code,heading,footer){return '<div class="label"><div>'+productEscape(heading)+'</div>'+barcodeBars(code)+'<div class="barcode-code">'+productEscape(code)+'</div>'+(footer?'<div>'+productEscape(footer)+'</div>':'')+'</div>'}
+function openBarcodeLayoutSettings(){
+  let d=document.getElementById('barcodeLayoutDialog');
+  if(!d){d=document.createElement('dialog');d.id='barcodeLayoutDialog';d.style.cssText='width:min(660px,94vw);max-height:90vh;overflow:auto;border:0;border-radius:16px;padding:24px';
+    d.innerHTML='<h2>Barkod Düzenleme Ayarları</h2><p>Ürün, stok ve teknik servisteki tüm barkod çıktıları için geçerlidir. Ölçüleri yazıcındaki etikete göre seç.</p><div class="offer-control-grid">'+[['width','Etiket Eni (mm)',40,150],['height','Etiket Boyu (mm)',25,150],['font','Yazı Boyutu (px)',10,28],['barHeight','Barkod Yüksekliği (mm)',8,45]].map(([key,label,min,max])=>'<div><label>'+label+'</label><input id="barcodeLayout_'+key+'" type="number" min="'+min+'" max="'+max+'" step="1" required oninput="previewBarcodeLayout()"></div>').join('')+'</div><p id="barcodeLayoutWarning" role="status"></p><div style="overflow:auto"><iframe id="barcodeLayoutPreview" title="Barkod ön izlemesi" style="border:1px solid #ccc;width:100%;height:240px;background:white"></iframe></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" type="button" onclick="saveBarcodeLayout()">Ayarları Kaydet</button><button type="button" onclick="document.getElementById(\'barcodeLayoutDialog\').close()">Vazgeç</button></div>';
+    document.body.append(d);
+  }
+  const c=barcodeLayout();for(const key of Object.keys(c))document.getElementById('barcodeLayout_'+key).value=c[key];
+  previewBarcodeLayout();d.showModal();
+}
+function readBarcodeLayoutForm(){
+  const result={};for(const key of ['width','height','font','barHeight']){const el=document.getElementById('barcodeLayout_'+key);if(!el.checkValidity())return null;result[key]=Number(el.value)}return result;
+}
+function previewBarcodeLayout(){
+  const c=readBarcodeLayoutForm();const warning=document.getElementById('barcodeLayoutWarning');
+  if(!c){warning.textContent='Alanları belirtilen ölçü aralıklarında doldur.';return}
+  warning.textContent='Örnek servis etiketi. Uzun bilgiler için etiket boyunu artırabilirsin.';
+  document.getElementById('barcodeLayoutPreview').srcdoc='<html><head><meta charset="utf-8"><style>'+barcodeLabelStyle(c)+'</style></head><body>'+barcodeLabelHTML('SRV-123456','Örnek Müşteri','Televizyon Samsung CU8000')+'</body></html>';
+}
+function saveBarcodeLayout(){const c=readBarcodeLayoutForm();if(!c)return alert('Etiket ölçülerini kontrol et.');if(c.barHeight+4+c.font*3*.265>c.height)return alert('Yazılar ve barkod bu etikete sığmıyor. Etiket boyunu artır veya barkod yüksekliğini azalt.');data.settings??={};data.settings.barcodeLayout=c;localStorage.setItem('ceptesatis_data',JSON.stringify(data));document.getElementById('barcodeLayoutDialog').close();alert('Barkod ayarları tüm barkod çıktıları için kaydedildi.')}
+function printBarcodeDocument(title,labels){
+  const w=window.open('','_blank','width=700,height=700');if(!w)return alert('Yazdırma penceresi açılamadı.');
+  const c=barcodeLayout();
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+productEscape(title)+'</title><style>'+barcodeLabelStyle(c)+'</style></head><body>'+labels+'</body></html>');w.document.close();
+  setTimeout(()=>{if([...w.document.querySelectorAll('.label')].some(el=>el.scrollHeight>el.clientHeight+1)){w.close();alert('Etiket bilgileri seçilen ölçüye sığmıyor. Barkod Düzenleme Ayarları’ndan etiket boyunu artır veya yazı boyutunu azalt.');return}w.focus();w.print()},300);
+}
 function printProductBarcodeLabels(id,count,showPrice){
-let p=data.products.find(x=>x.id===id);if(!p)return;
-if(!Number.isInteger(count)||count<1||count>100)return;
-if(!p.code){p.code=generateBarcode();save()}
-let svg=code128Svg(p.code);if(!svg)return alert("Barkod oluşturulamadı.");
-let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}${showPrice?`<div class="price">${money(p.price)}</div>`:""}</div>`).join("");
-let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
-w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script>
-
-</body></html>`);w.document.close()
+  const p=data.products.find(x=>x.id===id);if(!p||!Number.isInteger(count)||count<1||count>100)return;
+  if(!p.code){p.code=generateBarcode();save()}
+  if(!barcodeBars(p.code))return alert('Barkod oluşturulamadı.');
+  printBarcodeDocument('Ürün Barkodu',Array.from({length:count},()=>barcodeLabelHTML(p.code,p.name,showPrice?money(p.price):'')).join(''));
 }
 function printServiceBarcode(id){
-let s=data.services.find(x=>x.id===id);if(!s)return;
-let code=s.no||("SRV-"+String(s.id).slice(-6)),svg=code128Svg(code);if(!svg)return alert("Servis barkodu oluşturulamadı.");
-let count=Number(prompt("Kaç adet servis barkodu yazdırılsın?","1"));if(!Number.isFinite(count)||count<1)return;count=Math.min(100,Math.floor(count));
-let customer=String(s.customer||"").replace(/</g,"&lt;"),device=String((s.device||"")+" "+(s.model||"")).replace(/</g,"&lt;");
-let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${code} • ${customer}</div>${svg}<div class="device">${device}</div></div>`).join("");
-let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
-w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis Barkodu</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.device{font-size:9px;font-weight:700;margin-top:-2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script>
-
-</body></html>`);w.document.close()
+  const s=data.services.find(x=>x.id===id);if(!s)return;
+  let d=document.getElementById('serviceBarcodeDialog');
+  if(!d){d=document.createElement('dialog');d.id='serviceBarcodeDialog';d.style.cssText='width:min(420px,94vw);border:0;border-radius:16px;padding:24px';d.innerHTML='<h2>Servis Barkodu Yazdır</h2><label>Etiket Adedi</label><input id="serviceBarcodeCount" type="number" min="1" max="100" step="1" value="1"><button type="button" onclick="openBarcodeLayoutSettings()">⚙️ Barkod Düzenleme Ayarları</button><p></p><button class="btn" id="serviceBarcodePrint" type="button">Yazdır</button> <button type="button" onclick="document.getElementById(\'serviceBarcodeDialog\').close()">Vazgeç</button>';document.body.append(d)}
+  document.getElementById('serviceBarcodeCount').value=1;
+  document.getElementById('serviceBarcodePrint').onclick=()=>{const n=Number(document.getElementById('serviceBarcodeCount').value);if(!Number.isInteger(n)||n<1||n>100)return alert('1 ile 100 arasında adet gir.');const code=s.no||('SRV-'+String(s.id).slice(-6));d.close();printBarcodeDocument('Servis Barkodu',Array.from({length:n},()=>barcodeLabelHTML(code,s.customer||'',[(s.brand||''),(s.device||''),(s.model||'')].join(' ').trim())).join(''))};d.showModal();
 }
+
 function applySettingsUI(){
   renderSidebarModuleSettings();
   let logo=document.getElementById("companyLogo");
@@ -2143,6 +2195,50 @@ function stopSaleScanner(){
 
 let offerItems=[];
 let offerInitialized=false;
+let activeOfferTemplate=null;
+function loadOfferTemplate(count){
+  if(![4,8].includes(count))return;
+  if(offerItems.length&&!confirm("Mevcut teklif satırları seçilen paketle değiştirilsin mi?"))return;
+  const saved=data.settings?.offerTemplates?.[count];
+  offerItems=saved?.items?.length?JSON.parse(JSON.stringify(saved.items)):[
+    {description:"Güvenlik Kamerası",qty:count,unitPrice:0,productId:""},
+    {description:count+" Kanallı Kayıt Cihazı",qty:1,unitPrice:0,productId:""},
+    {description:"Güvenlik Diski (HDD)",qty:1,unitPrice:0,productId:""},
+    {description:"Güç Kaynağı / Adaptör",qty:1,unitPrice:0,productId:""},
+    {description:"Kablo ve Bağlantı Malzemeleri (Set)",qty:1,unitPrice:0,productId:""},
+    {description:"Montaj ve İşçilik",qty:1,unitPrice:0,productId:""}
+  ];
+  document.getElementById("offerDiscount").value=saved?.discount??0;
+  document.getElementById("offerValidity").value=saved?.validity??7;
+  document.getElementById("offerNote").value=saved?.note??(count+" kameralı güvenlik sistemi fiyat teklifidir.");
+  activeOfferTemplate=count;
+  document.getElementById("saveOfferTemplateButton").disabled=false;
+  document.getElementById("saveOfferTemplateButton").textContent=count+" Kamera Paketini Kaydet";
+  document.getElementById("offerTemplateStatus").textContent=count+" Kamera seçildi. Satırları aşağıdan düzenleyebilirsin.";
+  renderOfferPreview();
+}
+function validOfferItems(){
+  return offerItems.length&&offerItems.every(x=>String(x.description||"").trim()&&Number.isFinite(Number(x.qty))&&Number(x.qty)>0&&Number.isFinite(Number(x.unitPrice))&&Number(x.unitPrice)>=0);
+}
+function saveOfferTemplate(){
+  if(!activeOfferTemplate)return;
+  if(!validOfferItems())return alert("Teklif satırlarında açıklama, adet ve fiyatları kontrol et.");
+  data.settings??={};data.settings.offerTemplates??={};
+  data.settings.offerTemplates[activeOfferTemplate]={items:JSON.parse(JSON.stringify(offerItems)),discount:Number(document.getElementById("offerDiscount").value)||0,validity:Number(document.getElementById("offerValidity").value)||7,note:document.getElementById("offerNote").value};
+  localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+  document.getElementById("offerTemplateStatus").textContent=activeOfferTemplate+" Kamera paketi kaydedildi. Bu tarayıcıda sonraki tekliflerde kullanabilirsin.";
+}
+function shareOfferWhatsApp(){
+  if(!validOfferItems())return alert("Önce geçerli ürün veya hizmet satırları ekle.");
+  renderOfferPreview();
+  const text=id=>document.getElementById(id).textContent;
+  const lines=[text("offerPreviewCompany"),"FİYAT TEKLİFİ — "+text("offerPreviewNo"),"Müşteri: "+text("offerPreviewCustomer"),"Tarih: "+text("offerPreviewDate"),"Geçerlilik: "+text("offerPreviewValidity"),""];
+  offerItems.forEach((x,i)=>lines.push((i+1)+". "+x.description+" — "+Number(x.qty).toLocaleString("tr-TR")+" adet × "+money(x.unitPrice)+" = "+money(x.qty*x.unitPrice)));
+  lines.push("","Ara toplam: "+text("offerPreviewSubtotal"),"İskonto: "+text("offerPreviewDiscount"),"GENEL TOPLAM: "+text("offerPreviewTotal"),"",text("offerPreviewNote"));
+  const phone=document.getElementById("offerCompanyPhone").value.trim(),address=document.getElementById("offerCompanyAddress").value.trim();
+  if(phone)lines.push("Telefon: "+phone);if(address)lines.push("Adres: "+address);
+  window.open("https://wa.me/?text="+encodeURIComponent(lines.join("\n")),"_blank","noopener,noreferrer");
+}
 
 function offerToday(){
   let d=new Date();
@@ -2175,6 +2271,11 @@ function initOfferUI(){
   syncOfferProductFields();
   renderOfferPreview();
 }
+function persistOfferCompany(){
+  data.settings??={};
+  for(const id of ['offerCompanyName','offerCompanyAddress','offerCompanyPhone'])data.settings[id]=document.getElementById(id).value.trim();
+  localStorage.setItem('ceptesatis_data',JSON.stringify(data));
+}
 function saveOfferCompanySettings(){
   if(!data.settings)data.settings={};
   data.settings.offerCompanyName=(document.getElementById("offerCompanyName").value||"").trim();
@@ -2184,7 +2285,7 @@ function saveOfferCompanySettings(){
   data.settings.offerNote=(document.getElementById("offerNote").value||"").trim();
   localStorage.setItem("ceptesatis_data",JSON.stringify(data));
   renderOfferPreview();
-  alert("Teklif firma bilgileri kaydedildi.");
+  alert("Teklif firma bilgileri kaydedildi. Bu tarayıcıda sonraki tekliflerde otomatik doldurulacak.");
 }
 function syncOfferProductFields(){
   let productEl=document.getElementById("offerProduct");
@@ -2217,16 +2318,18 @@ function removeOfferLine(index){
 }
 function updateOfferLine(index,key,value){
   let item=offerItems[index];if(!item)return;
+  if(key==="description"){item.description=String(value);renderOfferPreview(false);return}
   let n=Number(value);
-  if(key==="qty")item.qty=n>0?n:0.01;
-  if(key==="unitPrice")item.unitPrice=n>=0?n:0;
+  if(!Number.isFinite(n)||(key==="qty"?n<=0:n<0)){alert("Geçerli bir adet veya fiyat gir.");renderOfferEditor();return}
+  if(key==="qty")item.qty=n;
+  if(key==="unitPrice")item.unitPrice=n;
   renderOfferPreview(false);
 }
 function renderOfferEditor(){
   let box=document.getElementById("offerItemsEditor");if(!box)return;
   if(!offerItems.length){box.innerHTML='<div class="muted" style="font-size:12px">Henüz satır eklenmedi.</div>';return}
   box.innerHTML=offerItems.map(function(item,i){
-    return '<div class="offer-editor-item"><b title="'+productEscape(item.description)+'">'+productEscape(item.description)+'</b>'+
+    return '<div class="offer-editor-item"><input class="offer-description-input" aria-label="Ürün veya hizmet açıklaması" value="'+productEscape(item.description)+'" oninput="updateOfferLine('+i+',&quot;description&quot;,this.value)">'+
       '<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',&quot;qty&quot;,this.value)">'+
       '<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',&quot;unitPrice&quot;,this.value)">'+
       '<button type="button" onclick="removeOfferLine('+i+')" title="Satırı sil">×</button></div>';
@@ -2271,6 +2374,10 @@ function renderOfferPreview(updateEditor){
   document.getElementById("offerPreviewNote").textContent=(document.getElementById("offerNote")?.value||"").trim()||"Bu belge fiyat teklifidir.";
 }
 function newOffer(){
+  if(offerItems.length&&!confirm("Mevcut teklif temizlensin mi?"))return;
+  activeOfferTemplate=null;
+  document.getElementById("saveOfferTemplateButton").disabled=true;
+  document.getElementById("offerTemplateStatus").textContent="";
   let next=getOfferSequence()+1;
   localStorage.setItem("ceptesatis_offer_seq",String(next));
   offerItems=[];
@@ -2542,7 +2649,76 @@ function syncServiceCustomerFields(){
   document.getElementById("serviceLastName").value=last;
   document.getElementById("servicePhone").value=formatPhoneDigits(c.phone||"");
 }
+let serviceDraftParts=[];
+let servicePartsEditingId=null;
+let servicePartsWorking=[];
+function servicePartsSum(parts){return (parts||[]).reduce((sum,p)=>sum+Number(p.qty)*Number(p.unitPrice),0)}
+function serviceBasePrice(s){return Number(s.basePrice??Math.max(0,(Number(s.price)||0)-(Number(s.labor)||0)-servicePartsSum(s.stockParts)))}
+function renderServiceDraftTotal(){
+  document.getElementById('servicePartsSummary').textContent=serviceDraftParts.length?serviceDraftParts.map(p=>p.name+' × '+p.qty).join(', '):'Parça seçilmedi.';
+  document.getElementById('serviceDraftTotal').textContent='Toplam: '+money(servicePartsSum(serviceDraftParts)+(Number(document.getElementById('serviceLabor').value)||0)+(Number(document.getElementById('servicePrice').value)||0));
+}
+function openServiceParts(id=null){
+  const record=id===null?null:data.services.find(s=>s.id===id);if(id!==null&&!record)return;
+  servicePartsEditingId=id;
+  servicePartsWorking=JSON.parse(JSON.stringify(record?.stockParts||serviceDraftParts));
+  if(record&&!record.stockParts)servicePartsWorking=[];
+  const select=document.getElementById('servicePartProduct');
+  select.innerHTML='<option value="">Ürün seç</option>'+data.products.map(p=>'<option value="'+productEscape(p.id)+'">'+productEscape(p.name)+' — Stok: '+Number(p.stock||0)+'</option>').join('');
+  document.getElementById('servicePartQty').value='1';document.getElementById('servicePartPrice').value='0';
+  document.getElementById('servicePartsLabor').value=record?(record.labor||0):document.getElementById('serviceLabor').value;
+  renderServicePartsLines();document.getElementById('servicePartsDialog').showModal();
+}
+function syncServicePartPrice(){const p=data.products.find(p=>String(p.id)===document.getElementById('servicePartProduct').value);document.getElementById('servicePartPrice').value=p?.price||0}
+function addServicePartLine(){
+  const p=data.products.find(p=>String(p.id)===document.getElementById('servicePartProduct').value),qty=Number(document.getElementById('servicePartQty').value),unitPrice=Number(document.getElementById('servicePartPrice').value);
+  if(!p)return alert('Stoktan ürün seç.');
+  if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitPrice)||unitPrice<0)return alert('Adet ve fiyatı kontrol et.');
+  const next=[...servicePartsWorking,{productId:p.id,name:p.name,qty,unitPrice}];
+  const old=data.services.find(s=>s.id===servicePartsEditingId)?.stockParts||[];
+  if(!checkServiceStock(old,next))return;
+  servicePartsWorking=next;renderServicePartsLines();
+}
+function removeServicePartLine(i){servicePartsWorking.splice(i,1);renderServicePartsLines()}
+function renderServicePartsLines(){
+  document.getElementById('servicePartsLines').innerHTML=servicePartsWorking.map((p,i)=>'<div><span>'+productEscape(p.name)+' × '+p.qty+' — '+money(p.qty*p.unitPrice)+'</span><button type="button" onclick="removeServicePartLine('+i+')">Sil</button></div>').join('');
+  document.getElementById('servicePartsTotal').textContent='Parça: '+money(servicePartsSum(servicePartsWorking))+' · İşçilik: '+money(Number(document.getElementById('servicePartsLabor').value)||0);
+}
+function serviceStockDeltas(oldParts,newParts){
+  const m=new Map();for(const [parts,sign] of [[oldParts,-1],[newParts,1]])for(const p of parts||[]){const key=String(p.productId);m.set(key,(m.get(key)||0)+sign*Number(p.qty))}return m;
+}
+function checkServiceStock(oldParts,newParts){
+  if((newParts||[]).some(p=>!Number.isFinite(Number(p.qty))||Number(p.qty)<=0||!Number.isFinite(Number(p.unitPrice))||Number(p.unitPrice)<0)){alert('Parça miktarını ve ücretini kontrol et.');return false}
+  for(const [id,qty] of serviceStockDeltas(oldParts,newParts)){
+    const p=data.products.find(p=>String(p.id)===id);
+    if(qty>0&&(!p||!Number.isFinite(Number(p.stock))||Number(p.stock)<qty)){alert((p?.name||'Ürün')+': yeterli stok yok.');return false}
+  }return true;
+}
+function applyServiceStock(oldParts,newParts){
+  for(const [id,qty] of serviceStockDeltas(oldParts,newParts)){
+    const p=data.products.find(p=>String(p.id)===id);if(!p||!qty)continue;
+    const before=Number(p.stock)||0;p.stock=before-qty;
+    data.stockMovements??=[];data.stockMovements.unshift({id:Date.now(),productId:p.id,productName:p.name,qty:-qty,before,after:p.stock,date:new Date().toLocaleString('tr-TR'),user:session?.username||'Teknik Servis',type:'service'});
+  }
+}
+function saveServiceParts(){
+  const labor=Number(document.getElementById('servicePartsLabor').value);
+  if(!Number.isFinite(labor)||labor<0)return alert('İşçilik ücretini kontrol et.');
+  const record=servicePartsEditingId===null?null:data.services.find(s=>s.id===servicePartsEditingId);
+  if(servicePartsEditingId!==null&&!record)return alert('Servis kaydı bulunamadı.');
+  if(!checkServiceStock(record?.stockParts||[],servicePartsWorking))return;
+  if(record){
+    const basePrice=serviceBasePrice(record);
+    applyServiceStock(record.stockParts||[],servicePartsWorking);
+    record.stockParts=JSON.parse(JSON.stringify(servicePartsWorking));record.labor=labor;record.basePrice=basePrice;record.price=basePrice+labor+servicePartsSum(record.stockParts);save();
+  }else{serviceDraftParts=JSON.parse(JSON.stringify(servicePartsWorking));document.getElementById('serviceLabor').value=labor;renderServiceDraftTotal()}
+  document.getElementById('servicePartsDialog').close();
+}
+function editServicePrice(id){const s=data.services.find(s=>s.id===id);if(!s)return;const raw=prompt('Ek servis ücreti (parça ve işçilik hariç):',serviceBasePrice(s));if(raw===null)return;const value=Number(raw.replace(',','.'));if(!Number.isFinite(value)||value<0)return alert('Ücreti kontrol et.');s.basePrice=value;s.price=value+(Number(s.labor)||0)+servicePartsSum(s.stockParts);save()}
+
+let serviceSaving=false;
 function addService(){
+  if(serviceSaving)return;
   let customerId=document.getElementById("serviceCustomer")?.value||"";
   let firstName=(document.getElementById("serviceFirstName")?.value||"").trim();
   let lastName=(document.getElementById("serviceLastName")?.value||"").trim();
@@ -2555,20 +2731,29 @@ function addService(){
   if(!device||!fault||!model)return alert("Cihaz, model ve arıza bilgilerini gir.");
   let workDays=selectedServiceDays(),due=isoLocal(addBusinessDays(new Date(),workDays)),file=document.getElementById("serviceImage")?.files?.[0];
   let customer=(firstName+" "+lastName).trim();
+  const stockParts=JSON.parse(JSON.stringify(serviceDraftParts)),labor=Number(document.getElementById("serviceLabor").value),basePrice=Number(servicePrice.value);
+  if(!Number.isFinite(labor)||labor<0||!Number.isFinite(basePrice)||basePrice<0)return alert("İşçilik ve servis ücretini kontrol et.");
+  if(!checkServiceStock([],stockParts))return;
+  serviceSaving=true;
   let finish=image=>{
-    data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customerId:customerId||null,customer,firstName,lastName,phone,category,brand,device,model,fault,sparePart,due,workDays,price:+servicePrice.value||0,status:serviceStatus.value,image:image||""});
+    serviceSaving=false;
+    if(!checkServiceStock([],stockParts))return;
+    applyServiceStock([],stockParts);
+    data.services.unshift({id:Date.now(),no:"SRV-"+String(Date.now()).slice(-6),customerId:customerId||null,customer,firstName,lastName,phone,category,brand,device,model,fault,sparePart,due,workDays,stockParts,labor,basePrice,price:basePrice+labor+servicePartsSum(stockParts),status:serviceStatus.value,image:image||""});
     document.getElementById("serviceFirstName").value="";
     document.getElementById("serviceLastName").value="";
     document.getElementById("servicePhone").value="";
     document.getElementById("serviceSparePart").value="";
+    serviceDraftParts=[];document.getElementById("serviceLabor").value="0";
     serviceFault.value=serviceCustomModel.value="";
     let scd=document.getElementById("serviceCustomDevice");if(scd)scd.value="";
     serviceWorkDays.value="10";document.getElementById("serviceManualDays").value="1";
     updateServiceChoices();previewServiceDue();servicePrice.value="0";serviceStatus.value="Bekliyor";
+    renderServiceDraftTotal();
     if(document.getElementById("serviceImage"))document.getElementById("serviceImage").value="";
     save()
   };
-  if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.readAsDataURL(file)}else finish("")
+  if(file){let r=new FileReader();r.onload=e=>finish(e.target.result);r.onerror=()=>{serviceSaving=false;alert("Fotoğraf okunamadı. Tekrar dene.")};r.onabort=()=>{serviceSaving=false};r.readAsDataURL(file)}else finish("")
 }
 function editService(id){
   let x=data.services.find(s=>s.id===id);if(!x)return;
@@ -2584,13 +2769,13 @@ function editService(id){
   let fault=prompt("Arıza / Yapılacak İşlem:",x.fault||"");if(fault===null)return;
   let sparePart=prompt("Kullanılacak yedek parça:",x.sparePart||"");if(sparePart===null)return;
   let workDays=prompt("Teslim süresi (1, 3, 5, 10 veya manuel gün):",x.workDays||10);if(workDays===null)return;
-  let price=prompt("Servis ücreti:",x.price||0);if(price===null)return;
+  let price=prompt("Ek servis ücreti (parça ve işçilik hariç):",serviceBasePrice(x));if(price===null)return;
   let status=prompt("Durum: Bekliyor / İşlemde / Hazır / Teslim Edildi / İade",x.status||"Bekliyor");if(status===null)return;
   workDays=Number(workDays);price=Number(String(price).replace(",","."));
   if(!Number.isFinite(workDays)||workDays<1)return alert("Teslim süresini kontrol et.");
   if(!Number.isFinite(price)||price<0)return alert("Servis ücretini kontrol et.");
   let allowedStatus=["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"];if(!allowedStatus.includes(status))status=x.status||"Bekliyor";
-  Object.assign(x,{firstName,lastName,customer:(firstName+" "+lastName).trim(),phone,category:category.trim()||"Diğer",brand:brand.trim(),device:device.trim(),model:model.trim(),fault:fault.trim(),sparePart:sparePart.trim(),workDays,due:isoLocal(addBusinessDays(new Date(),workDays)),price,status});
+  Object.assign(x,{firstName,lastName,customer:(firstName+" "+lastName).trim(),phone,category:category.trim()||"Diğer",brand:brand.trim(),device:device.trim(),model:model.trim(),fault:fault.trim(),sparePart:sparePart.trim(),workDays,due:isoLocal(addBusinessDays(new Date(),workDays)),basePrice:price,price:price+(Number(x.labor)||0)+servicePartsSum(x.stockParts),status});
   save();alert("Teknik servis kaydı güncellendi.");
 }
 function sendServiceWhatsApp(id){
@@ -2603,7 +2788,7 @@ function sendServiceWhatsApp(id){
   window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(msg),"_blank","noopener,noreferrer");
 }
 function updateServiceStatus(id,val){let x=data.services.find(s=>s.id===id);if(x){x.status=val;save()}}
-function delService(id){if(confirm("Servis kaydı silinsin mi?")){data.services=data.services.filter(x=>x.id!==id);save()}}
+function delService(id){const x=data.services.find(s=>s.id===id);if(!x)return;if(confirm("Servis kaydı silinsin mi?")){if(x.stockParts?.length&&confirm("Bu kayıtta kullanılan yedek parçalar stoğa geri eklensin mi?"))applyServiceStock(x.stockParts,[]);data.services=data.services.filter(x=>x.id!==id);save()}}
 
 function resetData(){if(!requireManager())return;if(confirm("Tüm veriler silinsin mi?")){const auth=data.auth,settings=data.settings,dealers=data.dealers;data={products:[],customers:[],sales:[],groups:[],services:[],customerGroups:[],stockMovements:[],dealers,auth,settings};save()}}
 function saleDateObject(v){
@@ -2652,7 +2837,7 @@ if(stockGroupSelect){let oldStockGroup=stockGroupSelect.value;stockGroupSelect.i
 refreshStockProductOptions();
 stockRows.innerHTML=data.products.map(x=>`<tr><td>${productEscape(x.group||"Genel")}</td><td>${productEscape(x.name)}</td><td>${x.stock}</td><td><button onclick="addStock(${x.id})">➕ Stok Ekle</button></td></tr>`).join("");
 let stockHistoryRows=document.getElementById("stockHistoryRows");
-if(stockHistoryRows)stockHistoryRows.innerHTML=data.stockMovements.length?data.stockMovements.map(x=>`<tr><td>${x.date||"-"}</td><td>${x.productName||"-"}</td><td>+${x.qty}</td><td>${x.before}</td><td>${x.after}</td><td>${x.user||"-"}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">Henüz sonradan stok ekleme kaydı yok.</td></tr>`;
+if(stockHistoryRows)stockHistoryRows.innerHTML=data.stockMovements.length?data.stockMovements.map(x=>`<tr><td>${x.date||"-"}</td><td>${x.productName||"-"}</td><td>${Number(x.qty)>0?"+":""}${x.qty}</td><td>${x.before}</td><td>${x.after}</td><td>${x.user||"-"}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">Henüz stok hareketi yok.</td></tr>`;
 let po=data.products.map(x=>`<option value="${x.id}">${x.name} — ${money(x.price)}</option>`).join(""),co=data.customers.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
 if(typeof offerProduct!=="undefined"){let oldOfferProduct=offerProduct.value;offerProduct.innerHTML=po;if([...offerProduct.options].some(function(o){return o.value===oldOfferProduct}))offerProduct.value=oldOfferProduct}
 if(typeof offerCustomer!=="undefined"){let oldOfferCustomer=offerCustomer.value;offerCustomer.innerHTML=co;if([...offerCustomer.options].some(function(o){return o.value===oldOfferCustomer}))offerCustomer.value=oldOfferCustomer}
@@ -2674,9 +2859,9 @@ serviceRows.innerHTML=data.services.map(x=>`<tr>
 <td>${x.device||"-"}</td>
 <td>${x.model||"-"}</td>
 <td>${x.fault||"-"}</td>
-<td>${x.sparePart||"-"}</td>
+<td>${productEscape(x.sparePart||"")}${(x.stockParts||[]).map(p=>`<div>${productEscape(p.name)} × ${p.qty} — ${money(p.qty*p.unitPrice)}</div>`).join("")}${!x.sparePart&&!x.stockParts?.length?"-":""}<br><button onclick="openServiceParts(${x.id})">Parça / İşçilik</button></td>
 <td>${fmtDate(x.due)}${x.workDays?` (${x.workDays} iş günü)`:""}<br><button onclick="editServiceDue(${x.id})">📅 Tarih</button></td>
-<td>${money(x.price)}<br><button onclick="editServicePrice(${x.id})">💰 Ücret</button></td>
+<td>${money(x.price)}<div class="muted">Parça: ${money(servicePartsSum(x.stockParts))}<br>İşçilik: ${money(x.labor||0)}</div><br><button onclick="editServicePrice(${x.id})">💰 Ücret</button></td>
 <td><select onchange="updateServiceStatus(${x.id},this.value)">${["Bekliyor","İşlemde","Hazır","Teslim Edildi","İade"].map(st=>`<option ${x.status==st?"selected":""}>${st}</option>`).join("")}</select></td>
 <td><button class="edit" onclick="editService(${x.id})">✏️ Düzenle</button><button onclick="sendServiceWhatsApp(${x.id})">💬 WhatsApp</button><button onclick="pickServiceImage(${x.id})">📷 Fotoğraf</button><button onclick="printServiceBarcode(${x.id})">🖨️ Barkod</button><button class="danger" onclick="delService(${x.id})">Sil</button></td>
 </tr>`).join("");
@@ -2727,3 +2912,4 @@ heading('Teknik Servis Kayıtları');if(!services.length)line('Henüz teknik ser
 document.getElementById('customerDetailDialog').showModal();
 }
 </script></body></html>
+
