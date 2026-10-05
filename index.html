@@ -1432,12 +1432,31 @@ for(let code of codes){let pat=P[code];for(let ch of pat){let w=Number(ch)*2;if(
 return `<svg xmlns="http://www.w3.org/2000/svg" width="${x+10}" height="75" viewBox="0 0 ${x+10} 75"><rect width="100%" height="100%" fill="white"/>${rects}<text x="${(x+10)/2}" y="71" text-anchor="middle" font-family="Arial" font-size="10">${value.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text></svg>`
 }
 function printProductBarcode(id){
+  if(!data.products.some(x=>x.id===id))return;
+  let dialog=document.getElementById("productBarcodeDialog");
+  if(!dialog){
+    dialog=document.createElement("dialog");dialog.id="productBarcodeDialog";
+    dialog.setAttribute("aria-labelledby","productBarcodeTitle");
+    dialog.style.cssText="width:min(420px,94vw);border:0;border-radius:16px;padding:24px";
+    dialog.innerHTML='<form id="productBarcodeForm"><h2 id="productBarcodeTitle">Barkod Yazdır</h2><label for="productBarcodeCount">Etiket adedi</label><input id="productBarcodeCount" type="number" min="1" max="100" step="1" value="1" required><fieldset style="border:1px solid #d1d5db;border-radius:10px;padding:14px;margin-bottom:16px"><legend>Etikette satış fiyatı</legend><label style="display:block;margin-bottom:12px"><input type="radio" name="barcodePrice" value="show" checked style="width:auto;margin:0 8px 0 0">Fiyat görünsün</label><label style="display:block"><input type="radio" name="barcodePrice" value="hide" style="width:auto;margin:0 8px 0 0">Fiyat görünmesin</label></fieldset><div style="display:flex;gap:10px"><button class="btn" type="submit">Yazdır</button><button class="btn" type="button" id="productBarcodeCancel">Vazgeç</button></div></form>';
+    document.body.append(dialog);
+    document.getElementById("productBarcodeCancel").onclick=()=>dialog.close();
+  }
+  const form=document.getElementById("productBarcodeForm");form.reset();
+  form.onsubmit=event=>{
+    event.preventDefault();if(!form.reportValidity())return;
+    const count=Number(document.getElementById("productBarcodeCount").value);
+    const showPrice=form.querySelector('input[name="barcodePrice"]:checked').value==="show";
+    dialog.close();printProductBarcodeLabels(id,count,showPrice);
+  };
+  dialog.showModal();
+}
+function printProductBarcodeLabels(id,count,showPrice){
 let p=data.products.find(x=>x.id===id);if(!p)return;
+if(!Number.isInteger(count)||count<1||count>100)return;
 if(!p.code){p.code=generateBarcode();save()}
-let count=Number(prompt("Kaç adet barkod etiketi yazdırılsın?","1"));if(!Number.isFinite(count)||count<1)return;
-count=Math.min(100,Math.floor(count));
 let svg=code128Svg(p.code);if(!svg)return alert("Barkod oluşturulamadı.");
-let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}<div class="price">${money(p.price)}</div></div>`).join("");
+let labels=Array.from({length:count},()=>`<div class="label"><div class="name">${String(p.name).replace(/</g,"&lt;")}</div>${svg}${showPrice?`<div class="price">${money(p.price)}</div>`:""}</div>`).join("");
 let w=window.open("","_blank","width=600,height=700");if(!w)return alert("Yazdırma penceresi açılamadı.");
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Barkod Yazdır</title><style>@page{size:50mm 30mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.label{width:50mm;height:30mm;padding:2mm;text-align:center;page-break-after:always;overflow:hidden}.name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label svg{max-width:46mm;width:100%;height:17mm}.price{font-size:11px;font-weight:800;margin-top:-2mm}@media print{.label:last-child{page-break-after:auto}}</style></head><body>${labels}<script>setTimeout(()=>window.print(),300)<\/script>
 
