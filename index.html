@@ -2178,8 +2178,8 @@ function renderOfferEditor(){
   if(!offerItems.length){box.innerHTML='<div class="muted" style="font-size:12px">Henüz satır eklenmedi.</div>';return}
   box.innerHTML=offerItems.map(function(item,i){
     return '<div class="offer-editor-item"><b title="'+productEscape(item.description)+'">'+productEscape(item.description)+'</b>'+
-      '<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',\\'qty\\',this.value)">'+
-      '<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',\\'unitPrice\\',this.value)">'+
+      '<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',&quot;qty&quot;,this.value)">'+
+      '<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',&quot;unitPrice&quot;,this.value)">'+
       '<button type="button" onclick="removeOfferLine('+i+')" title="Satırı sil">×</button></div>';
   }).join("");
 }
