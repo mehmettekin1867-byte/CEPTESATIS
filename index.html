@@ -2412,6 +2412,62 @@ const serviceModels={
 "DJI":["Osmo","Mini","Mavic"]
 };
 const serviceCategoryModelOverrides={
+"Televizyon":{
+  "Samsung": [
+    "CU8000",
+    "Q60C",
+    "Q70C",
+    "QN90C",
+    "QN90F"
+  ],
+  "LG": [
+    "OLED TV",
+    "OLED evo",
+    "QNED TV",
+    "NanoCell TV",
+    "4K UHD TV"
+  ],
+  "Sony": [
+    "Bravia"
+  ],
+  "Philips": [
+    "Ambilight TV"
+  ],
+  "TCL": [
+    "C Series TV",
+    "P Series TV"
+  ],
+  "Vestel": [
+    "Smart TV",
+    "4K TV"
+  ],
+  "Arçelik": [
+    "Smart TV",
+    "4K TV"
+  ],
+  "Beko": [
+    "Smart TV",
+    "4K TV"
+  ],
+  "Grundig": [
+    "Smart TV",
+    "4K TV"
+  ],
+  "Regal": [
+    "Smart TV",
+    "4K TV"
+  ],
+  "Hisense": [
+    "U Series TV",
+    "A Series TV"
+  ],
+  "Xiaomi": [
+    "TV A 2026",
+    "TV A Pro 2026",
+    "TV MAX 2025",
+    "TV S Pro Mini LED 2026"
+  ]
+},
 "Telefon":{
 "Apple":["iPhone 11","iPhone 12","iPhone 13","iPhone 14","iPhone 15","iPhone 15 Pro","iPhone 16","iPhone 16 Pro"],
 "Samsung":["Galaxy A16","Galaxy A26","Galaxy A36","Galaxy A56","Galaxy S24","Galaxy S24 Ultra","Galaxy S25","Galaxy S25 Ultra","Galaxy Z Flip","Galaxy Z Fold"],
@@ -2448,7 +2504,9 @@ const serviceCategoryModelOverrides={
 };
 function updateServiceModels(){
 let cat=serviceCategory.value,brand=serviceBrand.value;
-let models=serviceCategoryModelOverrides[cat]?.[brand]||serviceModels[brand]||[];
+let models=cat==="Televizyon"
+  ? (serviceCategoryModelOverrides[cat]?.[brand]||[])
+  : (serviceCategoryModelOverrides[cat]?.[brand]||serviceModels[brand]||[]);
 serviceModel.innerHTML=(models.length?models.map(m=>`<option value="${m}">${m}</option>`).join(""):"")+`<option value="__custom__">Modeli kendim yazacağım</option>`;
 toggleCustomModel();
 }
