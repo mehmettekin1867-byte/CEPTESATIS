@@ -1093,12 +1093,10 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 </div>
 
 <div class="panel">
-  <h2>📝 Notlar Menüsü</h2>
-  <p class="muted">Sol menüdeki Notlar bölümünü açıp kapatabilirsin.</p>
-  <label class="notes-setting-toggle">
-    <input id="notesEnabledSetting" type="checkbox" onchange="setNotesEnabled(this.checked)">
-    <span>Notlar bölümü sol menüde görünsün</span>
-  </label>
+  <h2>Yan Menü Modülleri</h2>
+  <p class="muted">Ana yönetici ve yöneticiler yan menüdeki bölümleri açıp kapatabilir. Değişiklikler bu tarayıcıda kaydedilir; kayıtlı veriler silinmez. Mevcut kullanıcı yetkileri korunur.</p>
+  <div id="sidebarModuleSettings" class="permission-grid"></div>
+  <p class="muted">Bölümleri yeniden açabilmek için Ayarlar menüsü açık kalır.</p>
 </div>
 
 <div class="panel">
@@ -1173,10 +1171,42 @@ async function restoreCloudSession(){
 function getSession(){try{return JSON.parse(sessionStorage.getItem("ceptesatis_user")||"null")}catch(e){return null}}
 const SECTION_PERMISSIONS=["home","pricecheck","sales","customers","stock","service","offers","reports"];
 const SECTION_LABELS={home:"Ana Sayfa",pricecheck:"Fiyat Gör",sales:"Satış Yap",customers:"Cari",stock:"Stok",service:"Teknik Servis",offers:"Teklif",reports:"Raporlar",products:"Stok",groups:"Stok",receivables:"Cari"};
+const SIDEBAR_MODULES=[...SECTION_PERMISSIONS,"notes","dealers"];
+function isSidebarModuleEnabled(page){
+  if(page==="products"||page==="groups")page="stock";
+  if(page==="receivables")page="customers";
+  if(page==="notes")return data.settings.notesEnabled!==false;
+  return data.settings.sidebarModules?.[page]!==false;
+}
+function renderSidebarModuleSettings(){
+  const box=document.getElementById("sidebarModuleSettings");
+  if(!box)return;
+  box.replaceChildren();
+  if(!isManager())return;
+  SIDEBAR_MODULES.forEach(page=>{
+    const label=document.createElement("label"),input=document.createElement("input"),text=document.createElement("span");
+    input.type="checkbox";input.checked=isSidebarModuleEnabled(page);
+    input.onchange=()=>setSidebarModuleEnabled(page,input.checked);
+    text.textContent=SECTION_LABELS[page]||({notes:"Notlar",dealers:"Kullanıcı"})[page];
+    label.append(input,text);box.append(label);
+  });
+}
+function setSidebarModuleEnabled(page,enabled){
+  if(!requireManager()){renderSidebarModuleSettings();return}
+  if(!SIDEBAR_MODULES.includes(page))return;
+  if(page==="notes")data.settings.notesEnabled=!!enabled;
+  else{
+    if(!data.settings.sidebarModules)data.settings.sidebarModules={};
+    data.settings.sidebarModules[page]=!!enabled;
+  }
+  localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+  applySettingsUI();applyUserUI();
+}
 function effectivePermissions(s=getSession()){if(!s)return[];if(s.isMain)return [...SECTION_PERMISSIONS];return Array.isArray(s.permissions)&&s.permissions.length?s.permissions:[...SECTION_PERMISSIONS]}
 function canAccessSection(page){
   let s=getSession();if(!s)return false;
-  if(page==="notes")return data.settings.notesEnabled!==false;
+  if(!isSidebarModuleEnabled(page))return false;
+  if(page==="notes")return true;
   if(s.isMain)return true;
   if(page==="settings")return s.role==="manager";
   if(page==="dealers")return s.role==="manager";
@@ -1193,6 +1223,7 @@ function isManager(){let s=getSession();return !!s&&(s.isMain||s.role==="manager
 function requireMainManager(){if(isMainManager())return true;alert("Bu işlem yalnızca Ana Yöneticiye açıktır.");return false}
 function requireManager(){if(isManager())return true;alert("Bu işlem yalnızca yöneticilere açıktır.");return false}
 function applyUserUI(){
+renderSidebarModuleSettings();
 let s=getSession(),n=document.getElementById("activeUserName"),r=document.getElementById("activeUserRole");
 if(n)n.textContent=s?(s.name||s.username||"-"):"-";
 if(r)r.textContent=s?(s.isMain?"ANA YÖNETİCİ":(s.role==="manager"?"YÖNETİCİ":"PERSONEL")):"";
@@ -1222,15 +1253,7 @@ function openDealersPage(){if(!requireManager())return;let b=document.querySelec
 function refreshRecords(){location.reload()}
 function saveCompanyLogo(file){if(!requireManager())return;if(!file)return;let r=new FileReader();r.onload=e=>{data.settings.companyLogo=e.target.result;save();applySettingsUI()};r.readAsDataURL(file)}
 function saveBarcodeSettings(){if(!requireMainManager())return;data.settings.barcodePrefix=(document.getElementById("barcodePrefix")?.value||"UST").trim()||"UST";data.settings.autoBarcode=!!document.getElementById("autoBarcode")?.checked;save();alert("Barkod ayarları kaydedildi.")}
-function setNotesEnabled(enabled){
-  if(!requireManager()){let t=document.getElementById("notesEnabledSetting");if(t)t.checked=data.settings.notesEnabled!==false;return}
-  data.settings.notesEnabled=!!enabled;
-  localStorage.setItem("ceptesatis_data",JSON.stringify(data));
-  applySettingsUI();applyUserUI();
-  if(!enabled&&document.getElementById("notes")?.classList.contains("active")){
-    let homeBtn=document.querySelector('.nav button[data-page="home"]');if(homeBtn)homeBtn.click();
-  }
-}
+function setNotesEnabled(enabled){setSidebarModuleEnabled("notes",enabled)}
 let noteEditId=null;
 function resetNoteForm(){
   noteEditId=null;
@@ -1427,6 +1450,7 @@ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Servis
 </body></html>`);w.document.close()
 }
 function applySettingsUI(){
+  renderSidebarModuleSettings();
   let logo=document.getElementById("companyLogo");
   if(logo){if(data.settings.companyLogo){logo.src=data.settings.companyLogo;logo.style.display="block"}else logo.style.display="none"}
   let bp=document.getElementById("barcodePrefix"),ab=document.getElementById("autoBarcode"),notesToggle=document.getElementById("notesEnabledSetting");
