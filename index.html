@@ -1018,7 +1018,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 <div><label>Yetkili</label><input id="dealerOwner" placeholder="Yetkili kişi"></div>
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
-<div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="Şifre" style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
+<div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="En fazla 6 karakter, noktalama zorunlu" maxlength="6" autocomplete="new-password" title="Şifre en fazla 6 karakter olmalı ve en az bir noktalama işareti (! . , ? gibi) içermeli." style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
 <div><label>Yetki Seviyesi</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select><div class="manager-note">Normal yöneticiler yalnızca Personel hesabı oluşturabilir.</div></div>
 </div>
 <div class="permission-box"><h3>Erişebileceği Bölümler</h3>
@@ -1248,6 +1248,11 @@ const money=n=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).
 function setTheme(theme){localStorage.setItem("ceptesatis_theme",theme);document.body.classList.toggle("dark",theme==="dark")}
 setTheme(localStorage.getItem("ceptesatis_theme")||"light");
 function save(){localStorage.setItem("ceptesatis_data",JSON.stringify(data));render()}
+function validNewPassword(password) {
+  return password.length > 0 && Array.from(password).length <= 6 && /\p{P}/u.test(password);
+}
+
+const PASSWORD_RULE_MESSAGE="Şifre en fazla 6 karakter olmalı ve en az bir noktalama işareti (! . , ? gibi) içermeli.";
 function togglePassword(id,btn){let el=document.getElementById(id);if(!el)return;el.type=el.type==="password"?"text":"password";if(btn)btn.textContent=el.type==="password"?"👁️":"🙈"}
 function openDealersPage(){if(!requireManager())return;let b=document.querySelector('.nav button[data-page="dealers"]');if(b)b.click()}
 function refreshRecords(){location.reload()}
@@ -1497,6 +1502,7 @@ if(!requireManager())return;
 let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(dealerRole.value||"personel"):"personel";
 let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
 if(!name||!user||!pass)return alert("Ad Soyad / Firma, kullanıcı adı ve şifre gir.");
+if(!validNewPassword(pass))return alert(PASSWORD_RULE_MESSAGE);
 if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
 try{
 await cloudApi("create_dealer",{name,owner,phone,username:user,password:pass,role,permissions});
@@ -1507,7 +1513,7 @@ alert("Kullanıcı oluşturuldu. Artık internet olan her cihazdan giriş yapabi
 }catch(e){alert(e.message||"Kullanıcı oluşturulamadı.")}
 }
 async function delDealer(id){if(!requireMainManager())return;if(confirm("Kullanıcı silinsin mi?")){try{await cloudApi("delete_dealer",{id});await refreshCloudDealers()}catch(e){alert(e.message)}}}
-async function editDealerPassword(id){if(!requireMainManager())return;let p=prompt("Yeni şifreyi gir:","");if(p===null)return;p=p.trim();if(!p)return alert("Şifre boş olamaz.");try{await cloudApi("set_password",{id,password:p});alert("Kullanıcı şifresi güncellendi.")}catch(e){alert(e.message)}}
+async function editDealerPassword(id){if(!requireMainManager())return;let p=prompt("Yeni şifre (en fazla 6 karakter, en az bir noktalama işareti):","");if(p===null)return;p=p.trim();if(!validNewPassword(p))return alert(PASSWORD_RULE_MESSAGE);try{await cloudApi("set_password",{id,password:p});alert("Kullanıcı şifresi güncellendi.")}catch(e){alert(e.message)}}
 function toggleDealerPassword(id){alert("Güvenlik nedeniyle buluttaki şifre görüntülenmez. İstersen Şifre Düzenle ile yeni şifre belirleyebilirsin.")}
 let dealerPermissionEditId=null;
 function editDealerPermissions(id){
