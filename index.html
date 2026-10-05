@@ -345,6 +345,14 @@ body.dark .pricecheck-product{background:#172033;border-color:#31425f}body.dark 
 .quick-sale-products{display:flex;gap:8px;flex-wrap:wrap}
 .quick-sale-products button{border:1px solid #dbe3ef;background:#fff;border-radius:13px;padding:10px 13px;cursor:pointer;font-weight:700}
 body.dark .quick-sale-products button{background:#111827;color:#f3f4f6;border-color:#374151}
+.role-choices{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0}
+.role-choices label{display:flex;align-items:center;gap:8px;padding:12px;border:1px solid #94a3b8;border-radius:10px;cursor:pointer}
+.role-choices label[hidden]{display:none}
+.role-choices input{width:20px;height:20px;margin:0;accent-color:#2563eb}
+#dealerRoleDialog{width:min(420px,92vw);border:0;border-radius:16px;padding:24px}
+#dealerRoleDialog::backdrop{background:#0008}
+.role-actions{display:flex;gap:10px;margin-top:16px}
+body.dark #dealerRoleDialog{background:#1f2937;color:#f8fafc}
 </style>
 
 <style>
@@ -1033,7 +1041,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 <div><label>Telefon</label><input id="dealerPhone" placeholder="Telefon"></div>
 <div><label>Kullanıcı Adı</label><input id="dealerUser" placeholder="Kullanıcı adı"></div>
 <div><label>Şifre</label><div style="position:relative"><input id="dealerPass" type="password" placeholder="En fazla 10 karakter, noktalama zorunlu" maxlength="10" autocomplete="new-password" title="Şifre en fazla 10 karakter olmalı ve en az bir noktalama işareti (! . , ? gibi) içermeli." style="padding-right:48px"><button type="button" aria-label="Şifreyi göster/gizle" onclick="togglePassword('dealerPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:20px;padding:6px">👁️</button></div></div>
-<div><label>Yetki Seviyesi</label><select id="dealerRole"><option value="personel">Personel</option><option value="manager">Yönetici</option></select><div class="manager-note">Normal yöneticiler yalnızca Personel hesabı oluşturabilir.</div></div>
+<div><label>Yetki Seviyesi</label><div id="dealerRole" class="role-choices"><label><input type="radio" name="dealerRoleChoice" value="personel" checked> Personel</label><label><input type="radio" name="dealerRoleChoice" value="manager"> Yönetici</label></div><div class="manager-note">Normal yöneticiler yalnızca Personel hesabı oluşturabilir.</div></div>
 </div>
 <div class="permission-box"><h3>Erişebileceği Bölümler</h3>
 <div class="permission-grid">
@@ -1266,8 +1274,9 @@ if(md)md.style.display=isMainManager()?"block":"none";
 let ibanManagerBox=document.getElementById("saleIbanManagerBox");if(ibanManagerBox)ibanManagerBox.style.display=isManager()?"block":"none";
 let dealerRoleSelect=document.getElementById("dealerRole");
 if(dealerRoleSelect){
-  dealerRoleSelect.innerHTML=isMainManager()?'<option value="personel">Personel</option><option value="manager">Yönetici</option>':'<option value="personel">Personel</option>';
-  dealerRoleSelect.value="personel";
+  dealerRoleSelect.querySelector('[value="manager"]').closest("label").hidden=!isMainManager();
+  dealerRoleSelect.querySelector('[value="manager"]').disabled=!isMainManager();
+  dealerRoleSelect.querySelector('[value="personel"]').checked=true;
 }
 let active=document.querySelector(".nav button.active");
 if(active&&active.style.display==="none"){active.classList.remove("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));let first=[...document.querySelectorAll(".nav button[data-page]")].find(x=>x.style.display!=="none");if(first){first.classList.add("active");document.getElementById(first.dataset.page)?.classList.add("active")}}
@@ -1571,14 +1580,14 @@ async function logout(){try{await cloudApi("logout")}catch(e){}sessionStorage.re
 function saveLoginSettings(){alert("Giriş bilgileri bulut hesabından yönetilir.")}
 async function addDealer(){
 if(!requireManager())return;
-let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(dealerRole.value||"personel"):"personel";
+let name=dealerName.value.trim(),owner=dealerOwner.value.trim(),phone=dealerPhone.value.trim(),user=dealerUser.value.trim(),pass=dealerPass.value.trim(),role=isMainManager()?(document.querySelector('input[name="dealerRoleChoice"]:checked')?.value||"personel"):"personel";
 let permissions=[...document.querySelectorAll(".dealer-permission:checked")].map(x=>x.value);
 if(!name||!user||!pass)return alert("Ad Soyad / Firma, kullanıcı adı ve şifre gir.");
 if(!validNewPassword(pass))return alert(PASSWORD_RULE_MESSAGE);
 if(!permissions.length)return alert("En az bir bölüm yetkisi seç.");
 try{
 await cloudApi("create_dealer",{name,owner,phone,username:user,password:pass,role,permissions});
-dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";dealerRole.value="personel";
+dealerName.value=dealerOwner.value=dealerPhone.value=dealerUser.value=dealerPass.value="";document.querySelector('input[name="dealerRoleChoice"][value="personel"]').checked=true;
 document.querySelectorAll(".dealer-permission").forEach(x=>x.checked=true);
 await refreshCloudDealers();
 alert("Kullanıcı oluşturuldu. Artık internet olan her cihazdan giriş yapabilir.");
@@ -1615,9 +1624,39 @@ async function saveDealerPermissions(){
     alert("Yetkiler kaydedildi.");
   }catch(e){alert(e.message||"Yetkiler kaydedilemedi.")}
 }
-async function editDealerRole(id){
-if(!requireMainManager())return;let makeManager=confirm("Bu kullanıcı Yönetici olsun mu?\nTamam = Yönetici\nİptal = Personel");
-try{await cloudApi("set_role",{id,role:makeManager?"manager":"personel"});await refreshCloudDealers()}catch(e){alert(e.message)}
+function editDealerRole(id){
+  if(!requireMainManager())return;
+  const dealer=data.dealers.find(x=>String(x.id)===String(id));if(!dealer)return;
+  let dialog=document.getElementById("dealerRoleDialog");
+  if(!dialog){
+    dialog=document.createElement("dialog");dialog.id="dealerRoleDialog";
+    dialog.innerHTML='<form method="dialog"><h2 id="dealerRoleTitle">Seviye Seç</h2><p id="dealerRoleName"></p><div class="role-choices"><label><input type="radio" name="editDealerRoleChoice" value="personel"> Personel</label><label><input type="radio" name="editDealerRoleChoice" value="manager"> Yönetici</label></div><p id="dealerRoleStatus" role="status"></p><div class="role-actions"><button class="btn" type="button" id="dealerRoleConfirm" onclick="saveDealerRole()">Onayla</button><button type="submit" id="dealerRoleCancel">Vazgeç</button></div></form>';
+    dialog.setAttribute("aria-labelledby","dealerRoleTitle");document.body.appendChild(dialog);
+    dialog.addEventListener("cancel",event=>{if(dialog.dataset.saving==="true")event.preventDefault()});
+  }
+  dialog.dataset.dealerId=String(id);
+  document.getElementById("dealerRoleName").textContent=dealer.name||dealer.user||"Kullanıcı";
+  dialog.querySelector('input[value="'+(dealer.role==="manager"?"manager":"personel")+'"]').checked=true;
+  document.getElementById("dealerRoleStatus").textContent="";
+  dialog.showModal();
+}
+async function saveDealerRole(){
+  if(!requireMainManager())return;
+  const dialog=document.getElementById("dealerRoleDialog");
+  if(!dialog||!dialog.open||dialog.dataset.saving==="true")return;
+  const role=dialog.querySelector('input[name="editDealerRoleChoice"]:checked')?.value;
+  if(!["personel","manager"].includes(role))return;
+  const id=dialog.dataset.dealerId;
+  dialog.dataset.saving="true";
+  dialog.querySelectorAll("input,button").forEach(x=>x.disabled=true);
+  const status=document.getElementById("dealerRoleStatus");status.textContent="Kaydediliyor…";
+  try{
+    await cloudApi("set_role",{id,role});
+    const dealer=data.dealers.find(x=>String(x.id)===id);if(dealer)dealer.role=role;
+    render();dialog.close();
+    try{await refreshCloudDealers()}catch(e){alert("Seviye kaydedildi ancak liste yenilenemedi. Sayfayı yenileyebilirsin.")}
+  }catch(e){status.textContent=e.message||"Seviye kaydedilemedi. Tekrar deneyebilirsin."}
+  finally{dialog.dataset.saving="false";dialog.querySelectorAll("input,button").forEach(x=>x.disabled=false)}
 }
 
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{if(!canAccessSection(b.dataset.page))return alert("Bu bölüme erişim yetkin yok.");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");setTimeout(focusBarcodeScanner,80)});
