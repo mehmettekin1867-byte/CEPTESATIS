@@ -425,6 +425,21 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 @media(max-width:560px){.note-card-top{gap:8px}.note-card-actions{flex-direction:column}.note-card-actions button{padding:7px 8px;font-size:12px}}
 </style>
 
+
+<style>
+/* --- CEPTE SATIŞ / Fiyat Teklif --- */
+.offer-shell{max-width:1240px;margin:0 auto}.offer-page-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.offer-page-head h1{margin:2px 0 4px}.offer-page-head p{margin:0;color:#6b7280}.offer-kicker{font-size:12px;font-weight:900;letter-spacing:.14em;color:#2563eb}.offer-head-actions{display:flex;gap:8px;flex-wrap:wrap}.offer-workspace{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}.offer-controls{display:grid;gap:12px}.offer-control-card{margin-top:0}.offer-control-card h2{font-size:18px;margin:0 0 12px}.offer-control-card textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;margin:6px 0 12px;resize:vertical;font:inherit}.offer-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.offer-add-line{width:100%}.offer-items-editor{display:grid;gap:7px;margin-top:12px}.offer-editor-item{display:grid;grid-template-columns:minmax(0,1fr) 74px 96px 34px;gap:6px;align-items:center;padding:8px;border:1px solid #e5e7eb;border-radius:11px;background:#f8fafc}.offer-editor-item b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.offer-editor-item input{margin:0;padding:8px;font-size:12px}.offer-editor-item button{height:34px;border:0;border-radius:9px;background:#fee2e2;color:#b91c1c;font-weight:900;cursor:pointer}.offer-preview-wrap{overflow:auto;padding:2px 2px 24px}.offer-paper{width:min(794px,100%);min-height:1080px;margin:0 auto;background:#fff;color:#1f2937;padding:48px 52px 42px;border:1px solid #e5e7eb;border-radius:4px;box-shadow:0 18px 45px #0f172a18}.offer-paper-header{display:grid;grid-template-columns:82px minmax(0,1fr);gap:18px;align-items:center}.offer-paper-logo{width:74px;height:74px;border-radius:50%;border:1px solid #cbd5e1;display:grid;place-items:center;overflow:hidden;background:#f8fafc;font-size:18px;font-weight:900;color:#2563eb}.offer-paper-logo img{width:100%;height:100%;object-fit:contain}.offer-company-block h2{margin:0 0 8px;font-size:29px;letter-spacing:.02em}.offer-company-block div{font-size:12px;line-height:1.55;text-transform:uppercase;color:#4b5563}.offer-separator{height:1px;background:#e5e7eb;margin:28px 0 24px}.offer-title-row h3{margin:0 0 18px;font-size:19px}.offer-title-row p{margin:5px 0;font-size:12px;color:#4b5563}.offer-title-row p b{color:#374151}.offer-paper-table{width:100%;margin-top:34px;border-collapse:collapse}.offer-paper-table th{background:transparent;color:#374151;border-bottom:1px solid #d1d5db;padding:10px 8px;font-size:12px;text-align:right}.offer-paper-table th:first-child{text-align:left}.offer-paper-table td{padding:13px 8px;border-bottom:1px solid #f0f1f3;font-size:12px;text-align:right}.offer-paper-table td:first-child{text-align:left;font-weight:700}.offer-empty-row{text-align:center!important;color:#9ca3af!important;font-weight:400!important;padding:32px!important}.offer-totals{width:300px;margin:30px 0 0 auto;font-size:12px}.offer-totals>div{display:flex;justify-content:space-between;gap:20px;padding:4px 0}.offer-grand-total{font-size:18px;font-weight:900;margin-top:7px;padding-top:10px!important;border-top:1px solid #d1d5db}.offer-grand-total b{font-size:20px}.offer-paper-note{margin-top:22px;font-size:11px;color:#6b7280}.dark .offer-control-card textarea{background:#111827;color:#f3f4f6;border-color:#374151}.dark .offer-editor-item{background:#111827;border-color:#374151}.dark .offer-page-head p{color:#aeb8c7}.dark .offer-paper{color:#1f2937!important;background:#fff!important}.dark .offer-paper *{color:inherit}.dark .offer-company-block div,.dark .offer-title-row p,.dark .offer-paper-note{color:#4b5563!important}
+@media(max-width:1050px){.offer-workspace{grid-template-columns:1fr}.offer-controls{grid-template-columns:1fr 1fr}.offer-preview-wrap{grid-column:1/-1}}@media(max-width:700px){.offer-page-head{flex-direction:column}.offer-head-actions{width:100%}.offer-head-actions .btn{flex:1}.offer-controls{grid-template-columns:1fr}.offer-paper{min-height:0;padding:26px 20px}.offer-paper-header{grid-template-columns:64px 1fr;gap:12px}.offer-paper-logo{width:58px;height:58px}.offer-company-block h2{font-size:22px}.offer-paper-table th,.offer-paper-table td{padding:9px 5px;font-size:10px}.offer-totals{width:min(280px,100%)}.offer-editor-item{grid-template-columns:1fr 62px 86px 32px}}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff!important}
+  body *{visibility:hidden!important}
+  #offerPrintArea,#offerPrintArea *{visibility:visible!important}
+  #offerPrintArea{position:absolute!important;left:0!important;top:0!important;width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 15mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#111827!important}
+  #offerPrintArea .offer-paper-table{min-width:0!important}
+}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login-screen">
@@ -654,9 +669,110 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
 </div>
 </section>
 
-<section id="offers" class="page"><h1>Teklif Hazırla</h1>
-<div class="panel"><div class="grid"><div><label>Müşteri</label><select id="offerCustomer"></select></div><div><label>Ürün</label><select id="offerProduct"></select></div><div><label>Adet</label><input id="offerQty" type="number" value="1" min="1"></div><div><label>İskonto (%)</label><input id="discount" type="number" value="0" min="0" max="100"></div></div>
-<button class="btn" onclick="calculateOffer()">Teklifi Hesapla</button><div id="offerResult" class="total">Toplam: ₺0</div><button class="btn" onclick="window.print()">Yazdır / PDF Kaydet</button></div></section>
+<section id="offers" class="page">
+  <div class="offer-shell">
+    <div class="offer-page-head">
+      <div>
+        <div class="offer-kicker">FİYAT TEKLİFİ</div>
+        <h1>Teklif Hazırla</h1>
+        <p>Ürünleri ekle; sağ tarafta A4 teklif ön izlemesi anında oluşsun.</p>
+      </div>
+      <div class="offer-head-actions">
+        <button class="btn" type="button" onclick="newOffer()">＋ Yeni Teklif</button>
+        <button class="btn" type="button" onclick="printOffer()">🖨️ Yazdır / PDF</button>
+      </div>
+    </div>
+
+    <div class="offer-workspace">
+      <div class="offer-controls">
+        <div class="panel offer-control-card">
+          <h2>Firma Bilgileri</h2>
+          <label>Firma Adı</label>
+          <input id="offerCompanyName" placeholder="Firma adı" oninput="renderOfferPreview()">
+          <label>Adres</label>
+          <textarea id="offerCompanyAddress" rows="3" placeholder="Firma adresi" oninput="renderOfferPreview()"></textarea>
+          <label>Telefon</label>
+          <input id="offerCompanyPhone" placeholder="Telefon" oninput="renderOfferPreview()">
+          <button class="btn small" type="button" onclick="saveOfferCompanySettings()">Firma Bilgilerini Kaydet</button>
+        </div>
+
+        <div class="panel offer-control-card">
+          <h2>Teklif Bilgileri</h2>
+          <label>Müşteri</label>
+          <select id="offerCustomer" onchange="renderOfferPreview()"></select>
+          <div class="offer-control-grid">
+            <div><label>Teklif No</label><input id="offerNumber" oninput="renderOfferPreview()"></div>
+            <div><label>Tarih</label><input id="offerDate" type="date" oninput="renderOfferPreview()"></div>
+          </div>
+          <div class="offer-control-grid">
+            <div><label>Geçerlilik (Gün)</label><input id="offerValidity" type="number" min="1" value="7" oninput="renderOfferPreview()"></div>
+            <div><label>İskonto (%)</label><input id="offerDiscount" type="number" min="0" max="100" step="0.01" value="0" oninput="renderOfferPreview()"></div>
+          </div>
+        </div>
+
+        <div class="panel offer-control-card">
+          <h2>Ürün / Hizmet Ekle</h2>
+          <label>Kayıtlı Ürün</label>
+          <select id="offerProduct" onchange="syncOfferProductFields()"></select>
+          <label>Açıklama</label>
+          <input id="offerLineDesc" placeholder="Ürün veya hizmet açıklaması">
+          <div class="offer-control-grid">
+            <div><label>Adet</label><input id="offerQty" type="number" value="1" min="0.01" step="0.01"></div>
+            <div><label>Birim Fiyat (₺)</label><input id="offerUnitPrice" type="number" value="0" min="0" step="0.01"></div>
+          </div>
+          <button class="btn offer-add-line" type="button" onclick="addOfferLine()">＋ Teklife Ekle</button>
+          <div id="offerItemsEditor" class="offer-items-editor"></div>
+        </div>
+
+        <div class="panel offer-control-card">
+          <h2>Alt Not</h2>
+          <textarea id="offerNote" rows="3" placeholder="Örn: Bu belge fiyat teklifidir." oninput="renderOfferPreview()"></textarea>
+        </div>
+      </div>
+
+      <div class="offer-preview-wrap">
+        <div id="offerPrintArea" class="offer-paper">
+          <div class="offer-paper-header">
+            <div id="offerPreviewLogo" class="offer-paper-logo"><span>CS</span></div>
+            <div class="offer-company-block">
+              <h2 id="offerPreviewCompany">FİRMA ADI</h2>
+              <div id="offerPreviewAddress">Firma adresi</div>
+              <div id="offerPreviewPhone">Telefon</div>
+            </div>
+          </div>
+
+          <div class="offer-separator"></div>
+
+          <div class="offer-title-row">
+            <div>
+              <h3>Fiyat Teklifi - <span id="offerPreviewNo">TKL-00001</span></h3>
+              <p><b>Müşteri:</b> <span id="offerPreviewCustomer">-</span></p>
+              <p><b>Tarih:</b> <span id="offerPreviewDate">-</span></p>
+              <p><b>Geçerlilik:</b> <span id="offerPreviewValidity">7 Gün</span></p>
+            </div>
+          </div>
+
+          <table class="offer-paper-table">
+            <thead>
+              <tr><th>Açıklama</th><th>Adet</th><th>Birim Fiyat</th><th>Tutar</th></tr>
+            </thead>
+            <tbody id="offerPreviewRows">
+              <tr><td colspan="4" class="offer-empty-row">Teklife henüz ürün veya hizmet eklenmedi.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="offer-totals">
+            <div><span>Ara Toplam:</span><b id="offerPreviewSubtotal">₺0,00</b></div>
+            <div><span>İskonto:</span><b id="offerPreviewDiscount">₺0,00</b></div>
+            <div class="offer-grand-total"><span>Genel Toplam:</span><b id="offerPreviewTotal">₺0,00</b></div>
+          </div>
+
+          <div id="offerPreviewNote" class="offer-paper-note">Bu belge fiyat teklifidir.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 
 <section id="service" class="page"><h1>Teknik Servis</h1>
@@ -1976,7 +2092,150 @@ function stopSaleScanner(){
   if(video)video.srcObject=null;if(panel)panel.style.display="none";
 }
 
-function calculateOffer(){let p=data.products.find(x=>x.id==offerProduct.value),q=+offerQty.value,d=+discount.value;if(!p)return alert("Ürün seç.");let t=p.price*q*(1-d/100);offerResult.textContent="Toplam: "+money(t)}
+let offerItems=[];
+let offerInitialized=false;
+
+function offerToday(){
+  let d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function offerDisplayDate(v){
+  if(!v)return "-";
+  let p=String(v).split("-");
+  return p.length===3?p[2]+"."+p[1]+"."+p[0]:v;
+}
+function getOfferSequence(){
+  let n=Number(localStorage.getItem("ceptesatis_offer_seq")||"1");
+  return Number.isFinite(n)&&n>0?n:1;
+}
+function formatOfferNo(n){return "TKL-"+String(n).padStart(5,"0")}
+function initOfferUI(){
+  let customer=document.getElementById("offerCustomer"),product=document.getElementById("offerProduct");
+  if(!customer||!product)return;
+  if(!offerInitialized){
+    let s=data.settings||{};
+    document.getElementById("offerCompanyName").value=s.offerCompanyName||"FİRMA ADI";
+    document.getElementById("offerCompanyAddress").value=s.offerCompanyAddress||"";
+    document.getElementById("offerCompanyPhone").value=s.offerCompanyPhone||"";
+    document.getElementById("offerValidity").value=Number(s.offerValidity||7);
+    document.getElementById("offerNote").value=s.offerNote||"Bu belge fiyat teklifidir.";
+    document.getElementById("offerDate").value=offerToday();
+    document.getElementById("offerNumber").value=formatOfferNo(getOfferSequence());
+    offerInitialized=true;
+  }
+  syncOfferProductFields();
+  renderOfferPreview();
+}
+function saveOfferCompanySettings(){
+  if(!data.settings)data.settings={};
+  data.settings.offerCompanyName=(document.getElementById("offerCompanyName").value||"").trim();
+  data.settings.offerCompanyAddress=(document.getElementById("offerCompanyAddress").value||"").trim();
+  data.settings.offerCompanyPhone=(document.getElementById("offerCompanyPhone").value||"").trim();
+  data.settings.offerValidity=Math.max(1,Number(document.getElementById("offerValidity").value)||7);
+  data.settings.offerNote=(document.getElementById("offerNote").value||"").trim();
+  localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+  renderOfferPreview();
+  alert("Teklif firma bilgileri kaydedildi.");
+}
+function syncOfferProductFields(){
+  let productEl=document.getElementById("offerProduct");
+  if(!productEl)return;
+  let p=data.products.find(function(x){return String(x.id)===String(productEl.value)});
+  let desc=document.getElementById("offerLineDesc"),price=document.getElementById("offerUnitPrice");
+  if(p){
+    if(desc)desc.value=p.name||"";
+    if(price)price.value=Number(p.price||0);
+  }else{
+    if(desc&&!desc.value)desc.value="";
+    if(price)price.value=Number(price.value||0);
+  }
+}
+function addOfferLine(){
+  let desc=(document.getElementById("offerLineDesc").value||"").trim();
+  let qty=Number(document.getElementById("offerQty").value||0);
+  let unit=Number(document.getElementById("offerUnitPrice").value||0);
+  let productId=document.getElementById("offerProduct").value||"";
+  if(!desc)return alert("Açıklama gir.");
+  if(!(qty>0))return alert("Adet 0'dan büyük olmalı.");
+  if(unit<0||!Number.isFinite(unit))return alert("Birim fiyatı kontrol et.");
+  offerItems.push({productId:productId,description:desc,qty:qty,unitPrice:unit});
+  document.getElementById("offerQty").value="1";
+  renderOfferPreview();
+}
+function removeOfferLine(index){
+  offerItems.splice(index,1);
+  renderOfferPreview();
+}
+function updateOfferLine(index,key,value){
+  let item=offerItems[index];if(!item)return;
+  let n=Number(value);
+  if(key==="qty")item.qty=n>0?n:0.01;
+  if(key==="unitPrice")item.unitPrice=n>=0?n:0;
+  renderOfferPreview(false);
+}
+function renderOfferEditor(){
+  let box=document.getElementById("offerItemsEditor");if(!box)return;
+  if(!offerItems.length){box.innerHTML='<div class="muted" style="font-size:12px">Henüz satır eklenmedi.</div>';return}
+  box.innerHTML=offerItems.map(function(item,i){
+    return '<div class="offer-editor-item"><b title="'+productEscape(item.description)+'">'+productEscape(item.description)+'</b>'+
+      '<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',\\'qty\\',this.value)">'+
+      '<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',\\'unitPrice\\',this.value)">'+
+      '<button type="button" onclick="removeOfferLine('+i+')" title="Satırı sil">×</button></div>';
+  }).join("");
+}
+function renderOfferPreview(updateEditor){
+  if(updateEditor!==false)renderOfferEditor();
+  let company=(document.getElementById("offerCompanyName")?.value||"FİRMA ADI").trim()||"FİRMA ADI";
+  let address=(document.getElementById("offerCompanyAddress")?.value||"").trim()||"Firma adresi";
+  let phone=(document.getElementById("offerCompanyPhone")?.value||"").trim()||"Telefon";
+  let no=(document.getElementById("offerNumber")?.value||"").trim()||formatOfferNo(getOfferSequence());
+  let date=document.getElementById("offerDate")?.value||offerToday();
+  let validity=Math.max(1,Number(document.getElementById("offerValidity")?.value)||7);
+  let discount=Math.min(100,Math.max(0,Number(document.getElementById("offerDiscount")?.value)||0));
+  let customerEl=document.getElementById("offerCustomer");
+  let customer=data.customers.find(function(x){return customerEl&&String(x.id)===String(customerEl.value)});
+  let customerText=customer?(customer.name||"-"):"-";
+  if(customer&&customer.phone)customerText+=" — "+formatPhoneDigits(customer.phone);
+  document.getElementById("offerPreviewCompany").textContent=company;
+  document.getElementById("offerPreviewAddress").textContent=address;
+  document.getElementById("offerPreviewPhone").textContent=phone;
+  document.getElementById("offerPreviewNo").textContent=no;
+  document.getElementById("offerPreviewCustomer").textContent=customerText;
+  document.getElementById("offerPreviewDate").textContent=offerDisplayDate(date);
+  document.getElementById("offerPreviewValidity").textContent=validity+" Gün";
+  let logoBox=document.getElementById("offerPreviewLogo");
+  if(logoBox){
+    if(data.settings&&data.settings.companyLogo)logoBox.innerHTML='<img alt="Firma Logosu" src="'+data.settings.companyLogo+'">';
+    else logoBox.innerHTML="<span>CS</span>";
+  }
+  let subtotal=offerItems.reduce(function(sum,item){return sum+(Number(item.qty)||0)*(Number(item.unitPrice)||0)},0);
+  let discountAmount=subtotal*discount/100;
+  let total=Math.max(0,subtotal-discountAmount);
+  let rows=document.getElementById("offerPreviewRows");
+  if(rows)rows.innerHTML=offerItems.length?offerItems.map(function(item){
+    let line=(Number(item.qty)||0)*(Number(item.unitPrice)||0);
+    return "<tr><td>"+productEscape(item.description||"-")+"</td><td>"+Number(item.qty||0).toLocaleString("tr-TR")+"</td><td>"+money(item.unitPrice)+"</td><td>"+money(line)+"</td></tr>";
+  }).join(""):'<tr><td colspan="4" class="offer-empty-row">Teklife henüz ürün veya hizmet eklenmedi.</td></tr>';
+  document.getElementById("offerPreviewSubtotal").textContent=money(subtotal);
+  document.getElementById("offerPreviewDiscount").textContent=money(discountAmount);
+  document.getElementById("offerPreviewTotal").textContent=money(total);
+  document.getElementById("offerPreviewNote").textContent=(document.getElementById("offerNote")?.value||"").trim()||"Bu belge fiyat teklifidir.";
+}
+function newOffer(){
+  let next=getOfferSequence()+1;
+  localStorage.setItem("ceptesatis_offer_seq",String(next));
+  offerItems=[];
+  let no=document.getElementById("offerNumber"),date=document.getElementById("offerDate"),discount=document.getElementById("offerDiscount");
+  if(no)no.value=formatOfferNo(next);
+  if(date)date.value=offerToday();
+  if(discount)discount.value="0";
+  renderOfferPreview();
+}
+function printOffer(){
+  renderOfferPreview();
+  window.print();
+}
+function calculateOffer(){renderOfferPreview()}
 
 
 const serviceDevices={
@@ -2288,8 +2547,9 @@ stockRows.innerHTML=data.products.map(x=>`<tr><td>${productEscape(x.group||"Gene
 let stockHistoryRows=document.getElementById("stockHistoryRows");
 if(stockHistoryRows)stockHistoryRows.innerHTML=data.stockMovements.length?data.stockMovements.map(x=>`<tr><td>${x.date||"-"}</td><td>${x.productName||"-"}</td><td>+${x.qty}</td><td>${x.before}</td><td>${x.after}</td><td>${x.user||"-"}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">Henüz sonradan stok ekleme kaydı yok.</td></tr>`;
 let po=data.products.map(x=>`<option value="${x.id}">${x.name} — ${money(x.price)}</option>`).join(""),co=data.customers.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
-if(typeof offerProduct!=="undefined")offerProduct.innerHTML=po;
-if(typeof offerCustomer!=="undefined")offerCustomer.innerHTML=co;
+if(typeof offerProduct!=="undefined"){let oldOfferProduct=offerProduct.value;offerProduct.innerHTML=po;if([...offerProduct.options].some(function(o){return o.value===oldOfferProduct}))offerProduct.value=oldOfferProduct}
+if(typeof offerCustomer!=="undefined"){let oldOfferCustomer=offerCustomer.value;offerCustomer.innerHTML=co;if([...offerCustomer.options].some(function(o){return o.value===oldOfferCustomer}))offerCustomer.value=oldOfferCustomer}
+if(typeof initOfferUI==="function")initOfferUI();
 if(typeof saleCustomer!=="undefined"){
   let old=saleCustomer.value;
   saleCustomer.innerHTML='<option value="">Müşterisiz satış</option>'+co;
