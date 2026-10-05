@@ -691,8 +691,9 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
           <div class="offer-head-actions">
             <button class="btn" type="button" onclick="loadOfferTemplate(4)">📷 4 Kamera</button>
             <button class="btn" type="button" onclick="loadOfferTemplate(8)">📷 8 Kamera</button>
+            <button class="btn" type="button" onclick="loadOfferTemplate(16)">📷 16 Kamera</button>
           </div>
-          <p class="muted">Paketi seç; ürünleri, adetleri ve fiyatları düzenle. İlk kullanımda fiyatları gir.</p>
+          <p class="muted">4, 8 ve 16 kameralı paketler hazır kayıtlıdır. Kamera, kayıt cihazı, HDD, adaptör, kablo ve işçilik dahildir. Fiyatları girip paketi kaydet.</p>
           <button id="saveOfferTemplateButton" class="btn small" type="button" disabled onclick="saveOfferTemplate()">Paketi Kaydet</button>
           <p id="offerTemplateStatus" class="muted" role="status"></p>
         </div>
@@ -1147,7 +1148,7 @@ body.dark .notes-form textarea,body.dark .note-card,body.dark .notes-empty{backg
   <button class="btn" type="button" onclick="saveServiceParts()">Kaydet</button>
   <button type="button" onclick="document.getElementById('servicePartsDialog').close()">Vazgeç</button>
 </dialog>
-<style>.offer-editor-item{grid-template-columns:minmax(0,1fr) 96px 34px}.offer-description-input{grid-column:1/-1;width:100%}#servicePartsDialog::backdrop{background:#0008}#servicePartsLines>div{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ddd}body.dark #servicePartsDialog{background:#172033;color:white}</style>
+<style>.offer-editor-item{grid-template-columns:minmax(0,1fr) 96px 34px}.offer-description-field{grid-column:1/-1}.offer-description-input{width:100%}.offer-editor-item label{margin:0;font-size:11px;font-weight:700;min-width:0}.offer-editor-item input{width:100%;min-width:0}.offer-editor-item button{align-self:end}#servicePartsDialog::backdrop{background:#0008}#servicePartsLines>div{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ddd}body.dark #servicePartsDialog{background:#172033;color:white}</style>
 <script>
 let data=JSON.parse(localStorage.getItem("ceptesatis_data")||'{"products":[],"customers":[],"sales":[],"groups":[]}');
 if(!data.groups)data.groups=[];if(!data.services)data.services=[];if(!data.dealers)data.dealers=[];if(!data.customerGroups)data.customerGroups=[];if(!data.stockMovements)data.stockMovements=[];if(!data.notes)data.notes=[];if(!data.settings)data.settings={};if(typeof data.settings.notesEnabled!=="boolean")data.settings.notesEnabled=true;
@@ -2196,18 +2197,30 @@ function stopSaleScanner(){
 let offerItems=[];
 let offerInitialized=false;
 let activeOfferTemplate=null;
-function loadOfferTemplate(count){
-  if(![4,8].includes(count))return;
-  if(offerItems.length&&!confirm("Mevcut teklif satırları seçilen paketle değiştirilsin mi?"))return;
-  const saved=data.settings?.offerTemplates?.[count];
-  offerItems=saved?.items?.length?JSON.parse(JSON.stringify(saved.items)):[
+function defaultCameraOffer(count){
+  return {items:[
     {description:"Güvenlik Kamerası",qty:count,unitPrice:0,productId:""},
     {description:count+" Kanallı Kayıt Cihazı",qty:1,unitPrice:0,productId:""},
     {description:"Güvenlik Diski (HDD)",qty:1,unitPrice:0,productId:""},
     {description:"Güç Kaynağı / Adaptör",qty:1,unitPrice:0,productId:""},
     {description:"Kablo ve Bağlantı Malzemeleri (Set)",qty:1,unitPrice:0,productId:""},
     {description:"Montaj ve İşçilik",qty:1,unitPrice:0,productId:""}
-  ];
+  ],discount:0,validity:7,note:count+" kameralı güvenlik sistemi fiyat teklifidir."};
+}
+function ensureCameraOffers(){
+  data.settings??={};data.settings.offerTemplates??={};
+  let changed=false;
+  for(const count of [4,8,16]){
+    if(!data.settings.offerTemplates[count]){data.settings.offerTemplates[count]=defaultCameraOffer(count);changed=true}
+  }
+  if(changed)localStorage.setItem("ceptesatis_data",JSON.stringify(data));
+}
+function loadOfferTemplate(count){
+  if(![4,8,16].includes(count))return;
+  if(offerItems.length&&!confirm("Mevcut teklif satırları seçilen paketle değiştirilsin mi?"))return;
+  ensureCameraOffers();
+  const saved=data.settings.offerTemplates[count];
+  offerItems=JSON.parse(JSON.stringify(saved.items));
   document.getElementById("offerDiscount").value=saved?.discount??0;
   document.getElementById("offerValidity").value=saved?.validity??7;
   document.getElementById("offerNote").value=saved?.note??(count+" kameralı güvenlik sistemi fiyat teklifidir.");
@@ -2255,6 +2268,7 @@ function getOfferSequence(){
 }
 function formatOfferNo(n){return "TKL-"+String(n).padStart(5,"0")}
 function initOfferUI(){
+  ensureCameraOffers();
   let customer=document.getElementById("offerCustomer"),product=document.getElementById("offerProduct");
   if(!customer||!product)return;
   if(!offerInitialized){
@@ -2329,9 +2343,9 @@ function renderOfferEditor(){
   let box=document.getElementById("offerItemsEditor");if(!box)return;
   if(!offerItems.length){box.innerHTML='<div class="muted" style="font-size:12px">Henüz satır eklenmedi.</div>';return}
   box.innerHTML=offerItems.map(function(item,i){
-    return '<div class="offer-editor-item"><input class="offer-description-input" aria-label="Ürün veya hizmet açıklaması" value="'+productEscape(item.description)+'" oninput="updateOfferLine('+i+',&quot;description&quot;,this.value)">'+
-      '<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',&quot;qty&quot;,this.value)">'+
-      '<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',&quot;unitPrice&quot;,this.value)">'+
+    return '<div class="offer-editor-item"><label class="offer-description-field">Ürün / Hizmet<input class="offer-description-input" aria-label="Ürün veya hizmet açıklaması" value="'+productEscape(item.description)+'" oninput="updateOfferLine('+i+',&quot;description&quot;,this.value)"></label>'+
+      '<label>Adet<input aria-label="Adet" type="number" min="0.01" step="0.01" value="'+Number(item.qty||0)+'" onchange="updateOfferLine('+i+',&quot;qty&quot;,this.value)"></label>'+
+      '<label>Birim Fiyat (₺)<input aria-label="Birim fiyat" type="number" min="0" step="0.01" value="'+Number(item.unitPrice||0)+'" onchange="updateOfferLine('+i+',&quot;unitPrice&quot;,this.value)"></label>'+
       '<button type="button" onclick="removeOfferLine('+i+')" title="Satırı sil">×</button></div>';
   }).join("");
 }
@@ -2912,4 +2926,5 @@ heading('Teknik Servis Kayıtları');if(!services.length)line('Henüz teknik ser
 document.getElementById('customerDetailDialog').showModal();
 }
 </script></body></html>
+
 
